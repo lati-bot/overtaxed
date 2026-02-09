@@ -45,38 +45,19 @@ interface MultipleResults {
   township: string;
 }
 
-interface CompsData {
-  subject: {
-    pin: string;
-    sqFt: number;
-    beds: number;
-    assessedTot: number;
-    assessedBldg: number;
-    perSqFt: number;
-    marketValue: number;
+interface AnalysisData {
+  found: boolean;
+  status?: "over" | "fair";
+  current_assessment?: number;
+  fair_assessment?: number;
+  estimated_savings?: number;
+  comp_count?: number;
+  neighborhood_stats?: {
+    total_properties: number;
+    over_assessed_count: number;
+    total_potential_savings: number;
   };
-  assessmentComps: {
-    pin: string;
-    sqFt: number;
-    beds: number;
-    yearBuilt: number;
-    assessedBldg: number;
-    perSqFt: number;
-  }[];
-  salesComps: {
-    pin: string;
-    sqFt: number;
-    beds: number;
-    salePrice: number;
-    saleDate: string;
-    perSqFt: number;
-  }[];
-  analysis: {
-    estimatedSavings: number;
-    method: "uniformity" | "sales" | "none";
-    fairAssessment: number;
-    medianCompPerSqFt: number;
-  };
+  message?: string;
 }
 
 export default function ResultsContent() {
@@ -86,24 +67,20 @@ export default function ResultsContent() {
   const [error, setError] = useState<string | null>(null);
   const [property, setProperty] = useState<PropertyData | null>(null);
   const [multipleResults, setMultipleResults] = useState<MultipleResults[] | null>(null);
-  const [comps, setComps] = useState<CompsData | null>(null);
-  const [compsLoading, setCompsLoading] = useState(false);
+  const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
 
-  const fetchComps = async (propertyPin: string) => {
-    setCompsLoading(true);
+  const fetchAnalysis = async (propertyPin: string) => {
     try {
       const response = await fetch(`/api/comps?pin=${propertyPin}`);
       if (response.ok) {
         const data = await response.json();
-        setComps(data);
+        setAnalysis(data);
       }
     } catch {
-      // Comps are optional, don't error
-    } finally {
-      setCompsLoading(false);
+      // Analysis is optional
     }
   };
 
@@ -112,7 +89,7 @@ export default function ResultsContent() {
     setError(null);
     setProperty(null);
     setMultipleResults(null);
-    setComps(null);
+    setAnalysis(null);
 
     try {
       const params = new URLSearchParams();
@@ -136,8 +113,7 @@ export default function ResultsContent() {
         setMultipleResults(data.results);
       } else {
         setProperty(data.property);
-        // Fetch comps after property loads
-        fetchComps(data.property.pin);
+        fetchAnalysis(data.property.pin);
       }
     } catch {
       setError("Failed to fetch property data. Please try again.");
@@ -239,10 +215,11 @@ export default function ResultsContent() {
   
   const estimatedMarketValue = currentAssessment * 10;
   
-  // Use real comps data if available, otherwise show placeholder
-  const hasComps = comps && comps.analysis.method !== "none";
-  const estimatedSavings = hasComps ? comps.analysis.estimatedSavings : Math.round(currentAssessment * 0.15);
-  const savingsMethod = comps?.analysis.method;
+  // Use precomputed analysis if available
+  const hasAnalysis = analysis?.found && analysis.status === "over";
+  const estimatedSavings = hasAnalysis ? analysis.estimated_savings! : 0;
+  const fairAssessment = hasAnalysis ? analysis.fair_assessment! : currentAssessment;
+  const compCount = analysis?.comp_count || 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -281,6 +258,76 @@ export default function ResultsContent() {
             </div>
           </div>
         </div>
+
+        {/* Analysis Result */}
+        {analysis?.found && (
+          <div className={`mt-6 rounded-xl border p-6 md:p-8 ${
+            analysis.status === "over" 
+              ? "bg-green-50 border-green-200" 
+              : "bg-gray-50 border-gray-200"
+          }`}>
+            {analysis.status === "over" ? (
+              <>
+                <div className="flex items-center gap-2 text-green-700 font-medium">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  You&apos;re Over-Assessed
+                </div>
+                <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <div className="text-sm text-gray-500">Current</div>
+                    <div className="text-xl font-semibold text-gray-900">${currentAssessment.toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Fair Value</div>
+                    <div className="text-xl font-semibold text-green-700">${fairAssessment.toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Potential Reduction</div>
+                    <div className="text-xl font-semibold text-green-700">
+                      ${(currentAssessment - fairAssessment).toLocaleString()}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-sm text-gray-500">Est. Tax Savings</div>
+                    <div className="text-xl font-semibold text-green-700">${estimatedSavings.toLocaleString()}/yr</div>
+                  </div>
+                </div>
+                <p className="mt-4 text-sm text-gray-600">
+                  Based on {compCount} comparable properties in your neighborhood, your assessment is higher than similar homes.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2 text-gray-700 font-medium">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Fairly Assessed
+                </div>
+                <p className="mt-2 text-sm text-gray-600">
+                  Based on {compCount} comparable properties, your assessment appears to be in line with similar homes in your area.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Not in analyzed area */}
+        {analysis && !analysis.found && (
+          <div className="mt-6 bg-yellow-50 rounded-xl border border-yellow-200 p-6 md:p-8">
+            <div className="flex items-center gap-2 text-yellow-700 font-medium">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              Analysis Coming Soon
+            </div>
+            <p className="mt-2 text-sm text-gray-600">
+              We&apos;re still analyzing properties in your area. Check back soon or enter your email to be notified when your analysis is ready.
+            </p>
+          </div>
+        )}
 
         {/* Property Details */}
         {property.characteristics && (
@@ -323,92 +370,6 @@ export default function ResultsContent() {
             </div>
           </div>
         )}
-
-        {/* Comparable Properties */}
-        {compsLoading ? (
-          <div className="mt-6 bg-white rounded-xl border border-gray-200 p-6 md:p-8">
-            <div className="flex items-center gap-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
-              <span className="text-gray-500">Finding comparable properties...</span>
-            </div>
-          </div>
-        ) : comps && (comps.assessmentComps.length > 0 || comps.salesComps.length > 0) ? (
-          <div className="mt-6 bg-white rounded-xl border border-gray-200 p-6 md:p-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Comparable Properties</h2>
-            
-            {comps.assessmentComps.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  Similar Assessments in Your Area
-                  <span className="ml-2 text-xs text-gray-400 font-normal">
-                    (Your assessment: ${comps.subject.perSqFt}/sqft)
-                  </span>
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-left py-2 text-gray-500 font-medium">PIN</th>
-                        <th className="text-right py-2 text-gray-500 font-medium">Sq Ft</th>
-                        <th className="text-right py-2 text-gray-500 font-medium">Beds</th>
-                        <th className="text-right py-2 text-gray-500 font-medium">Assessment</th>
-                        <th className="text-right py-2 text-gray-500 font-medium">$/SqFt</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {comps.assessmentComps.slice(0, 5).map((comp) => (
-                        <tr key={comp.pin} className="border-b border-gray-50">
-                          <td className="py-2 font-mono text-xs">{comp.pin}</td>
-                          <td className="py-2 text-right">{comp.sqFt.toLocaleString()}</td>
-                          <td className="py-2 text-right">{comp.beds}</td>
-                          <td className="py-2 text-right">${comp.assessedBldg.toLocaleString()}</td>
-                          <td className={`py-2 text-right font-medium ${comp.perSqFt < comps.subject.perSqFt ? "text-green-600" : ""}`}>
-                            ${comp.perSqFt}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-
-            {comps.salesComps.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3">
-                  Recent Sales
-                  <span className="ml-2 text-xs text-gray-400 font-normal">
-                    (Your implied value: ${comps.subject.marketValue.toLocaleString()})
-                  </span>
-                </h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-gray-100">
-                        <th className="text-left py-2 text-gray-500 font-medium">PIN</th>
-                        <th className="text-right py-2 text-gray-500 font-medium">Sq Ft</th>
-                        <th className="text-right py-2 text-gray-500 font-medium">Sale Price</th>
-                        <th className="text-right py-2 text-gray-500 font-medium">Date</th>
-                        <th className="text-right py-2 text-gray-500 font-medium">$/SqFt</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {comps.salesComps.slice(0, 5).map((comp) => (
-                        <tr key={comp.pin} className="border-b border-gray-50">
-                          <td className="py-2 font-mono text-xs">{comp.pin}</td>
-                          <td className="py-2 text-right">{comp.sqFt.toLocaleString()}</td>
-                          <td className="py-2 text-right">${comp.salePrice.toLocaleString()}</td>
-                          <td className="py-2 text-right text-gray-500">{comp.saleDate}</td>
-                          <td className="py-2 text-right font-medium">${comp.perSqFt}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : null}
 
         {/* Assessment History */}
         {property.assessmentHistory.length > 0 && (
@@ -455,45 +416,39 @@ export default function ResultsContent() {
         )}
 
         {/* CTA */}
-        <div className="mt-8 bg-primary/5 rounded-xl border border-primary/20 p-6 md:p-8 text-center">
-          {hasComps ? (
-            <>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Potential Savings: ${estimatedSavings.toLocaleString()}/year
-              </h2>
-              <p className="mt-2 text-gray-500 max-w-lg mx-auto">
-                Based on {savingsMethod === "uniformity" ? "similar assessments" : "recent sales"} in your area, 
-                your property appears to be over-assessed. Get a complete appeal package for just $49.
-              </p>
-            </>
-          ) : compsLoading ? (
-            <>
-              <h2 className="text-xl font-semibold text-gray-900">Analyzing your property...</h2>
-              <p className="mt-2 text-gray-500">Finding comparable properties to estimate potential savings.</p>
-            </>
-          ) : (
-            <>
-              <h2 className="text-xl font-semibold text-gray-900">
-                Potential Savings: ${estimatedSavings.toLocaleString()}/year
-              </h2>
-              <p className="mt-2 text-gray-500 max-w-lg mx-auto">
-                Based on typical reductions in your area, you may be able to reduce your assessment.
-                Get a full analysis with comparable properties for just $49.
-              </p>
-            </>
-          )}
-          <Button size="lg" className="mt-6 h-12 px-8">
-            Get Your Appeal Package — $49
-          </Button>
-          <p className="mt-3 text-sm text-gray-400">
-            Includes 5+ comparable properties, pre-filled forms, and filing instructions
-          </p>
-        </div>
+        {hasAnalysis && (
+          <div className="mt-8 bg-primary/5 rounded-xl border border-primary/20 p-6 md:p-8 text-center">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Save ${estimatedSavings.toLocaleString()}/year on your property taxes
+            </h2>
+            <p className="mt-2 text-gray-500 max-w-lg mx-auto">
+              Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
+            </p>
+            <Button size="lg" className="mt-6 h-12 px-8">
+              Get Your Appeal Package — $49
+            </Button>
+            <p className="mt-3 text-sm text-gray-400">
+              One-time fee • Delivered in 48 hours
+            </p>
+          </div>
+        )}
+
+        {analysis?.found && analysis.status === "fair" && (
+          <div className="mt-8 bg-gray-50 rounded-xl border border-gray-200 p-6 md:p-8 text-center">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Good news — you&apos;re not overpaying
+            </h2>
+            <p className="mt-2 text-gray-500 max-w-lg mx-auto">
+              Based on our analysis, your property is fairly assessed compared to similar homes. No action needed!
+            </p>
+          </div>
+        )}
 
         {/* Disclaimer */}
         <p className="mt-8 text-xs text-gray-400 text-center">
-          Assessment data from Cook County Assessor&apos;s Office. Potential savings are estimates 
-          based on comparable properties and may vary. Past results do not guarantee future outcomes.
+          Assessment data from Cook County Assessor&apos;s Office. Savings estimates based on 
+          {analysis?.comp_count ? ` ${analysis.comp_count}` : ""} comparable properties and may vary. 
+          Past results do not guarantee future outcomes.
         </p>
       </div>
     </div>
