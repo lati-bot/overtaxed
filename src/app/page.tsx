@@ -195,10 +195,8 @@ export default function Home() {
               </li>
             </ul>
             
-            <Button size="lg" className="mt-10 h-14 px-12 text-base font-medium" asChild>
-              <a href="https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00" target="_blank" rel="noopener noreferrer">
-                Get Your Appeal Package
-              </a>
+            <Button size="lg" className="mt-10 h-14 px-12 text-base font-medium" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+              Get Your Appeal Package
             </Button>
             
             <p className="mt-4 text-sm text-gray-400">
