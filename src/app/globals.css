@@ -1,9 +1,11 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-primary: oklch(0.5 0.163 145);
+  --color-primary: oklch(0.55 0.18 155);
   --color-primary-foreground: oklch(0.982 0 0);
   --radius: 0.625rem;
+  --font-family-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-family-display: var(--font-display), ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
@@ -12,5 +14,10 @@
   }
   body {
     @apply bg-white text-gray-900 antialiased;
+    font-family: var(--font-family-sans);
   }
+}
+
+.font-display {
+  font-family: var(--font-family-display);
 }
