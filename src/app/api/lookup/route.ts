@@ -47,10 +47,15 @@ function parseAddress(input: string): { houseNum: string; street: string } | nul
   // Clean up the input
   let cleaned = input.trim().toUpperCase();
   
-  // Remove city, state, zip first (before parsing house number)
+  // Remove zip code first
+  cleaned = cleaned.replace(/\s+\d{5}(-\d{4})?\s*$/, "");
+  
+  // Remove city/state - but only as whole words (not inside other words like "PHILLIPS")
   cleaned = cleaned
-    .replace(/,?\s*(CHICAGO|IL|ILLINOIS)\s*/gi, " ")
-    .replace(/\s+\d{5}(-\d{4})?\s*$/, "") // Remove zip code
+    .replace(/,?\s*\bCHICAGO\b\s*/gi, " ")
+    .replace(/,?\s*\bILLINOIS\b\s*/gi, " ")
+    .replace(/,\s*\bIL\b\s*/gi, " ")  // Only match "IL" after a comma to avoid matching inside words
+    .replace(/\s+\bIL\b\s*$/gi, " ")  // Or "IL" at the end
     .replace(/,/g, " ")
     .replace(/\s+/g, " ")
     .trim();
