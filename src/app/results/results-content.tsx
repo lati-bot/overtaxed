@@ -381,34 +381,40 @@ export default function ResultsContent() {
                   <tr className="border-b border-gray-100">
                     <th className="text-left py-2 text-gray-500 font-medium">Year</th>
                     <th className="text-right py-2 text-gray-500 font-medium">Initial</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">Certified</th>
-                    <th className="text-right py-2 text-gray-500 font-medium">After Appeal</th>
+                    <th className="text-right py-2 text-gray-500 font-medium">Final</th>
+                    <th className="text-right py-2 text-gray-500 font-medium">Savings</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {property.assessmentHistory.map((year) => (
+                  {property.assessmentHistory.map((year) => {
+                    const finalValue = year.boardTotal || year.certifiedTotal || year.mailedTotal;
+                    const savedAmount = year.mailedTotal - finalValue;
+                    const savedPercent = savedAmount > 0 ? Math.round((savedAmount / year.mailedTotal) * 100) : 0;
+                    
+                    return (
                     <tr key={year.year} className="border-b border-gray-50">
                       <td className="py-3 font-medium">{year.year}</td>
                       <td className="py-3 text-right text-gray-600">
                         ${year.mailedTotal.toLocaleString()}
                       </td>
                       <td className="py-3 text-right text-gray-600">
-                        {year.certifiedTotal ? `$${year.certifiedTotal.toLocaleString()}` : "—"}
+                        ${finalValue.toLocaleString()}
                       </td>
                       <td className="py-3 text-right">
-                        {year.boardTotal ? (
-                          <span className={year.boardTotal < year.mailedTotal ? "text-green-600 font-medium" : ""}>
-                            ${year.boardTotal.toLocaleString()}
-                            {year.boardTotal < year.mailedTotal && (
-                              <span className="text-xs ml-1">
-                                (-{Math.round((1 - year.boardTotal / year.mailedTotal) * 100)}%)
-                              </span>
-                            )}
+                        {savedAmount > 0 ? (
+                          <span className="text-green-600 font-medium">
+                            -${savedAmount.toLocaleString()}
+                            <span className="text-xs ml-1">
+                              (-{savedPercent}%)
+                            </span>
                           </span>
-                        ) : "—"}
+                        ) : (
+                          <span className="text-gray-400">—</span>
+                        )}
                       </td>
                     </tr>
-                  ))}
+                  );
+                  })}
                 </tbody>
               </table>
             </div>
