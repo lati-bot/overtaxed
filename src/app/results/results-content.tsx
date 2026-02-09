@@ -430,7 +430,11 @@ export default function ResultsContent() {
             <p className="mt-2 text-gray-500 max-w-lg mx-auto">
               Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
             </p>
-            <a href="https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00" target="_blank" rel="noopener noreferrer">
+            <a 
+              href={`https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00?prefilled_custom_field[property_address]=${encodeURIComponent(`${property.address}, ${property.city}, IL ${property.zip} (PIN: ${property.pin})`)}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
               <Button size="lg" className="mt-6 h-12 px-8">
                 Get Your Appeal Package — $49
               </Button>
