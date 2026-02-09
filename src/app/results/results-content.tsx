@@ -431,7 +431,7 @@ export default function ResultsContent() {
               Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
             </p>
             <a 
-              href={`https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00?prefilled_custom_field[property_address]=${encodeURIComponent(`${property.address}, ${property.city}, IL ${property.zip} (PIN: ${property.pin})`)}`} 
+              href={`https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00?client_reference_id=${property.pin}&prefilled_email=`} 
               target="_blank" 
               rel="noopener noreferrer"
             >
