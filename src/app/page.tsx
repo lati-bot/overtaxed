@@ -1,21 +1,89 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+interface AutocompleteResult {
+  pin: string;
+  address: string;
+  city: string;
+  zip: string;
+  township: string;
+  display: string;
+}
+
 export default function Home() {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<AutocompleteResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedPin, setSelectedPin] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Debounced autocomplete search
+  useEffect(() => {
+    if (address.length < 3 || selectedPin) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/autocomplete?q=${encodeURIComponent(address)}`);
+        const data = await response.json();
+        setSuggestions(data.results || []);
+        setShowSuggestions(true);
+      } catch {
+        setSuggestions([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [address, selectedPin]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        suggestionsRef.current && 
+        !suggestionsRef.current.contains(e.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(e.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectSuggestion = (suggestion: AutocompleteResult) => {
+    setAddress(suggestion.display);
+    setSelectedPin(suggestion.pin);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setAddress(e.target.value);
+    setSelectedPin(null); // Reset PIN when user types
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address.trim()) return;
     
     setLoading(true);
-    router.push(`/results?address=${encodeURIComponent(address.trim())}`);
+    if (selectedPin) {
+      router.push(`/results?pin=${selectedPin}`);
+    } else {
+      router.push(`/results?address=${encodeURIComponent(address.trim())}`);
+    }
   };
 
   const scrollToSection = (id: string) => {
@@ -68,14 +136,39 @@ export default function Home() {
           </p>
           
           <form onSubmit={handleSearch} className="mt-10 flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
-            <Input 
-              type="text"
-              placeholder="Enter your property address or PIN"
-              className="h-14 text-lg px-6 flex-1"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              disabled={loading}
-            />
+            <div className="relative flex-1">
+              <Input 
+                ref={inputRef}
+                type="text"
+                placeholder="Enter your property address or PIN"
+                className="h-14 text-lg px-6 w-full"
+                value={address}
+                onChange={handleInputChange}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                disabled={loading}
+                autoComplete="off"
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div 
+                  ref={suggestionsRef}
+                  className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden"
+                >
+                  {suggestions.map((suggestion, index) => (
+                    <button
+                      key={suggestion.pin}
+                      type="button"
+                      className={`w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
+                        index !== suggestions.length - 1 ? "border-b border-gray-100" : ""
+                      }`}
+                      onClick={() => handleSelectSuggestion(suggestion)}
+                    >
+                      <div className="font-medium text-gray-900">{suggestion.address}</div>
+                      <div className="text-sm text-gray-500">{suggestion.city}, IL {suggestion.zip.split('-')[0]} • {suggestion.township}</div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <Button 
               type="submit" 
               size="lg" 
