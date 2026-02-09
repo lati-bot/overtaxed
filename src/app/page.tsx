@@ -53,14 +53,18 @@ export default function Home() {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-sm font-medium mb-6">
+            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+            Serving Cook County, IL
+          </div>
           <h1 className="text-5xl md:text-7xl font-semibold tracking-tight text-gray-900 leading-[1.1]">
-            Your property tax
+            Find out if you&apos;re
             <br />
-            <span className="text-primary">is too high.</span>
+            <span className="text-primary">overpaying property tax</span>
           </h1>
           <p className="mt-6 text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed">
-            Cook County over-assesses thousands of homes every year. 
-            Get a professional appeal package and pay only what&apos;s fair.
+            Many Cook County homes are assessed higher than similar properties. 
+            You have the right to appeal — we make it easy.
           </p>
           
           <form onSubmit={handleSearch} className="mt-10 flex flex-col sm:flex-row gap-3 max-w-xl mx-auto">
@@ -191,8 +195,10 @@ export default function Home() {
               </li>
             </ul>
             
-            <Button size="lg" className="mt-10 h-14 px-12 text-base font-medium" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-              Get Your Appeal Package
+            <Button size="lg" className="mt-10 h-14 px-12 text-base font-medium" asChild>
+              <a href="https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00" target="_blank" rel="noopener noreferrer">
+                Get Your Appeal Package
+              </a>
             </Button>
             
             <p className="mt-4 text-sm text-gray-400">
@@ -248,10 +254,10 @@ export default function Home() {
       <section className="py-24 px-6 bg-gray-900 text-white">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-semibold">
-            Stop overpaying.
+            See if you have a case.
           </h2>
           <p className="mt-4 text-gray-400 text-lg">
-            Check your property in 30 seconds and see if you have a case.
+            Check your property in 30 seconds — it&apos;s free.
           </p>
           <Button 
             size="lg" 

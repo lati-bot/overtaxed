@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Property Tax Appeal Package</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1a1a1a;
+      line-height: 1.5;
+      background: #fff;
+    }
+    
+    .page {
+      max-width: 700px;
+      margin: 0 auto;
+      padding: 48px 32px;
+      page-break-after: always;
+    }
+    
+    .page:last-child {
+      page-break-after: avoid;
+    }
+    
+    /* Page 1: The Answer */
+    .hero-number {
+      font-size: 72px;
+      font-weight: 700;
+      color: #16a34a;
+      letter-spacing: -2px;
+      margin-bottom: 8px;
+    }
+    
+    .hero-label {
+      font-size: 24px;
+      color: #666;
+      margin-bottom: 48px;
+    }
+    
+    .property-address {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .property-details {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 32px;
+    }
+    
+    .verdict {
+      background: #f0fdf4;
+      border: 2px solid #16a34a;
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 32px;
+    }
+    
+    .verdict-text {
+      font-size: 18px;
+      font-weight: 500;
+      color: #166534;
+    }
+    
+    /* Comparison Visual */
+    .comparison {
+      margin: 32px 0;
+    }
+    
+    .comparison-row {
+      display: flex;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .comparison-label {
+      width: 140px;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .comparison-bar-container {
+      flex: 1;
+      height: 32px;
+      background: #f3f4f6;
+      border-radius: 4px;
+      position: relative;
+    }
+    
+    .comparison-bar {
+      height: 100%;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      padding-left: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      color: #fff;
+    }
+    
+    .bar-you {
+      background: #ef4444;
+      width: 100%;
+    }
+    
+    .bar-similar {
+      background: #16a34a;
+      width: 60%;
+    }
+    
+    .comparison-value {
+      margin-left: 12px;
+      font-weight: 600;
+      font-size: 14px;
+      color: #1a1a1a;
+    }
+    
+    /* Stats Grid */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin: 32px 0;
+    }
+    
+    .stat {
+      background: #f9fafb;
+      border-radius: 8px;
+      padding: 16px;
+    }
+    
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+    
+    .stat-value.green {
+      color: #16a34a;
+    }
+    
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+    
+    /* Page 2: The Proof */
+    .section-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    
+    .section-subtitle {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 24px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin: 24px 0;
+    }
+    
+    th {
+      text-align: left;
+      padding: 10px 6px;
+      border-bottom: 2px solid #e5e7eb;
+      font-weight: 600;
+      color: #666;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    th:last-child {
+      text-align: right;
+    }
+    
+    td {
+      padding: 10px 6px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    td:last-child {
+      text-align: right;
+      font-weight: 600;
+    }
+    
+    tr:last-child td {
+      border-bottom: none;
+    }
+    
+    .highlight-row {
+      background: #fef2f2;
+    }
+    
+    .highlight-row td {
+      color: #dc2626;
+      font-weight: 600;
+    }
+    
+    .median-row {
+      background: #f0fdf4;
+      font-weight: 600;
+    }
+    
+    .median-row td {
+      color: #16a34a;
+      border-top: 2px solid #16a34a;
+    }
+    
+    .address-cell {
+      font-size: 11px;
+    }
+    
+    .pin-cell {
+      font-family: monospace;
+      font-size: 10px;
+      color: #666;
+    }
+    
+    .table-note {
+      font-size: 12px;
+      color: #666;
+      margin-top: 8px;
+    }
+    
+    /* Page 3: The Steps */
+    .steps {
+      counter-reset: step;
+    }
+    
+    .step {
+      display: flex;
+      margin-bottom: 24px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid #f3f4f6;
+    }
+    
+    .step:last-child {
+      border-bottom: none;
+    }
+    
+    .step-number {
+      width: 32px;
+      height: 32px;
+      background: #1a1a1a;
+      color: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+      margin-right: 16px;
+    }
+    
+    .step-content {
+      flex: 1;
+    }
+    
+    .step-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+    
+    .step-description {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .step-link {
+      display: inline-block;
+      margin-top: 8px;
+      color: #2563eb;
+      font-size: 13px;
+      word-break: break-all;
+    }
+    
+    .pin-box {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 12px 16px;
+      font-family: monospace;
+      font-size: 16px;
+      margin-top: 8px;
+      display: inline-block;
+    }
+    
+    .checklist {
+      list-style: none;
+      margin-top: 12px;
+    }
+    
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      padding: 6px 0;
+      font-size: 13px;
+    }
+    
+    .checklist li::before {
+      content: "☐";
+      margin-right: 10px;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+    
+    .checklist-pin {
+      font-family: monospace;
+      font-size: 12px;
+      color: #666;
+      margin-left: 4px;
+    }
+    
+    /* Action Box */
+    .action-box {
+      border-radius: 12px;
+      padding: 20px;
+      margin: 24px 0;
+    }
+    
+    .action-box.green {
+      background: #f0fdf4;
+      border: 2px solid #16a34a;
+    }
+    
+    .action-box.yellow {
+      background: #fef3c7;
+      border: 2px solid #f59e0b;
+    }
+    
+    .action-box.gray {
+      background: #f9fafb;
+      border: 2px solid #d1d5db;
+    }
+    
+    .action-box-title {
+      font-weight: 700;
+      font-size: 16px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .action-box.green .action-box-title {
+      color: #166534;
+    }
+    
+    .action-box.yellow .action-box-title {
+      color: #92400e;
+    }
+    
+    .action-box-text {
+      font-size: 14px;
+      color: #374151;
+    }
+    
+    .action-box.green .action-box-text {
+      color: #166534;
+    }
+    
+    .action-box.yellow .action-box-text {
+      color: #92400e;
+    }
+    
+    /* Footer */
+    .footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 11px;
+      color: #999;
+    }
+    
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      font-style: italic;
+      color: #1a1a1a;
+      margin-bottom: 24px;
+    }
+    
+    /* Two-column layout for step 4 */
+    .pins-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 24px;
+      margin-top: 12px;
+    }
+    
+    .pins-grid .checklist-item {
+      display: flex;
+      align-items: center;
+      padding: 4px 0;
+      font-size: 12px;
+    }
+    
+    .pins-grid .checklist-item::before {
+      content: "☐";
+      margin-right: 8px;
+      font-size: 14px;
+    }
+    
+    @media print {
+      body {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+      
+      .page {
+        padding: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- PAGE 1: THE ANSWER -->
+  <div class="page">
+    <div class="logo">overtaxed</div>
+    
+    <div class="hero-number">$4,363</div>
+    <div class="hero-label">estimated annual savings</div>
+    
+    <div class="property-address">5737 N Washtenaw Ave</div>
+    <div class="property-details">
+      Chicago, IL 60659 · PIN: 13-01-418-009-0000 · Jefferson Township
+    </div>
+    
+    <div class="verdict">
+      <div class="verdict-text">
+        Your property is assessed 66% higher than similar homes in your neighborhood.
+      </div>
+    </div>
+    
+    <div class="comparison">
+      <div class="comparison-row">
+        <div class="comparison-label">Your home</div>
+        <div class="comparison-bar-container">
+          <div class="comparison-bar bar-you">$21.57/sqft</div>
+        </div>
+      </div>
+      <div class="comparison-row">
+        <div class="comparison-label">Similar homes</div>
+        <div class="comparison-bar-container">
+          <div class="comparison-bar bar-similar">$13.00/sqft</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value">$68,700</div>
+        <div class="stat-label">Current Assessment</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value green">$46,884</div>
+        <div class="stat-label">Fair Assessment</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value green">$21,816</div>
+        <div class="stat-label">Potential Reduction</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value green">$4,363/yr</div>
+        <div class="stat-label">Estimated Tax Savings</div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      Analysis based on Cook County Assessor data. Assessment comparisons use Class 211 properties 
+      in neighborhood 71041 with similar square footage (±25%), bedrooms (±1), and year built (±20 years).
+    </div>
+  </div>
+  
+  <!-- PAGE 2: THE PROOF -->
+  <div class="page">
+    <div class="section-title">Comparable Properties</div>
+    <div class="section-subtitle">
+      8 similar properties in your neighborhood — all Class 211 (2-4 unit), 
+      built 1922-1928, 2,990-3,172 sqft, 4-5 bedrooms.
+    </div>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Address</th>
+          <th>PIN</th>
+          <th>Sqft</th>
+          <th>Beds</th>
+          <th>Year</th>
+          <th>$/sqft</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="address-cell">5917 N Campbell Ave</td>
+          <td class="pin-cell">13-01-406-018</td>
+          <td>3,172</td>
+          <td>5</td>
+          <td>1923</td>
+          <td>$12.68</td>
+        </tr>
+        <tr>
+          <td class="address-cell">6323 N Troy St</td>
+          <td class="pin-cell">13-01-101-017</td>
+          <td>2,990</td>
+          <td>5</td>
+          <td>1928</td>
+          <td>$12.84</td>
+        </tr>
+        <tr>
+          <td class="address-cell">5716 N Rockwell St</td>
+          <td class="pin-cell">13-01-419-033</td>
+          <td>3,144</td>
+          <td>5</td>
+          <td>1927</td>
+          <td>$12.87</td>
+        </tr>
+        <tr>
+          <td class="address-cell">2424 W Hollywood Ave</td>
+          <td class="pin-cell">13-01-423-019</td>
+          <td>3,164</td>
+          <td>5</td>
+          <td>1922</td>
+          <td>$12.97</td>
+        </tr>
+        <tr>
+          <td class="address-cell">5915 N Rockwell St</td>
+          <td class="pin-cell">13-01-404-017</td>
+          <td>3,076</td>
+          <td>4</td>
+          <td>1922</td>
+          <td>$13.00</td>
+        </tr>
+        <tr>
+          <td class="address-cell">5725 N Artesian Ave</td>
+          <td class="pin-cell">13-01-423-011</td>
+          <td>3,133</td>
+          <td>5</td>
+          <td>1925</td>
+          <td>$13.02</td>
+        </tr>
+        <tr>
+          <td class="address-cell">5630 N Campbell Ave</td>
+          <td class="pin-cell">13-01-430-024</td>
+          <td>3,122</td>
+          <td>5</td>
+          <td>1925</td>
+          <td>$13.07</td>
+        </tr>
+        <tr>
+          <td class="address-cell">5910 N Campbell Ave</td>
+          <td class="pin-cell">13-01-405-034</td>
+          <td>3,168</td>
+          <td>5</td>
+          <td>1927</td>
+          <td>$13.13</td>
+        </tr>
+        <tr class="median-row">
+          <td colspan="5">Median of comparables</td>
+          <td>$13.00</td>
+        </tr>
+        <tr class="highlight-row">
+          <td colspan="5">Your property (5737 N Washtenaw Ave)</td>
+          <td>$21.57</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    <div class="table-note">
+      All properties are in neighborhood 71041 (Jefferson Township). Data from Cook County Assessor's Office, Tax Year 2025.
+    </div>
+    
+    <div style="margin-top: 32px;">
+      <div class="section-title" style="font-size: 18px;">The Math</div>
+      <div style="font-size: 14px; color: #666; margin-top: 12px; line-height: 1.8;">
+        <strong>Your assessment:</strong> $68,700 total · 2,547 sqft = <strong style="color: #dc2626;">$21.57/sqft</strong><br>
+        <strong>Median comparable:</strong> <strong style="color: #16a34a;">$13.00/sqft</strong><br>
+        <strong>Fair assessment:</strong> 2,547 sqft × $13.00 = <strong>$33,111</strong> (building) + $13,764 (land) = <strong>$46,875</strong><br>
+        <strong>Reduction:</strong> $68,700 − $46,875 = <strong style="color: #16a34a;">$21,825</strong><br>
+        <strong>Est. tax savings:</strong> $21,825 × 10 × 2% ≈ <strong style="color: #16a34a;">$4,365/year</strong>
+      </div>
+    </div>
+  </div>
+  
+  <!-- PAGE 3: HOW TO FILE -->
+  <div class="page">
+    <div class="section-title">How to File Your Appeal</div>
+    <div class="section-subtitle">
+      File with the Cook County Assessor (simpler) or Board of Review. Same evidence works for both.
+    </div>
+    
+    <!-- DYNAMIC STATUS BOX - This would be generated based on current date + township -->
+    <div class="action-box yellow">
+      <div class="action-box-title">
+        ⏳ Your Next Step: Wait for 2026 Appeals
+      </div>
+      <div class="action-box-text">
+        Jefferson Township's 2025 appeal windows have closed. Your next opportunity to appeal will be 
+        when the <strong>Assessor opens for Tax Year 2026</strong> (typically late 2026). 
+        Check <a href="https://www.cookcountyassessoril.gov/assessment-calendar-and-deadlines" style="color: #92400e; text-decoration: underline;">cookcountyassessoril.gov</a> for updates.
+        <br><br>
+        <strong>In the meantime:</strong> Save this document. When the window opens, you'll have everything ready to file in minutes.
+      </div>
+    </div>
+    
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <div class="step-title">Go to the Assessor's appeal portal</div>
+          <div class="step-description">
+            Create an account or log in. Click "Residential" to start.
+          </div>
+          <a class="step-link" href="https://www.cookcountyassessoril.gov/online-appeals">
+            cookcountyassessoril.gov/online-appeals
+          </a>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <div class="step-title">Enter your PIN</div>
+          <div class="step-description">
+            Search for your property using this PIN:
+          </div>
+          <div class="pin-box">13-01-418-009-0000</div>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <div class="step-title">Select "Lack of Uniformity" as your reason</div>
+          <div class="step-description">
+            This means your property is assessed higher than similar properties. 
+            The portal will ask you to provide comparable properties.
+          </div>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <div class="step-title">Add these comparable properties</div>
+          <div class="step-description">
+            Enter each PIN below. The system auto-fills the property details.
+          </div>
+          <div class="pins-grid">
+            <div class="checklist-item">5917 N Campbell <span class="checklist-pin">13-01-406-018-0000</span></div>
+            <div class="checklist-item">6323 N Troy <span class="checklist-pin">13-01-101-017-0000</span></div>
+            <div class="checklist-item">5716 N Rockwell <span class="checklist-pin">13-01-419-033-0000</span></div>
+            <div class="checklist-item">2424 W Hollywood <span class="checklist-pin">13-01-423-019-0000</span></div>
+            <div class="checklist-item">5915 N Rockwell <span class="checklist-pin">13-01-404-017-0000</span></div>
+            <div class="checklist-item">5725 N Artesian <span class="checklist-pin">13-01-423-011-0000</span></div>
+            <div class="checklist-item">5630 N Campbell <span class="checklist-pin">13-01-430-024-0000</span></div>
+            <div class="checklist-item">5910 N Campbell <span class="checklist-pin">13-01-405-034-0000</span></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">5</div>
+        <div class="step-content">
+          <div class="step-title">Submit</div>
+          <div class="step-description">
+            That's it. You'll get a confirmation email. The Assessor typically responds in 4-6 weeks.
+            <br><br>
+            <strong>If denied:</strong> You can appeal to the Board of Review at 
+            <a href="https://appeals.cookcountyboardofreview.com" style="color: #2563eb;">appeals.cookcountyboardofreview.com</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <strong>Questions?</strong> Cook County Assessor: 312-443-7550 · Board of Review: 312-603-5542
+      <br><br>
+      Generated by Overtaxed using public data from the Cook County Assessor's Office. 
+      This is not legal or tax advice. Actual results depend on the reviewing body's determination.
+    </div>
+  </div>
+
+</body>
+</html>
