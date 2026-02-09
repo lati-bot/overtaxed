@@ -463,7 +463,7 @@ export default function ResultsContent() {
               </h2>
               <p className="mt-2 text-gray-500 max-w-lg mx-auto">
                 Based on {savingsMethod === "uniformity" ? "similar assessments" : "recent sales"} in your area, 
-                your property appears to be over-assessed. Get a complete appeal package for just $99.
+                your property appears to be over-assessed. Get a complete appeal package for just $49.
               </p>
             </>
           ) : compsLoading ? (
@@ -478,12 +478,12 @@ export default function ResultsContent() {
               </h2>
               <p className="mt-2 text-gray-500 max-w-lg mx-auto">
                 Based on typical reductions in your area, you may be able to reduce your assessment.
-                Get a full analysis with comparable properties for just $99.
+                Get a full analysis with comparable properties for just $49.
               </p>
             </>
           )}
           <Button size="lg" className="mt-6 h-12 px-8">
-            Get Your Appeal Package — $99
+            Get Your Appeal Package — $49
           </Button>
           <p className="mt-3 text-sm text-gray-400">
             Includes 5+ comparable properties, pre-filled forms, and filing instructions

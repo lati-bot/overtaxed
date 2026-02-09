@@ -161,7 +161,7 @@ export default function Home() {
           </p>
           
           <div className="mt-12 bg-white rounded-2xl border border-gray-200 p-8 md:p-12 shadow-sm">
-            <div className="text-6xl font-semibold text-gray-900">$99</div>
+            <div className="text-6xl font-semibold text-gray-900">$49</div>
             <div className="mt-2 text-gray-500">One-time payment</div>
             
             <ul className="mt-8 space-y-4 text-left max-w-sm mx-auto">
