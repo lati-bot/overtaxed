@@ -45,7 +45,15 @@ interface Assessment {
 
 function parseAddress(input: string): { houseNum: string; street: string } | null {
   // Clean up the input
-  const cleaned = input.trim().toUpperCase();
+  let cleaned = input.trim().toUpperCase();
+  
+  // Remove city, state, zip first (before parsing house number)
+  cleaned = cleaned
+    .replace(/,?\s*(CHICAGO|IL|ILLINOIS)\s*/gi, " ")
+    .replace(/\s+\d{5}(-\d{4})?\s*$/, "") // Remove zip code
+    .replace(/,/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
   
   // Match pattern: number + optional direction + street name
   const match = cleaned.match(/^(\d+)\s+(.+)$/);
@@ -57,7 +65,6 @@ function parseAddress(input: string): { houseNum: string; street: string } | nul
   // Remove common suffixes for better matching
   street = street
     .replace(/\s+(STREET|ST|AVENUE|AVE|ROAD|RD|DRIVE|DR|BOULEVARD|BLVD|LANE|LN|COURT|CT|PLACE|PL|WAY|TERRACE|TER|CIRCLE|CIR)\.?$/i, "")
-    .replace(/\s+(CHICAGO|IL|ILLINOIS).*$/i, "")
     .trim();
   
   return { houseNum, street };
