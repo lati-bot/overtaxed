@@ -10,6 +10,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Overtaxed — Lower Your Property Tax",
   description: "Get a professional property tax appeal package for Cook County. Fair assessment, guaranteed.",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

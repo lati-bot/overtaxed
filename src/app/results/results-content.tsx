@@ -430,9 +430,11 @@ export default function ResultsContent() {
             <p className="mt-2 text-gray-500 max-w-lg mx-auto">
               Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
             </p>
-            <Button size="lg" className="mt-6 h-12 px-8">
-              Get Your Appeal Package — $49
-            </Button>
+            <a href="https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00" target="_blank" rel="noopener noreferrer">
+              <Button size="lg" className="mt-6 h-12 px-8">
+                Get Your Appeal Package — $49
+              </Button>
+            </a>
             <p className="mt-3 text-sm text-gray-400">
               One-time fee • Delivered in 48 hours
             </p>
