@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#16a34a"/>
-  <text x="16" y="23" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="600" fill="white">O</text>
+  <rect width="32" height="32" rx="6" fill="#10b981"/>
+  <path d="M16 7L16 19M16 19L10 13M16 19L22 13" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8 25H24" stroke="white" stroke-width="3" stroke-linecap="round"/>
 </svg>

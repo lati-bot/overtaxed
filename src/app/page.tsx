@@ -112,8 +112,17 @@ export default function Home() {
       {/* Navigation */}
       <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
-          <div className={`text-lg font-semibold tracking-tight ${isDark ? "text-white" : "text-black"}`}>
-            overtaxed
+          <div className="flex items-center gap-2">
+            {/* Logo icon */}
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isDark ? "bg-emerald-500 text-black" : "bg-emerald-500 text-white"}`}>
+              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 4L12 14M12 14L8 10M12 14L16 10" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M5 20H19" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <span className={`text-lg font-semibold tracking-tight ${isDark ? "text-white" : "text-black"}`}>
+              overtaxed
+            </span>
           </div>
           <div className="flex items-center gap-4 sm:gap-6">
             <div className={`hidden md:flex items-center gap-6 text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
@@ -254,35 +263,9 @@ export default function Home() {
               </form>
             </div>
             
-            {/* Right side - Visual */}
+            {/* Right side - Empty for cleaner hero */}
             <div className="hidden lg:block">
-              <div className={`rounded-2xl p-8 ${isDark ? "bg-white/[0.02] border border-white/10" : "bg-white border border-black/5 shadow-xl shadow-black/5"}`}>
-                <div className={`text-xs font-medium uppercase tracking-wider mb-6 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Sample Analysis</div>
-                <div className="space-y-5">
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Your Assessment</span>
-                    <span className="text-2xl font-semibold">$68,700</span>
-                  </div>
-                  <div className={`h-px ${isDark ? "bg-white/10" : "bg-black/10"}`}></div>
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Fair Assessment</span>
-                    <span className="text-2xl font-semibold text-emerald-500">$48,074</span>
-                  </div>
-                  <div className={`h-px ${isDark ? "bg-white/10" : "bg-black/10"}`}></div>
-                  <div className="flex items-center justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Potential Savings</span>
-                    <span className="text-3xl font-bold text-emerald-500">$4,125/yr</span>
-                  </div>
-                </div>
-                <div className={`mt-6 pt-5 border-t ${isDark ? "border-white/10" : "border-black/5"}`}>
-                  <div className="flex items-center gap-2 text-emerald-500 text-sm font-medium">
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Based on 8 comparable properties
-                  </div>
-                </div>
-              </div>
+              {/* Intentionally empty - let the stats below speak */}
             </div>
           </div>
         </div>
@@ -310,9 +293,9 @@ export default function Home() {
 
       {/* How it works */}
       <section id="how-it-works" className="py-16 sm:py-20 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-3 sm:mb-4">How it works</h2>
-          <p className={`text-base sm:text-lg mb-10 sm:mb-12 max-w-xl ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          <p className={`text-base sm:text-lg mb-10 sm:mb-12 max-w-xl mx-auto ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             We do the research. You file the appeal.
           </p>
           
