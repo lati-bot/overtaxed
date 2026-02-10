@@ -56,10 +56,18 @@ interface PropertyData {
 
 async function getPropertyData(pin: string): Promise<PropertyData | null> {
   try {
+    console.log(`Fetching property data for PIN: ${pin}`);
+    
     // Get parcel info
-    const parcelRes = await fetch(`${PARCEL_API}?pin=${pin}&$limit=1`);
+    const parcelUrl = `${PARCEL_API}?pin=${pin}&$limit=1`;
+    console.log(`Parcel URL: ${parcelUrl}`);
+    const parcelRes = await fetch(parcelUrl);
     const parcels = await parcelRes.json();
-    if (!parcels.length) return null;
+    console.log(`Parcel response: ${JSON.stringify(parcels).slice(0, 200)}`);
+    if (!parcels.length) {
+      console.error(`No parcel found for PIN: ${pin}`);
+      return null;
+    }
     const parcel = parcels[0];
 
     // Get characteristics
