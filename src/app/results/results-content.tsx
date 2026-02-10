@@ -547,7 +547,7 @@ export default function ResultsContent() {
               Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
             </p>
             <a 
-              href={`https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00?client_reference_id=${property.pin}&prefilled_email=`} 
+              href={`https://buy.stripe.com/test_9B6cN7dvY6NG22mfD443S00?client_reference_id=${property.pin}&prefilled_email=`} 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-block mt-5 sm:mt-6 w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors bg-[#6b4fbb] text-white hover:bg-[#5a3fa8]"
