@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { CosmosClient } from "@azure/cosmos";
 
 const PARCEL_API = "https://datacatalog.cookcountyil.gov/resource/c49d-89sn.json";
 const CHARACTERISTICS_API = "https://datacatalog.cookcountyil.gov/resource/bcnq-qi2z.json";
 const ASSESSMENTS_API = "https://datacatalog.cookcountyil.gov/resource/uzyt-m557.json";
+
+// Cosmos DB connection
+const COSMOS_CONNECTION = process.env.COSMOS_CONNECTION_STRING || "";
+const DATABASE_NAME = "overtaxed";
+const CONTAINER_NAME = "properties";
+
+// Flag to show "still processing" message - set to false once upload is complete
+const UPLOAD_IN_PROGRESS = true;
+
+let cosmosClient: CosmosClient | null = null;
+function getCosmosClient() {
+  if (!cosmosClient && COSMOS_CONNECTION) {
+    cosmosClient = new CosmosClient(COSMOS_CONNECTION);
+  }
+  return cosmosClient;
+}
 
 interface ParcelResult {
   pin: string;
@@ -43,31 +60,51 @@ interface Assessment {
   board_tot?: string;
 }
 
+interface CosmosProperty {
+  pin: string;
+  address: string;
+  city: string;
+  zip: string;
+  township: string;
+  neighborhood: string;
+  class: string;
+  sqft: number;
+  land_sqft: number;
+  year_built: number;
+  bedrooms: number;
+  bathrooms: number;
+  assessment: number;
+  fair_assessment: number;
+  potential_savings: number;
+  reduction_pct: number;
+  comps: Array<{
+    pin: string;
+    address: string;
+    sqft: number;
+    year_built: number;
+    assessment: number;
+    sale_price?: number;
+    sale_date?: string;
+  }>;
+}
+
 function parseAddress(input: string): { houseNum: string; street: string } | null {
-  // Clean up the input
   let cleaned = input.trim().toUpperCase();
-  
-  // Remove zip code first
   cleaned = cleaned.replace(/\s+\d{5}(-\d{4})?\s*$/, "");
-  
-  // Remove city/state - but only as whole words (not inside other words like "PHILLIPS")
   cleaned = cleaned
     .replace(/,?\s*\bCHICAGO\b\s*/gi, " ")
     .replace(/,?\s*\bILLINOIS\b\s*/gi, " ")
-    .replace(/,\s*\bIL\b\s*/gi, " ")  // Only match "IL" after a comma to avoid matching inside words
-    .replace(/\s+\bIL\b\s*$/gi, " ")  // Or "IL" at the end
+    .replace(/,\s*\bIL\b\s*/gi, " ")
+    .replace(/\s+\bIL\b\s*$/gi, " ")
     .replace(/,/g, " ")
     .replace(/\s+/g, " ")
     .trim();
   
-  // Match pattern: number + optional direction + street name
   const match = cleaned.match(/^(\d+)\s+(.+)$/);
   if (!match) return null;
   
   const houseNum = match[1];
   let street = match[2];
-  
-  // Remove common suffixes for better matching
   street = street
     .replace(/\s+(STREET|ST|AVENUE|AVE|ROAD|RD|DRIVE|DR|BOULEVARD|BLVD|LANE|LN|COURT|CT|PLACE|PL|WAY|TERRACE|TER|CIRCLE|CIR)\.?$/i, "")
     .trim();
@@ -76,7 +113,6 @@ function parseAddress(input: string): { houseNum: string; street: string } | nul
 }
 
 async function searchByAddress(houseNum: string, street: string): Promise<ParcelResult[]> {
-  // Build query with wildcards for fuzzy matching
   const query = `${houseNum}%${street}%`;
   const whereClause = encodeURIComponent(`upper(property_address) like upper('${query}')`);
   const url = `${PARCEL_API}?$where=${whereClause}&$limit=20`;
@@ -90,7 +126,6 @@ async function searchByAddress(houseNum: string, street: string): Promise<Parcel
 }
 
 async function searchByPin(pin: string): Promise<ParcelResult[]> {
-  // Clean PIN - remove dashes if present
   const cleanPin = pin.replace(/-/g, "");
   const url = `${PARCEL_API}?pin=${cleanPin}&$limit=1`;
   
@@ -121,6 +156,23 @@ async function getAssessments(pin: string): Promise<Assessment[]> {
   return response.json();
 }
 
+async function getAnalysisFromCosmos(pin: string): Promise<CosmosProperty | null> {
+  const client = getCosmosClient();
+  if (!client) return null;
+  
+  try {
+    const database = client.database(DATABASE_NAME);
+    const container = database.container(CONTAINER_NAME);
+    
+    const { resource } = await container.item(pin, pin).read();
+    return resource || null;
+  } catch (error) {
+    // Item not found or other error
+    console.error("Cosmos lookup error:", error);
+    return null;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const address = searchParams.get("address");
@@ -128,17 +180,16 @@ export async function GET(request: NextRequest) {
   
   try {
     let parcels: ParcelResult[] = [];
+    let targetPin: string | null = pin;
     
     if (pin) {
-      // Direct PIN lookup
       parcels = await searchByPin(pin);
     } else if (address) {
-      // Check if input looks like a PIN (14 digits, possibly with dashes)
       const pinPattern = /^\d{2}-?\d{2}-?\d{3}-?\d{3}-?\d{4}$/;
       if (pinPattern.test(address.replace(/\s/g, ""))) {
         parcels = await searchByPin(address);
+        targetPin = address.replace(/-/g, "");
       } else {
-        // Parse as address
         const parsed = parseAddress(address);
         if (!parsed) {
           return NextResponse.json(
@@ -179,16 +230,65 @@ export async function GET(request: NextRequest) {
     
     // Single result - get full details
     const parcel = parcels[0];
+    targetPin = parcel.pin;
+    
+    // Try to get analysis from Cosmos DB
+    const analysis = await getAnalysisFromCosmos(targetPin);
+    
+    // If no analysis found, return property info with a flag
+    if (!analysis) {
+      // Still get basic property info from Cook County
+      const [characteristics, assessments] = await Promise.all([
+        getCharacteristics(parcel.pin),
+        getAssessments(parcel.pin),
+      ]);
+      
+      const latestAssessment = assessments.find(a => a.mailed_tot) || null;
+      
+      return NextResponse.json({
+        multiple: false,
+        analysisAvailable: false,
+        uploadInProgress: UPLOAD_IN_PROGRESS,
+        property: {
+          pin: parcel.pin,
+          address: parcel.property_address,
+          city: parcel.property_city,
+          zip: parcel.property_zip,
+          township: parcel.township_name,
+          neighborhood: parcel.nbhd,
+          latitude: parcel.latitude,
+          longitude: parcel.longitude,
+          characteristics: characteristics ? {
+            class: characteristics.class,
+            buildingSqFt: characteristics.char_bldg_sf ? parseInt(characteristics.char_bldg_sf) : null,
+            landSqFt: characteristics.char_land_sf ? parseInt(characteristics.char_land_sf) : null,
+            yearBuilt: characteristics.char_yrblt ? parseInt(characteristics.char_yrblt) : null,
+            bedrooms: characteristics.char_beds ? parseInt(characteristics.char_beds) : null,
+            fullBaths: characteristics.char_fbath ? parseInt(characteristics.char_fbath) : null,
+            halfBaths: characteristics.char_hbath ? parseInt(characteristics.char_hbath) : null,
+            exteriorWall: characteristics.char_ext_wall,
+          } : null,
+          assessment: latestAssessment && latestAssessment.mailed_tot ? {
+            year: latestAssessment.year,
+            mailedTotal: parseInt(latestAssessment.mailed_tot) || 0,
+            mailedBuilding: parseInt(latestAssessment.mailed_bldg) || 0,
+            mailedLand: parseInt(latestAssessment.mailed_land) || 0,
+          } : null,
+        },
+      });
+    }
+    
+    // Analysis found - return full data
     const [characteristics, assessments] = await Promise.all([
       getCharacteristics(parcel.pin),
       getAssessments(parcel.pin),
     ]);
     
-    // Find the most recent assessment with actual data
     const latestAssessment = assessments.find(a => a.mailed_tot) || null;
     
     return NextResponse.json({
       multiple: false,
+      analysisAvailable: true,
       property: {
         pin: parcel.pin,
         address: parcel.property_address,
@@ -217,13 +317,20 @@ export async function GET(request: NextRequest) {
           boardTotal: latestAssessment.board_tot ? parseInt(latestAssessment.board_tot) : null,
         } : null,
         assessmentHistory: assessments
-          .filter(a => a.mailed_tot) // Filter out years with no data
+          .filter(a => a.mailed_tot)
           .map(a => ({
             year: a.year,
             mailedTotal: parseInt(a.mailed_tot) || 0,
             certifiedTotal: a.certified_tot ? parseInt(a.certified_tot) : null,
             boardTotal: a.board_tot ? parseInt(a.board_tot) : null,
           })),
+        // Analysis data from Cosmos
+        analysis: {
+          fairAssessment: analysis.fair_assessment,
+          potentialSavings: analysis.potential_savings,
+          reductionPct: analysis.reduction_pct,
+          comps: analysis.comps,
+        },
       },
     });
     

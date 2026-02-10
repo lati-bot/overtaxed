@@ -28,12 +28,26 @@ interface PropertyData {
     certifiedTotal: number | null;
     boardTotal: number | null;
   } | null;
-  assessmentHistory: {
+  assessmentHistory?: {
     year: string;
     mailedTotal: number;
     certifiedTotal: number | null;
     boardTotal: number | null;
   }[];
+  analysis?: {
+    fairAssessment: number;
+    potentialSavings: number;
+    reductionPct: number;
+    comps: Array<{
+      pin: string;
+      address: string;
+      sqft: number;
+      year_built: number;
+      assessment: number;
+      sale_price?: number;
+      sale_date?: string;
+    }>;
+  };
 }
 
 interface MultipleResults {
@@ -44,21 +58,6 @@ interface MultipleResults {
   township: string;
 }
 
-interface AnalysisData {
-  found: boolean;
-  status?: "over" | "fair";
-  current_assessment?: number;
-  fair_assessment?: number;
-  estimated_savings?: number;
-  comp_count?: number;
-  neighborhood_stats?: {
-    total_properties: number;
-    over_assessed_count: number;
-    total_potential_savings: number;
-  };
-  message?: string;
-}
-
 export default function ResultsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -66,7 +65,8 @@ export default function ResultsContent() {
   const [error, setError] = useState<string | null>(null);
   const [property, setProperty] = useState<PropertyData | null>(null);
   const [multipleResults, setMultipleResults] = useState<MultipleResults[] | null>(null);
-  const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
+  const [analysisAvailable, setAnalysisAvailable] = useState<boolean>(true);
+  const [uploadInProgress, setUploadInProgress] = useState<boolean>(false);
   const [theme, setTheme] = useState<"dark" | "light">("light");
   const [mounted, setMounted] = useState(false);
 
@@ -87,24 +87,11 @@ export default function ResultsContent() {
 
   const isDark = theme === "dark";
 
-  const fetchAnalysis = async (propertyPin: string) => {
-    try {
-      const response = await fetch(`/api/comps?pin=${propertyPin}`);
-      if (response.ok) {
-        const data = await response.json();
-        setAnalysis(data);
-      }
-    } catch {
-      // Analysis is optional
-    }
-  };
-
   const fetchProperty = async (searchPin?: string) => {
     setLoading(true);
     setError(null);
     setProperty(null);
     setMultipleResults(null);
-    setAnalysis(null);
 
     try {
       const params = new URLSearchParams();
@@ -128,7 +115,8 @@ export default function ResultsContent() {
         setMultipleResults(data.results);
       } else {
         setProperty(data.property);
-        fetchAnalysis(data.property.pin);
+        setAnalysisAvailable(data.analysisAvailable !== false);
+        setUploadInProgress(data.uploadInProgress === true);
       }
     } catch {
       setError("Failed to fetch property data. Please try again.");
@@ -153,7 +141,7 @@ export default function ResultsContent() {
   }, [address, pin]);
 
   // Shared styles
-  const bgMain = isDark ? "bg-[#0a0a0a]" : "bg-[#fafafa]";
+  const bgMain = isDark ? "bg-[#0a0a0a]" : "bg-[#f5f3f7]";
   const bgCard = isDark ? "bg-white/[0.02]" : "bg-white";
   const borderColor = isDark ? "border-white/10" : "border-black/5";
   const textPrimary = isDark ? "text-white" : "text-[#111]";
@@ -162,13 +150,12 @@ export default function ResultsContent() {
 
   // Prevent flash
   if (!mounted) {
-    return <div className="min-h-screen bg-[#fafafa]" />;
+    return <div className="min-h-screen bg-[#f5f3f7]" />;
   }
 
   if (loading) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} flex items-center justify-center transition-colors duration-300 relative`}>
-        
         <div className="text-center">
           <div className={`animate-spin rounded-full h-10 w-10 border-2 ${isDark ? "border-white/20 border-t-white" : "border-black/20 border-t-black"} mx-auto`}></div>
           <p className={`mt-4 ${textSecondary}`}>Looking up your property...</p>
@@ -181,8 +168,7 @@ export default function ResultsContent() {
   if (error) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
-        
-        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f5f3f7]/80"} backdrop-blur-xl border-b ${borderColor}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-lg font-semibold tracking-tight">
               overtaxed
@@ -198,7 +184,6 @@ export default function ResultsContent() {
         </nav>
         
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-          {/* Fun illustration */}
           <div className="text-center mb-8">
             <div className="text-6xl sm:text-8xl mb-4">🏠❓</div>
           </div>
@@ -248,37 +233,17 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-medium">Condo or commercial property?</div>
                   <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    We specialize in single-family homes and small multi-family (2-4 units). Condos and commercial have different appeal processes.
-                  </p>
-                </div>
-              </div>
-              
-              <div className={`border-t ${borderColor}`}></div>
-              
-              <div className="flex items-start gap-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? "bg-white/10" : "bg-black/5"}`}>
-                  <span className="text-sm">🆕</span>
-                </div>
-                <div>
-                  <div className="font-medium">New construction?</div>
-                  <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    Brand new homes might not be in the assessor&apos;s database yet. Check back in a few months.
+                    We specialize in single-family homes and small multi-family (2-4 units).
                   </p>
                 </div>
               </div>
             </div>
           </div>
           
-          <div className={`mt-6 rounded-2xl p-5 text-center ${isDark ? "bg-violet-500/10 border border-violet-500/20" : "bg-violet-50 border border-violet-100"}`}>
-            <p className={`text-sm ${isDark ? "text-violet-300" : "text-violet-700"}`}>
-              🚀 <strong>Not in Cook County yet?</strong> We&apos;re expanding to Texas soon. Drop your email on the homepage to get notified!
-            </p>
-          </div>
-          
           <div className="mt-8 text-center">
             <Link 
               href="/" 
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-black text-white hover:bg-gray-800"}`}
+              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-[#6b4fbb] text-white hover:bg-[#5a3fa8]"}`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -286,10 +251,6 @@ export default function ResultsContent() {
               Try another address
             </Link>
           </div>
-          
-          <p className={`mt-8 text-center text-sm ${textMuted}`}>
-            Still stuck? Email us at <a href="mailto:hello@getovertaxed.com" className={`underline ${isDark ? "hover:text-white" : "hover:text-black"}`}>hello@getovertaxed.com</a>
-          </p>
         </div>
       </div>
     );
@@ -298,8 +259,7 @@ export default function ResultsContent() {
   if (multipleResults) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
-        
-        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f5f3f7]/80"} backdrop-blur-xl border-b ${borderColor}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-lg font-semibold tracking-tight">
               overtaxed
@@ -324,7 +284,7 @@ export default function ResultsContent() {
               <button
                 key={result.pin}
                 onClick={() => handleSelectProperty(result.pin)}
-                className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bgCard} hover:border-emerald-500/50 transition-all ${isDark ? "" : "shadow-sm hover:shadow-md"}`}
+                className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bgCard} hover:border-purple-500/50 transition-all ${isDark ? "" : "shadow-sm hover:shadow-md"}`}
               >
                 <div className="font-medium">{result.address}</div>
                 <div className={`text-sm ${textSecondary}`}>
@@ -352,15 +312,14 @@ export default function ResultsContent() {
   
   const estimatedMarketValue = currentAssessment * 10;
   
-  const hasAnalysis = analysis?.found && analysis.status === "over";
-  const estimatedSavings = hasAnalysis ? analysis.estimated_savings! : 0;
-  const fairAssessment = hasAnalysis ? analysis.fair_assessment! : currentAssessment;
-  const compCount = analysis?.comp_count || 0;
+  const hasAnalysis = analysisAvailable && property.analysis;
+  const estimatedSavings = hasAnalysis ? property.analysis!.potentialSavings : 0;
+  const fairAssessment = hasAnalysis ? property.analysis!.fairAssessment : currentAssessment;
+  const compCount = hasAnalysis ? property.analysis!.comps.length : 0;
 
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
-      
-      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f5f3f7]/80"} backdrop-blur-xl border-b ${borderColor}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" className="text-lg font-semibold tracking-tight">
             overtaxed
@@ -405,8 +364,8 @@ export default function ResultsContent() {
           </div>
         </div>
 
-        {/* Analysis Result - Over Assessed */}
-        {analysis?.found && analysis.status === "over" && (
+        {/* Analysis Available - Over Assessed */}
+        {hasAnalysis && estimatedSavings > 0 && (
           <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
             <div className={`flex items-center gap-2 font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -440,8 +399,8 @@ export default function ResultsContent() {
           </div>
         )}
 
-        {/* Analysis Result - Fairly Assessed */}
-        {analysis?.found && analysis.status === "fair" && (
+        {/* Analysis Available - Fairly Assessed */}
+        {hasAnalysis && estimatedSavings === 0 && (
           <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${borderColor} ${bgCard} ${isDark ? "" : "shadow-sm"}`}>
             <div className="text-center">
               <div className="text-4xl mb-3">🎉</div>
@@ -449,33 +408,46 @@ export default function ResultsContent() {
                 Good news — you&apos;re fairly assessed!
               </div>
               <p className={`mt-2 ${textSecondary}`}>
-                Based on {compCount} comparable properties, your assessment is in line with similar homes. No action needed!
+                Based on comparable properties, your assessment is in line with similar homes. No action needed!
               </p>
             </div>
           </div>
         )}
 
-        {/* Not in analyzed area */}
-        {analysis && !analysis.found && (
-          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-amber-500/10 border-amber-500/20" : "bg-amber-50 border-amber-100"}`}>
+        {/* Analysis Not Available Yet */}
+        {!analysisAvailable && (
+          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-purple-500/10 border-purple-500/20" : "bg-gradient-to-r from-purple-100/50 to-pink-100/50 border-purple-200/50"}`}>
             <div className="text-center">
-              <div className="text-4xl mb-3">🔍</div>
-              <div className={`font-medium text-lg ${isDark ? "text-amber-400" : "text-amber-600"}`}>
-                We&apos;re still crunching the numbers
+              <div className="text-4xl mb-3">⏳</div>
+              <div className={`font-medium text-lg ${isDark ? "text-purple-300" : "text-purple-700"}`}>
+                {uploadInProgress 
+                  ? "We're still processing Cook County data"
+                  : "Analysis not available for this property"
+                }
               </div>
-              <p className={`mt-2 ${isDark ? "text-amber-300/70" : "text-amber-600/70"}`}>
-                Your neighborhood is in our queue. Drop your email below and we&apos;ll notify you when your analysis is ready.
+              <p className={`mt-2 ${isDark ? "text-purple-300/70" : "text-purple-600/70"}`}>
+                {uploadInProgress
+                  ? "We're crunching numbers for all 970,000+ properties. Your property should be ready within a few hours."
+                  : "This property type may not be supported, or we don't have enough comparable data."
+                }
               </p>
-              <div className="mt-4 flex gap-2 max-w-sm mx-auto">
-                <input 
-                  type="email" 
-                  placeholder="your@email.com"
-                  className={`flex-1 h-11 px-4 rounded-lg text-sm ${isDark ? "bg-black/30 border-amber-500/30 text-white placeholder-amber-300/50" : "bg-white border-amber-200 text-black placeholder-gray-400"} border focus:outline-none focus:ring-2 focus:ring-amber-500/50`}
-                />
-                <button className={`px-4 h-11 rounded-lg font-medium text-sm ${isDark ? "bg-amber-500 text-black hover:bg-amber-400" : "bg-amber-500 text-white hover:bg-amber-600"} transition-colors`}>
-                  Notify Me
-                </button>
-              </div>
+              {uploadInProgress && (
+                <>
+                  <div className="mt-4 flex gap-2 max-w-sm mx-auto">
+                    <input 
+                      type="email" 
+                      placeholder="your@email.com"
+                      className={`flex-1 h-11 px-4 rounded-lg text-sm ${isDark ? "bg-black/30 border-purple-500/30 text-white placeholder-purple-300/50" : "bg-white border-purple-200 text-black placeholder-gray-400"} border focus:outline-none focus:ring-2 focus:ring-purple-500/50`}
+                    />
+                    <button className="px-4 h-11 rounded-lg font-medium text-sm bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors">
+                      Notify Me
+                    </button>
+                  </div>
+                  <p className={`mt-3 text-xs ${isDark ? "text-purple-300/50" : "text-purple-600/50"}`}>
+                    We&apos;ll email you when your analysis is ready.
+                  </p>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -523,7 +495,7 @@ export default function ResultsContent() {
         )}
 
         {/* Assessment History */}
-        {property.assessmentHistory.length > 0 && (
+        {property.assessmentHistory && property.assessmentHistory.length > 0 && (
           <div className={`mt-4 sm:mt-6 rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
             <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Assessment History</h2>
             <div className="overflow-x-auto -mx-5 sm:-mx-6 md:-mx-8 px-5 sm:px-6 md:px-8">
@@ -573,23 +545,23 @@ export default function ResultsContent() {
         )}
 
         {/* CTA - Over Assessed */}
-        {hasAnalysis && (
-          <div className={`mt-6 sm:mt-8 rounded-xl p-5 sm:p-6 md:p-8 text-center border ${isDark ? "bg-violet-500/10 border-violet-500/20" : "bg-violet-50 border-violet-100"}`}>
+        {hasAnalysis && estimatedSavings > 0 && (
+          <div className={`mt-6 sm:mt-8 rounded-xl p-5 sm:p-6 md:p-8 text-center border ${isDark ? "bg-purple-500/10 border-purple-500/20" : "bg-gradient-to-r from-purple-100/50 to-pink-100/50 border-purple-200/50"}`}>
             <h2 className={`text-lg sm:text-xl font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-              Save <span className={isDark ? "text-violet-400" : "text-violet-600"}>${estimatedSavings.toLocaleString()}/year</span> on your property taxes
+              Save <span className={isDark ? "text-purple-400" : "text-purple-600"}>${estimatedSavings.toLocaleString()}/year</span> on your property taxes
             </h2>
-            <p className={`mt-2 text-sm sm:text-base ${isDark ? "text-violet-300/70" : "text-violet-600/70"} max-w-lg mx-auto`}>
+            <p className={`mt-2 text-sm sm:text-base ${isDark ? "text-purple-300/70" : "text-purple-600/70"} max-w-lg mx-auto`}>
               Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
             </p>
             <a 
               href={`https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00?client_reference_id=${property.pin}&prefilled_email=`} 
               target="_blank" 
               rel="noopener noreferrer"
-              className={`inline-block mt-5 sm:mt-6 w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-violet-600 text-white hover:bg-violet-700"}`}
+              className="inline-block mt-5 sm:mt-6 w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors bg-[#6b4fbb] text-white hover:bg-[#5a3fa8]"
             >
               Get Your Appeal Package — $49
             </a>
-            <p className={`mt-3 text-sm ${isDark ? "text-violet-300/50" : "text-violet-600/50"}`}>
+            <p className={`mt-3 text-sm ${isDark ? "text-purple-300/50" : "text-purple-600/50"}`}>
               One-time fee • Delivered in 48 hours
             </p>
           </div>
@@ -598,8 +570,7 @@ export default function ResultsContent() {
         {/* Disclaimer */}
         <p className={`mt-6 sm:mt-8 text-xs ${textMuted} text-center`}>
           Assessment data from Cook County Assessor&apos;s Office. Savings estimates based on 
-          {analysis?.comp_count ? ` ${analysis.comp_count}` : ""} comparable properties and may vary. 
-          Past results do not guarantee future outcomes.
+          comparable properties and may vary. Past results do not guarantee future outcomes.
         </p>
       </div>
     </div>
