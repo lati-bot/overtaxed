@@ -112,17 +112,8 @@ export default function Home() {
       {/* Navigation */}
       <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* Logo icon */}
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${isDark ? "bg-emerald-500 text-black" : "bg-emerald-500 text-white"}`}>
-              <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 4L12 14M12 14L8 10M12 14L16 10" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M5 20H19" strokeLinecap="round"/>
-              </svg>
-            </div>
-            <span className={`text-lg font-semibold tracking-tight ${isDark ? "text-white" : "text-black"}`}>
-              overtaxed
-            </span>
+          <div className={`text-lg font-semibold tracking-tight ${isDark ? "text-white" : "text-black"}`}>
+            overtaxed
           </div>
           <div className="flex items-center gap-4 sm:gap-6">
             <div className={`hidden md:flex items-center gap-6 text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
@@ -161,113 +152,103 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-12 sm:pt-16 lg:pt-20 pb-16 sm:pb-20 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left side - Text */}
-            <div>
-              {/* Cook County badge - integrated into hero */}
-              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 ${
-                isDark 
-                  ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-400" 
-                  : "bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-700"
-              }`}>
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span>Cook County, IL</span>
-                <span className={isDark ? "text-gray-500" : "text-gray-400"}>•</span>
-                <span className={isDark ? "text-gray-400" : "text-gray-500"}>More markets soon</span>
-              </div>
-              
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1]">
-                Stop overpaying
-                <br />
-                property tax
-              </h1>
-              
-              <p className={`mt-5 sm:mt-6 text-lg sm:text-xl leading-relaxed max-w-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                We analyze your home against similar properties and build your appeal case. Takes 30 seconds.
-              </p>
-              
-              {/* Big social proof stat */}
-              <div className={`mt-6 inline-flex items-center gap-3 px-4 py-3 rounded-xl ${isDark ? "bg-white/5 border border-white/10" : "bg-emerald-50 border border-emerald-100"}`}>
-                <div className={`text-2xl sm:text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>$355M</div>
-                <div className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-                  in potential savings found<br />
-                  <span className={isDark ? "text-gray-500" : "text-gray-400"}>across Cook County homeowners</span>
-                </div>
-              </div>
-              
-              <form onSubmit={handleSearch} className="mt-8 sm:mt-10">
-                <div className="relative max-w-md">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                      <input 
-                        ref={inputRef}
-                        type="text"
-                        placeholder="Enter your Cook County address..."
-                        className={`w-full h-12 sm:h-14 px-4 rounded-xl text-base transition-all ${
-                          isDark 
-                            ? "bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-white/30" 
-                            : "bg-white border border-black/10 text-black placeholder-gray-400 focus:border-black/30 shadow-sm"
-                        } focus:outline-none`}
-                        value={address}
-                        onChange={handleInputChange}
-                        onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                        disabled={loading}
-                        autoComplete="off"
-                      />
-                      {showSuggestions && suggestions.length > 0 && (
-                        <div 
-                          ref={suggestionsRef}
-                          className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl z-50 overflow-hidden ${
-                            isDark ? "bg-[#111] border border-white/10" : "bg-white border border-black/10"
-                          }`}
-                        >
-                          {suggestions.map((suggestion, index) => (
-                            <button
-                              key={suggestion.pin}
-                              type="button"
-                              className={`w-full px-4 py-3 text-left transition-colors ${
-                                isDark ? "hover:bg-white/5" : "hover:bg-black/5"
-                              } ${index !== suggestions.length - 1 ? `border-b ${isDark ? "border-white/5" : "border-black/5"}` : ""}`}
-                              onClick={() => handleSelectSuggestion(suggestion)}
-                            >
-                              <div className="font-medium text-sm">{suggestion.address}</div>
-                              <div className={`text-xs mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                                {suggestion.city}, IL {suggestion.zip.split('-')[0]}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                    <button 
-                      type="submit"
-                      disabled={loading || !address.trim()}
-                      className={`h-12 sm:h-14 px-6 sm:px-8 rounded-xl font-medium text-base transition-all disabled:opacity-50 ${
-                        isDark 
-                          ? "bg-white text-black hover:bg-gray-100" 
-                          : "bg-black text-white hover:bg-gray-800"
-                      }`}
-                    >
-                      {loading ? "..." : "Check Now"}
-                    </button>
-                  </div>
-                  <p className={`mt-3 text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                    Free instant analysis • No signup required
-                  </p>
-                </div>
-              </form>
-            </div>
-            
-            {/* Right side - Empty for cleaner hero */}
-            <div className="hidden lg:block">
-              {/* Intentionally empty - let the stats below speak */}
+      <section className="pt-16 sm:pt-24 lg:pt-32 pb-16 sm:pb-20 px-4 sm:px-8">
+        <div className="max-w-3xl mx-auto text-center">
+          {/* Cook County badge */}
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 ${
+            isDark 
+              ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-400" 
+              : "bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-700"
+          }`}>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span>Cook County, IL</span>
+            <span className={isDark ? "text-gray-500" : "text-gray-400"}>•</span>
+            <span className={isDark ? "text-gray-400" : "text-gray-500"}>More markets soon</span>
+          </div>
+          
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1]">
+            Stop overpaying
+            <br />
+            property tax
+          </h1>
+          
+          <p className={`mt-5 sm:mt-6 text-lg sm:text-xl leading-relaxed max-w-xl mx-auto ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+            We analyze your home against similar properties and build your appeal case. Takes 30 seconds.
+          </p>
+          
+          {/* Big social proof stat */}
+          <div className={`mt-6 inline-flex items-center gap-3 px-4 py-3 rounded-xl ${isDark ? "bg-white/5 border border-white/10" : "bg-emerald-50 border border-emerald-100"}`}>
+            <div className={`text-2xl sm:text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>$355M</div>
+            <div className={`text-sm text-left ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              in potential savings found<br />
+              <span className={isDark ? "text-gray-500" : "text-gray-400"}>across Cook County homeowners</span>
             </div>
           </div>
+          
+          <form onSubmit={handleSearch} className="mt-8 sm:mt-10">
+            <div className="relative max-w-md mx-auto">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <input 
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Enter your Cook County address..."
+                    className={`w-full h-12 sm:h-14 px-4 rounded-xl text-base transition-all ${
+                      isDark 
+                        ? "bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-white/30" 
+                        : "bg-white border border-black/10 text-black placeholder-gray-400 focus:border-black/30 shadow-sm"
+                    } focus:outline-none`}
+                    value={address}
+                    onChange={handleInputChange}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                    disabled={loading}
+                    autoComplete="off"
+                  />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div 
+                      ref={suggestionsRef}
+                      className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl z-50 overflow-hidden text-left ${
+                        isDark ? "bg-[#111] border border-white/10" : "bg-white border border-black/10"
+                      }`}
+                    >
+                      {suggestions.map((suggestion, index) => (
+                        <button
+                          key={suggestion.pin}
+                          type="button"
+                          className={`w-full px-4 py-3 text-left transition-colors ${
+                            isDark ? "hover:bg-white/5" : "hover:bg-black/5"
+                          } ${index !== suggestions.length - 1 ? `border-b ${isDark ? "border-white/5" : "border-black/5"}` : ""}`}
+                          onClick={() => handleSelectSuggestion(suggestion)}
+                        >
+                          <div className="font-medium text-sm">{suggestion.address}</div>
+                          <div className={`text-xs mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                            {suggestion.city}, IL {suggestion.zip.split('-')[0]}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button 
+                  type="submit"
+                  disabled={loading || !address.trim()}
+                  className={`h-12 sm:h-14 px-6 sm:px-8 rounded-xl font-medium text-base transition-all disabled:opacity-50 ${
+                    isDark 
+                      ? "bg-white text-black hover:bg-gray-100" 
+                      : "bg-black text-white hover:bg-gray-800"
+                  }`}
+                >
+                  {loading ? "..." : "Check Now"}
+                </button>
+              </div>
+              <p className={`mt-3 text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                Free instant analysis • No signup required
+              </p>
+            </div>
+          </form>
         </div>
       </section>
 
