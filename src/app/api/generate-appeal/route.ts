@@ -470,34 +470,56 @@ export async function GET(request: NextRequest) {
 
 // POST endpoint to download PDF
 export async function POST(request: NextRequest) {
-  const { token } = await request.json();
+  console.log("[POST] PDF download request received");
+  
+  let body;
+  try {
+    body = await request.json();
+  } catch (e) {
+    console.error("[POST] Failed to parse request body:", e);
+    return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+  }
+  
+  const { token } = body;
+  console.log("[POST] Token received:", token ? token.slice(0, 20) + "..." : "none");
   
   if (!token) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
   }
 
   const tokenData = verifyAccessToken(token);
+  console.log("[POST] Token data:", tokenData);
+  
   if (!tokenData) {
     return NextResponse.json({ error: "Invalid token" }, { status: 400 });
   }
 
   // Verify payment
   try {
+    console.log("[POST] Verifying session:", tokenData.sessionId);
     const session = await getStripe().checkout.sessions.retrieve(tokenData.sessionId);
+    console.log("[POST] Session payment status:", session.payment_status);
     if (session.payment_status !== "paid") {
       return NextResponse.json({ error: "Payment not completed" }, { status: 400 });
     }
-  } catch {
+  } catch (e) {
+    console.error("[POST] Session verification failed:", e);
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
+  console.log("[POST] Fetching property data for PIN:", tokenData.pin);
   const propertyData = await getPropertyData(tokenData.pin);
   if (!propertyData) {
+    console.error("[POST] Property not found");
     return NextResponse.json({ error: "Property not found" }, { status: 404 });
   }
 
+  console.log("[POST] Generating PDF HTML");
   const html = generatePdfHtml(propertyData);
+  
+  console.log("[POST] Calling Browserless");
   const pdfBuffer = await generatePdf(html);
+  console.log("[POST] PDF generated, size:", pdfBuffer.length);
 
   return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {
