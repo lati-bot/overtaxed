@@ -64,7 +64,7 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
     }
     
     const lookupData = await lookupRes.json();
-    console.log(`[getPropertyData] Lookup data:`, JSON.stringify(lookupData).slice(0, 200));
+    console.log(`[getPropertyData] Lookup data:`, JSON.stringify(lookupData).slice(0, 500));
     
     if (!lookupData.property) {
       console.log(`[getPropertyData] No property in lookup data`);
@@ -72,29 +72,41 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
     }
     
     const prop = lookupData.property;
+    const assessment = prop.assessment || {};
     const analysis = prop.analysis || {};
+    const chars = prop.characteristics || {};
     
-    // Get comps from our comps API
-    const compsRes = await fetch(`${baseUrl}/api/comps?pin=${pin}`);
+    // Get comps from our comps API (returns comp details)
+    const compsRes = await fetch(`${baseUrl}/api/comps?pin=${pin}&details=true`);
     const compsData = await compsRes.json();
-    console.log(`[getPropertyData] Comps count: ${compsData.comps?.length || 0}`);
+    console.log(`[getPropertyData] Comps response:`, JSON.stringify(compsData).slice(0, 300));
     
-    const comps = (compsData.comps || []).slice(0, 5).map((c: any) => ({
-      pin: c.pin,
-      address: c.address || "N/A",
-      sqft: c.sqft || 0,
-      beds: c.beds || 0,
-      year: c.yearBuilt || 0,
-      perSqft: c.assessmentPerSqft || 0,
-    }));
+    // Map comps - the API returns them in compsData.comps or we need to fetch from Cosmos
+    let comps: PropertyData["comps"] = [];
+    if (compsData.comps && Array.isArray(compsData.comps)) {
+      comps = compsData.comps.slice(0, 5).map((c: any) => ({
+        pin: c.pin || c.id,
+        address: c.address || "N/A",
+        sqft: c.sqft || 0,
+        beds: c.beds || 0,
+        year: c.yearBuilt || c.year || 0,
+        perSqft: c.assessmentPerSqft || c.perSqft || 0,
+      }));
+    }
 
-    const currentAssessment = analysis.currentAssessment || 0;
-    const fairAssessment = analysis.fairAssessment || currentAssessment;
-    const sqft = prop.sqft || 0;
+    // Current assessment from the live assessment data
+    const currentAssessment = assessment.mailedTotal || assessment.certifiedTotal || compsData.current_assessment || 0;
+    const fairAssessment = analysis.fairAssessment || compsData.fair_assessment || currentAssessment;
+    const sqft = chars.sqft || chars.char_bldg_sf || compsData.sqft || 0;
+    const beds = chars.beds || chars.char_beds || compsData.beds || 0;
+    const yearBuilt = chars.yearBuilt || chars.char_yrblt || 0;
+    
     const perSqft = sqft > 0 ? currentAssessment / sqft : 0;
     const fairPerSqft = sqft > 0 ? fairAssessment / sqft : 0;
     const reduction = currentAssessment - fairAssessment;
     const savings = Math.round(reduction * 0.20);
+
+    console.log(`[getPropertyData] Mapped values: currentAssessment=${currentAssessment}, fairAssessment=${fairAssessment}, sqft=${sqft}, comps=${comps.length}`);
 
     return {
       pin,
@@ -103,8 +115,8 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
       zip: prop.zip || "",
       township: prop.township || "",
       sqft,
-      beds: prop.beds || 0,
-      yearBuilt: prop.yearBuilt || 0,
+      beds,
+      yearBuilt,
       currentAssessment,
       fairAssessment,
       reduction,
