@@ -296,8 +296,8 @@ export default function Home() {
               <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>$1,136</div>
               <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Average annual savings</div>
             </div>
-            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-white/[0.02] border-white/10" : "bg-white border-black/5 shadow-sm"}`}>
-              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>32%</div>
+            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-gray-500/10 border-gray-500/20" : "bg-gray-100 border-gray-200"}`}>
+              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-gray-300" : "text-gray-700"}`}>32%</div>
               <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Of homes are over-assessed</div>
             </div>
             <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
