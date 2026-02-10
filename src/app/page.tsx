@@ -177,7 +177,7 @@ export default function Home() {
           </h1>
           
           <p className={`mt-6 sm:mt-8 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            Many Cook County homes are assessed higher than similar properties. You have the right to appeal — we make it easy.
+            We analyze your home against similar properties and build your appeal case. Takes 30 seconds.
           </p>
           
           <form onSubmit={handleSearch} className="mt-10 sm:mt-12 max-w-xl mx-auto">
