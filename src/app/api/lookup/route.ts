@@ -11,7 +11,7 @@ const DATABASE_NAME = "overtaxed";
 const CONTAINER_NAME = "properties";
 
 // Flag to show "still processing" message - set to false once upload is complete
-const UPLOAD_IN_PROGRESS = true;
+const UPLOAD_IN_PROGRESS = false;
 
 let cosmosClient: CosmosClient | null = null;
 function getCosmosClient() {
