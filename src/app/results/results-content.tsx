@@ -403,7 +403,7 @@ export default function ResultsContent() {
 
         {/* Analysis Result - Over Assessed */}
         {analysis?.found && analysis.status === "over" && (
-          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-white/[0.03] border-emerald-500/30" : "bg-white border-emerald-200 shadow-sm"}`}>
+          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
             <div className={`flex items-center gap-2 font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -412,25 +412,25 @@ export default function ResultsContent() {
             </div>
             <div className="mt-5 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               <div>
-                <div className={`text-sm ${textSecondary}`}>Current</div>
-                <div className="text-lg sm:text-xl font-semibold">${currentAssessment.toLocaleString()}</div>
+                <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Current</div>
+                <div className={`text-lg sm:text-xl font-semibold ${textPrimary}`}>${currentAssessment.toLocaleString()}</div>
               </div>
               <div>
-                <div className={`text-sm ${textSecondary}`}>Fair Value</div>
+                <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Fair Value</div>
                 <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${fairAssessment.toLocaleString()}</div>
               </div>
               <div>
-                <div className={`text-sm ${textSecondary}`}>Reduction</div>
+                <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Reduction</div>
                 <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
                   ${(currentAssessment - fairAssessment).toLocaleString()}
                 </div>
               </div>
               <div>
-                <div className={`text-sm ${textSecondary}`}>Tax Savings</div>
+                <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Tax Savings</div>
                 <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${estimatedSavings.toLocaleString()}/yr</div>
               </div>
             </div>
-            <p className={`mt-4 text-sm ${textSecondary}`}>
+            <p className={`mt-4 text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>
               Based on {compCount} comparable properties in your neighborhood.
             </p>
           </div>
@@ -453,20 +453,20 @@ export default function ResultsContent() {
 
         {/* Not in analyzed area */}
         {analysis && !analysis.found && (
-          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-white/[0.03] border-amber-500/30" : "bg-white border-amber-200 shadow-sm"}`}>
+          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-amber-500/10 border-amber-500/20" : "bg-amber-50 border-amber-100"}`}>
             <div className="text-center">
               <div className="text-4xl mb-3">🔍</div>
               <div className={`font-medium text-lg ${isDark ? "text-amber-400" : "text-amber-600"}`}>
                 We&apos;re still crunching the numbers
               </div>
-              <p className={`mt-2 ${textSecondary}`}>
+              <p className={`mt-2 ${isDark ? "text-amber-300/70" : "text-amber-600/70"}`}>
                 Your neighborhood is in our queue. Drop your email below and we&apos;ll notify you when your analysis is ready.
               </p>
               <div className="mt-4 flex gap-2 max-w-sm mx-auto">
                 <input 
                   type="email" 
                   placeholder="your@email.com"
-                  className={`flex-1 h-11 px-4 rounded-lg text-sm ${isDark ? "bg-black/30 border-white/10 text-white placeholder-gray-500" : "bg-gray-50 border-gray-200 text-black placeholder-gray-400"} border focus:outline-none focus:ring-2 focus:ring-amber-500/50`}
+                  className={`flex-1 h-11 px-4 rounded-lg text-sm ${isDark ? "bg-black/30 border-amber-500/30 text-white placeholder-amber-300/50" : "bg-white border-amber-200 text-black placeholder-gray-400"} border focus:outline-none focus:ring-2 focus:ring-amber-500/50`}
                 />
                 <button className={`px-4 h-11 rounded-lg font-medium text-sm ${isDark ? "bg-amber-500 text-black hover:bg-amber-400" : "bg-amber-500 text-white hover:bg-amber-600"} transition-colors`}>
                   Notify Me
@@ -570,22 +570,22 @@ export default function ResultsContent() {
 
         {/* CTA - Over Assessed */}
         {hasAnalysis && (
-          <div className={`mt-6 sm:mt-8 rounded-xl p-5 sm:p-6 md:p-8 text-center border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/5 shadow-lg"}`}>
-            <h2 className="text-lg sm:text-xl font-semibold">
-              Save <span className={isDark ? "text-emerald-400" : "text-emerald-600"}>${estimatedSavings.toLocaleString()}/year</span> on your property taxes
+          <div className={`mt-6 sm:mt-8 rounded-xl p-5 sm:p-6 md:p-8 text-center border ${isDark ? "bg-violet-500/10 border-violet-500/20" : "bg-violet-50 border-violet-100"}`}>
+            <h2 className={`text-lg sm:text-xl font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+              Save <span className={isDark ? "text-violet-400" : "text-violet-600"}>${estimatedSavings.toLocaleString()}/year</span> on your property taxes
             </h2>
-            <p className={`mt-2 text-sm sm:text-base ${textSecondary} max-w-lg mx-auto`}>
+            <p className={`mt-2 text-sm sm:text-base ${isDark ? "text-violet-300/70" : "text-violet-600/70"} max-w-lg mx-auto`}>
               Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
             </p>
             <a 
               href={`https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00?client_reference_id=${property.pin}&prefilled_email=`} 
               target="_blank" 
               rel="noopener noreferrer"
-              className={`inline-block mt-5 sm:mt-6 w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-black text-white hover:bg-gray-800"}`}
+              className={`inline-block mt-5 sm:mt-6 w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-violet-600 text-white hover:bg-violet-700"}`}
             >
               Get Your Appeal Package — $49
             </a>
-            <p className={`mt-3 text-sm ${textMuted}`}>
+            <p className={`mt-3 text-sm ${isDark ? "text-violet-300/50" : "text-violet-600/50"}`}>
               One-time fee • Delivered in 48 hours
             </p>
           </div>
