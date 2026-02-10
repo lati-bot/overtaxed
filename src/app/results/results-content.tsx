@@ -67,12 +67,14 @@ export default function ResultsContent() {
   const [property, setProperty] = useState<PropertyData | null>(null);
   const [multipleResults, setMultipleResults] = useState<MultipleResults[] | null>(null);
   const [analysis, setAnalysis] = useState<AnalysisData | null>(null);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
+  const [mounted, setMounted] = useState(false);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
 
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem("theme") as "dark" | "light" | null;
     if (saved) setTheme(saved);
   }, []);
@@ -151,18 +153,23 @@ export default function ResultsContent() {
   }, [address, pin]);
 
   // Shared styles
-  const bgMain = isDark ? "bg-[#000000]" : "bg-[#fafafa]";
+  const bgMain = isDark ? "bg-[#0a0a0a]" : "bg-[#fafafa]";
   const bgCard = isDark ? "bg-[#111]" : "bg-white";
-  const borderColor = isDark ? "border-white/10" : "border-black/10";
+  const borderColor = isDark ? "border-white/10" : "border-black/5";
   const textPrimary = isDark ? "text-white" : "text-[#111]";
   const textSecondary = isDark ? "text-gray-400" : "text-gray-600";
   const textMuted = isDark ? "text-gray-500" : "text-gray-400";
 
+  // Prevent flash
+  if (!mounted) {
+    return <div className="min-h-screen bg-[#fafafa]" />;
+  }
+
   if (loading) {
     return (
-      <div className={`min-h-screen ${bgMain} flex items-center justify-center`}>
+      <div className={`min-h-screen ${bgMain} ${textPrimary} flex items-center justify-center transition-colors duration-300`}>
         <div className="text-center">
-          <div className={`animate-spin rounded-full h-12 w-12 border-b-2 ${isDark ? "border-white" : "border-black"} mx-auto`}></div>
+          <div className={`animate-spin rounded-full h-10 w-10 border-2 ${isDark ? "border-white/20 border-t-white" : "border-black/20 border-t-black"} mx-auto`}></div>
           <p className={`mt-4 ${textSecondary}`}>Looking up your property...</p>
         </div>
       </div>
@@ -171,13 +178,13 @@ export default function ResultsContent() {
 
   if (error) {
     return (
-      <div className={`min-h-screen ${bgMain} ${textPrimary}`}>
-        <nav className={`border-b ${borderColor}`}>
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300`}>
+        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-lg font-semibold tracking-tight">
               overtaxed
             </Link>
-            <button onClick={toggleTheme} className={`p-2 rounded-lg ${isDark ? "hover:bg-white/10" : "hover:bg-black/5"}`}>
+            <button onClick={toggleTheme} className={`p-2 rounded-lg ${isDark ? "hover:bg-white/10 text-gray-400" : "hover:bg-black/5 text-gray-600"}`}>
               {isDark ? (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
               ) : (
@@ -186,12 +193,12 @@ export default function ResultsContent() {
             </button>
           </div>
         </nav>
-        <div className="max-w-2xl mx-auto px-6 py-20 text-center">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
           <h1 className="text-2xl font-semibold">Property Not Found</h1>
           <p className={`mt-4 ${textSecondary}`}>{error}</p>
           <Link 
             href="/" 
-            className={`inline-block mt-8 px-6 py-3 rounded-lg font-medium ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-black text-white hover:bg-gray-900"}`}
+            className={`inline-block mt-8 px-6 py-3 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-black text-white hover:bg-gray-800"}`}
           >
             Try Again
           </Link>
@@ -202,13 +209,13 @@ export default function ResultsContent() {
 
   if (multipleResults) {
     return (
-      <div className={`min-h-screen ${bgMain} ${textPrimary}`}>
-        <nav className={`border-b ${borderColor}`}>
-          <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300`}>
+        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-lg font-semibold tracking-tight">
               overtaxed
             </Link>
-            <button onClick={toggleTheme} className={`p-2 rounded-lg ${isDark ? "hover:bg-white/10" : "hover:bg-black/5"}`}>
+            <button onClick={toggleTheme} className={`p-2 rounded-lg ${isDark ? "hover:bg-white/10 text-gray-400" : "hover:bg-black/5 text-gray-600"}`}>
               {isDark ? (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
               ) : (
@@ -217,15 +224,15 @@ export default function ResultsContent() {
             </button>
           </div>
         </nav>
-        <div className="max-w-2xl mx-auto px-6 py-12">
-          <h1 className="text-2xl font-semibold">Multiple Properties Found</h1>
-          <p className={`mt-2 ${textSecondary}`}>Select your property from the list below:</p>
-          <div className="mt-8 space-y-3">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <h1 className="text-xl sm:text-2xl font-semibold">Multiple Properties Found</h1>
+          <p className={`mt-2 ${textSecondary}`}>Select your property:</p>
+          <div className="mt-6 space-y-3">
             {multipleResults.map((result) => (
               <button
                 key={result.pin}
                 onClick={() => handleSelectProperty(result.pin)}
-                className={`w-full text-left p-4 rounded-lg border ${borderColor} ${bgCard} hover:border-emerald-500/50 transition-colors`}
+                className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bgCard} hover:border-emerald-500/50 transition-all ${isDark ? "" : "shadow-sm"}`}
               >
                 <div className="font-medium">{result.address}</div>
                 <div className={`text-sm ${textSecondary}`}>
@@ -236,7 +243,7 @@ export default function ResultsContent() {
             ))}
           </div>
           <div className="mt-8 text-center">
-            <Link href="/" className={`text-sm ${textSecondary} hover:${textPrimary}`}>
+            <Link href="/" className={`text-sm ${textSecondary} ${isDark ? "hover:text-white" : "hover:text-black"}`}>
               ← Search again
             </Link>
           </div>
@@ -260,12 +267,12 @@ export default function ResultsContent() {
 
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300`}>
-      <nav className={`border-b ${borderColor} ${isDark ? "bg-black/50" : "bg-white/50"} backdrop-blur-xl sticky top-0 z-50`}>
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" className="text-lg font-semibold tracking-tight">
             overtaxed
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <button onClick={toggleTheme} className={`p-2 rounded-lg ${isDark ? "hover:bg-white/10 text-gray-400" : "hover:bg-black/5 text-gray-600"}`}>
               {isDark ? (
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
@@ -280,12 +287,12 @@ export default function ResultsContent() {
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         {/* Property Header */}
-        <div className={`rounded-xl border ${borderColor} ${bgCard} p-6 md:p-8`}>
+        <div className={`rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-semibold">{property.address}</h1>
+              <h1 className="text-xl sm:text-2xl font-semibold">{property.address}</h1>
               <p className={textSecondary}>
                 {property.city}, IL {property.zip}
               </p>
@@ -293,9 +300,9 @@ export default function ResultsContent() {
                 PIN: {property.pin} • {property.township} Township
               </p>
             </div>
-            <div className="text-right">
+            <div className="md:text-right">
               <div className={`text-sm ${textSecondary}`}>Current Assessment</div>
-              <div className="text-3xl font-semibold">
+              <div className="text-2xl sm:text-3xl font-semibold">
                 ${currentAssessment.toLocaleString()}
               </div>
               <div className={`text-sm ${textMuted}`}>
@@ -307,31 +314,31 @@ export default function ResultsContent() {
 
         {/* Analysis Result - Over Assessed */}
         {analysis?.found && analysis.status === "over" && (
-          <div className="mt-6 rounded-xl p-6 md:p-8 bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30">
-            <div className="flex items-center gap-2 text-emerald-400 font-medium">
+          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 ${isDark ? "bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30" : "bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200"}`}>
+            <div className={`flex items-center gap-2 font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               You&apos;re Over-Assessed
             </div>
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="mt-5 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               <div>
                 <div className={`text-sm ${textSecondary}`}>Current</div>
-                <div className="text-xl font-semibold">${currentAssessment.toLocaleString()}</div>
+                <div className="text-lg sm:text-xl font-semibold">${currentAssessment.toLocaleString()}</div>
               </div>
               <div>
                 <div className={`text-sm ${textSecondary}`}>Fair Value</div>
-                <div className="text-xl font-semibold text-emerald-400">${fairAssessment.toLocaleString()}</div>
+                <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${fairAssessment.toLocaleString()}</div>
               </div>
               <div>
                 <div className={`text-sm ${textSecondary}`}>Reduction</div>
-                <div className="text-xl font-semibold text-emerald-400">
+                <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
                   ${(currentAssessment - fairAssessment).toLocaleString()}
                 </div>
               </div>
               <div>
                 <div className={`text-sm ${textSecondary}`}>Tax Savings</div>
-                <div className="text-xl font-semibold text-emerald-400">${estimatedSavings.toLocaleString()}/yr</div>
+                <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${estimatedSavings.toLocaleString()}/yr</div>
               </div>
             </div>
             <p className={`mt-4 text-sm ${textSecondary}`}>
@@ -342,9 +349,9 @@ export default function ResultsContent() {
 
         {/* Analysis Result - Fairly Assessed */}
         {analysis?.found && analysis.status === "fair" && (
-          <div className={`mt-6 rounded-xl p-6 md:p-8 border ${borderColor} ${bgCard}`}>
-            <div className="flex items-center gap-2 font-medium">
-              <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${borderColor} ${bgCard} ${isDark ? "" : "shadow-sm"}`}>
+            <div className={`flex items-center gap-2 font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
               Fairly Assessed
@@ -357,8 +364,8 @@ export default function ResultsContent() {
 
         {/* Not in analyzed area */}
         {analysis && !analysis.found && (
-          <div className="mt-6 rounded-xl p-6 md:p-8 bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30">
-            <div className="flex items-center gap-2 text-amber-400 font-medium">
+          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 ${isDark ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30" : "bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200"}`}>
+            <div className={`flex items-center gap-2 font-medium ${isDark ? "text-amber-400" : "text-amber-600"}`}>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
@@ -372,12 +379,12 @@ export default function ResultsContent() {
 
         {/* Property Details */}
         {property.characteristics && (
-          <div className={`mt-6 rounded-xl border ${borderColor} ${bgCard} p-6 md:p-8`}>
-            <h2 className="text-lg font-semibold mb-6">Property Details</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className={`mt-4 sm:mt-6 rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
+            <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Property Details</h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               {property.characteristics.buildingSqFt && (
                 <div>
-                  <div className="text-2xl font-semibold">
+                  <div className="text-xl sm:text-2xl font-semibold">
                     {property.characteristics.buildingSqFt.toLocaleString()}
                   </div>
                   <div className={`text-sm ${textSecondary}`}>Square Feet</div>
@@ -385,7 +392,7 @@ export default function ResultsContent() {
               )}
               {property.characteristics.bedrooms && (
                 <div>
-                  <div className="text-2xl font-semibold">
+                  <div className="text-xl sm:text-2xl font-semibold">
                     {property.characteristics.bedrooms}
                   </div>
                   <div className={`text-sm ${textSecondary}`}>Bedrooms</div>
@@ -393,7 +400,7 @@ export default function ResultsContent() {
               )}
               {property.characteristics.fullBaths && (
                 <div>
-                  <div className="text-2xl font-semibold">
+                  <div className="text-xl sm:text-2xl font-semibold">
                     {property.characteristics.fullBaths}
                     {property.characteristics.halfBaths ? `.${property.characteristics.halfBaths}` : ""}
                   </div>
@@ -402,7 +409,7 @@ export default function ResultsContent() {
               )}
               {property.characteristics.yearBuilt && (
                 <div>
-                  <div className="text-2xl font-semibold">
+                  <div className="text-xl sm:text-2xl font-semibold">
                     {property.characteristics.yearBuilt}
                   </div>
                   <div className={`text-sm ${textSecondary}`}>Year Built</div>
@@ -414,9 +421,9 @@ export default function ResultsContent() {
 
         {/* Assessment History */}
         {property.assessmentHistory.length > 0 && (
-          <div className={`mt-6 rounded-xl border ${borderColor} ${bgCard} p-6 md:p-8`}>
-            <h2 className="text-lg font-semibold mb-6">Assessment History</h2>
-            <div className="overflow-x-auto">
+          <div className={`mt-4 sm:mt-6 rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
+            <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Assessment History</h2>
+            <div className="overflow-x-auto -mx-5 sm:-mx-6 md:-mx-8 px-5 sm:px-6 md:px-8">
               <table className="w-full text-sm">
                 <thead>
                   <tr className={`border-b ${borderColor}`}>
@@ -443,7 +450,7 @@ export default function ResultsContent() {
                         </td>
                         <td className="py-3 text-right">
                           {savedAmount > 0 ? (
-                            <span className="text-emerald-400 font-medium">
+                            <span className={`font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
                               -${savedAmount.toLocaleString()}
                               <span className="text-xs ml-1 opacity-70">
                                 (-{savedPercent}%)
@@ -464,18 +471,18 @@ export default function ResultsContent() {
 
         {/* CTA - Over Assessed */}
         {hasAnalysis && (
-          <div className="mt-8 rounded-xl p-6 md:p-8 bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30 text-center">
-            <h2 className="text-xl font-semibold">
+          <div className={`mt-6 sm:mt-8 rounded-xl p-5 sm:p-6 md:p-8 text-center ${isDark ? "bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30" : "bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200"}`}>
+            <h2 className="text-lg sm:text-xl font-semibold">
               Save ${estimatedSavings.toLocaleString()}/year on your property taxes
             </h2>
-            <p className={`mt-2 ${textSecondary} max-w-lg mx-auto`}>
+            <p className={`mt-2 text-sm sm:text-base ${textSecondary} max-w-lg mx-auto`}>
               Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
             </p>
             <a 
               href={`https://buy.stripe.com/7sY28t78c4Rj1ZyaVm57W00?client_reference_id=${property.pin}&prefilled_email=`} 
               target="_blank" 
               rel="noopener noreferrer"
-              className="inline-block mt-6 px-8 py-4 rounded-lg bg-white text-black font-medium hover:bg-gray-100 transition-colors"
+              className={`inline-block mt-5 sm:mt-6 w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-black text-white hover:bg-gray-800"}`}
             >
               Get Your Appeal Package — $49
             </a>
@@ -487,18 +494,18 @@ export default function ResultsContent() {
 
         {/* CTA - Fairly Assessed */}
         {analysis?.found && analysis.status === "fair" && (
-          <div className={`mt-8 rounded-xl border ${borderColor} ${bgCard} p-6 md:p-8 text-center`}>
-            <h2 className="text-xl font-semibold">
+          <div className={`mt-6 sm:mt-8 rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 text-center ${isDark ? "" : "shadow-sm"}`}>
+            <h2 className="text-lg sm:text-xl font-semibold">
               Good news — you&apos;re not overpaying
             </h2>
-            <p className={`mt-2 ${textSecondary} max-w-lg mx-auto`}>
+            <p className={`mt-2 text-sm sm:text-base ${textSecondary} max-w-lg mx-auto`}>
               Based on our analysis, your property is fairly assessed compared to similar homes. No action needed!
             </p>
           </div>
         )}
 
         {/* Disclaimer */}
-        <p className={`mt-8 text-xs ${textMuted} text-center`}>
+        <p className={`mt-6 sm:mt-8 text-xs ${textMuted} text-center`}>
           Assessment data from Cook County Assessor&apos;s Office. Savings estimates based on 
           {analysis?.comp_count ? ` ${analysis.comp_count}` : ""} comparable properties and may vary. 
           Past results do not guarantee future outcomes.

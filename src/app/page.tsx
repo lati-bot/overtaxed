@@ -18,12 +18,14 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState<AutocompleteResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedPin, setSelectedPin] = useState<string | null>(null);
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
+  const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => {
+    setMounted(true);
     const saved = localStorage.getItem("theme") as "dark" | "light" | null;
     if (saved) setTheme(saved);
   }, []);
@@ -99,16 +101,33 @@ export default function Home() {
 
   const isDark = theme === "dark";
 
+  // Prevent flash of wrong theme
+  if (!mounted) {
+    return <div className="min-h-screen bg-[#fafafa]" />;
+  }
+
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${isDark ? "bg-[#000000] text-white" : "bg-[#fafafa] text-[#111]"}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-[#0a0a0a] text-white" : "bg-[#fafafa] text-[#111]"}`}>
       
+      {/* Cook County Banner */}
+      <div className={`${isDark ? "bg-emerald-500/10 border-b border-emerald-500/20" : "bg-emerald-50 border-b border-emerald-100"}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-2.5 flex items-center justify-center gap-2 text-sm">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className={isDark ? "text-emerald-400" : "text-emerald-700"}>
+            Now serving <strong>Cook County, Illinois</strong>
+          </span>
+          <span className={isDark ? "text-gray-500" : "text-gray-400"}>•</span>
+          <span className={isDark ? "text-gray-400" : "text-gray-500"}>More markets coming soon</span>
+        </div>
+      </div>
+
       {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 ${isDark ? "bg-black/50" : "bg-white/50"} backdrop-blur-xl`}>
-        <div className="max-w-7xl mx-auto px-8 py-5 flex items-center justify-between">
+      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
           <div className={`text-lg font-semibold tracking-tight ${isDark ? "text-white" : "text-black"}`}>
             overtaxed
           </div>
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 sm:gap-6">
             <div className={`hidden md:flex items-center gap-6 text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
               <button onClick={() => scrollToSection("how-it-works")} className={`${isDark ? "hover:text-white" : "hover:text-black"} transition-colors`}>
                 How it Works
@@ -132,7 +151,7 @@ export default function Home() {
             </button>
             <button 
               onClick={() => scrollToSection("pricing")}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+              className={`hidden sm:block px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
                 isDark 
                   ? "border-white/20 text-white hover:bg-white hover:text-black" 
                   : "border-black/20 text-black hover:bg-black hover:text-white"
@@ -144,41 +163,34 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* Hero Section - Asymmetric */}
-      <section className="pt-32 pb-20 px-8">
+      {/* Hero Section */}
+      <section className="pt-12 sm:pt-16 lg:pt-20 pb-16 sm:pb-20 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left side - Text */}
             <div>
-              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-8 ${
-                isDark ? "bg-white/5 text-gray-400" : "bg-black/5 text-gray-600"
-              }`}>
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                Cook County, IL
-              </div>
-              
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.05]">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1]">
                 Stop overpaying
                 <br />
                 property tax
               </h1>
               
-              <p className={`mt-6 text-lg md:text-xl leading-relaxed max-w-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              <p className={`mt-5 sm:mt-6 text-lg sm:text-xl leading-relaxed max-w-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                 We analyze your home against similar properties and build your appeal case. Takes 30 seconds.
               </p>
               
-              <form onSubmit={handleSearch} className="mt-10">
+              <form onSubmit={handleSearch} className="mt-8 sm:mt-10">
                 <div className="relative max-w-md">
-                  <div className="flex gap-3">
+                  <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                       <input 
                         ref={inputRef}
                         type="text"
-                        placeholder="Enter your address..."
-                        className={`w-full h-12 px-4 rounded-lg text-base transition-all ${
+                        placeholder="Enter your Cook County address..."
+                        className={`w-full h-12 sm:h-14 px-4 rounded-xl text-base transition-all ${
                           isDark 
                             ? "bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-white/30" 
-                            : "bg-white border border-black/10 text-black placeholder-gray-400 focus:border-black/30"
+                            : "bg-white border border-black/10 text-black placeholder-gray-400 focus:border-black/30 shadow-sm"
                         } focus:outline-none`}
                         value={address}
                         onChange={handleInputChange}
@@ -189,7 +201,7 @@ export default function Home() {
                       {showSuggestions && suggestions.length > 0 && (
                         <div 
                           ref={suggestionsRef}
-                          className={`absolute top-full left-0 right-0 mt-2 rounded-lg shadow-2xl z-50 overflow-hidden ${
+                          className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl z-50 overflow-hidden ${
                             isDark ? "bg-[#111] border border-white/10" : "bg-white border border-black/10"
                           }`}
                         >
@@ -214,12 +226,16 @@ export default function Home() {
                     <button 
                       type="submit"
                       disabled={loading || !address.trim()}
-                      className="h-12 px-6 rounded-lg bg-white text-black font-medium text-sm hover:bg-gray-100 transition-colors disabled:opacity-50"
+                      className={`h-12 sm:h-14 px-6 sm:px-8 rounded-xl font-medium text-base transition-all disabled:opacity-50 ${
+                        isDark 
+                          ? "bg-white text-black hover:bg-gray-100" 
+                          : "bg-black text-white hover:bg-gray-800"
+                      }`}
                     >
-                      {loading ? "..." : "Check"}
+                      {loading ? "..." : "Check Now"}
                     </button>
                   </div>
-                  <p className={`mt-3 text-xs ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                  <p className={`mt-3 text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
                     Free instant analysis • No signup required
                   </p>
                 </div>
@@ -228,21 +244,30 @@ export default function Home() {
             
             {/* Right side - Visual */}
             <div className="hidden lg:block">
-              <div className={`rounded-2xl p-8 ${isDark ? "bg-white/[0.02] border border-white/5" : "bg-black/[0.02] border border-black/5"}`}>
-                <div className="space-y-4">
+              <div className={`rounded-2xl p-8 ${isDark ? "bg-white/[0.03] border border-white/10" : "bg-white border border-black/5 shadow-xl shadow-black/5"}`}>
+                <div className={`text-xs font-medium uppercase tracking-wider mb-6 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Sample Analysis</div>
+                <div className="space-y-5">
                   <div className="flex items-center justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>Your Assessment</span>
+                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Your Assessment</span>
                     <span className="text-2xl font-semibold">$68,700</span>
                   </div>
                   <div className={`h-px ${isDark ? "bg-white/10" : "bg-black/10"}`}></div>
                   <div className="flex items-center justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>Fair Assessment</span>
-                    <span className="text-2xl font-semibold text-emerald-400">$48,074</span>
+                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Fair Assessment</span>
+                    <span className="text-2xl font-semibold text-emerald-500">$48,074</span>
                   </div>
                   <div className={`h-px ${isDark ? "bg-white/10" : "bg-black/10"}`}></div>
                   <div className="flex items-center justify-between">
-                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>Potential Savings</span>
-                    <span className="text-3xl font-bold text-emerald-400">$4,125/yr</span>
+                    <span className={`text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Potential Savings</span>
+                    <span className="text-3xl font-bold text-emerald-500">$4,125/yr</span>
+                  </div>
+                </div>
+                <div className={`mt-6 pt-5 border-t ${isDark ? "border-white/10" : "border-black/5"}`}>
+                  <div className="flex items-center gap-2 text-emerald-500 text-sm font-medium">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Based on 8 comparable properties
                   </div>
                 </div>
               </div>
@@ -252,42 +277,42 @@ export default function Home() {
       </section>
 
       {/* Stats - Gradient Cards */}
-      <section className="py-20 px-8">
+      <section className="py-12 sm:py-16 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-rose-500/80 to-orange-400/80 text-white">
-              <div className="text-5xl font-bold">$847</div>
-              <div className="mt-2 text-white/80 text-sm">Average annual savings</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white">
+              <div className="text-4xl sm:text-5xl font-bold">$847</div>
+              <div className="mt-1 sm:mt-2 text-white/80 text-sm">Average annual savings</div>
             </div>
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-violet-500/80 to-purple-400/80 text-white">
-              <div className="text-5xl font-bold">21%</div>
-              <div className="mt-2 text-white/80 text-sm">Average reduction</div>
+            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-400 text-white">
+              <div className="text-4xl sm:text-5xl font-bold">21%</div>
+              <div className="mt-1 sm:mt-2 text-white/80 text-sm">Average reduction</div>
             </div>
-            <div className="p-8 rounded-2xl bg-gradient-to-br from-emerald-500/80 to-teal-400/80 text-white">
-              <div className="text-5xl font-bold">72%</div>
-              <div className="mt-2 text-white/80 text-sm">Success rate</div>
+            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-400 text-white">
+              <div className="text-4xl sm:text-5xl font-bold">72%</div>
+              <div className="mt-1 sm:mt-2 text-white/80 text-sm">Success rate</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="py-20 px-8">
+      <section id="how-it-works" className="py-16 sm:py-20 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-4">How it works</h2>
-          <p className={`text-lg mb-16 max-w-xl ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-3 sm:mb-4">How it works</h2>
+          <p className={`text-base sm:text-lg mb-10 sm:mb-12 max-w-xl ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             We do the research. You file the appeal.
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             {[
               { num: "01", title: "Enter your address", desc: "We pull your property data from Cook County's records instantly." },
               { num: "02", title: "We find your comps", desc: "Our system identifies similar homes assessed lower than yours." },
               { num: "03", title: "File your appeal", desc: "Get your complete appeal package with forms and instructions." },
             ].map((step) => (
-              <div key={step.num} className={`p-6 rounded-xl ${isDark ? "bg-white/[0.02] border border-white/5" : "bg-black/[0.02] border border-black/5"}`}>
-                <div className={`text-xs font-mono mb-4 ${isDark ? "text-gray-500" : "text-gray-400"}`}>{step.num}</div>
-                <h3 className="text-lg font-medium mb-2">{step.title}</h3>
+              <div key={step.num} className={`p-5 sm:p-6 rounded-xl ${isDark ? "bg-white/[0.03] border border-white/10" : "bg-white border border-black/5 shadow-sm"}`}>
+                <div className={`text-xs font-mono mb-3 sm:mb-4 ${isDark ? "text-gray-500" : "text-gray-400"}`}>{step.num}</div>
+                <h3 className="text-base sm:text-lg font-medium mb-2">{step.title}</h3>
                 <p className={`text-sm leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>{step.desc}</p>
               </div>
             ))}
@@ -296,18 +321,18 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 px-8">
+      <section id="pricing" className="py-16 sm:py-20 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
             <div>
-              <h2 className="text-3xl md:text-4xl font-semibold mb-4">Simple pricing</h2>
-              <p className={`text-lg mb-8 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-3 sm:mb-4">Simple pricing</h2>
+              <p className={`text-base sm:text-lg mb-6 sm:mb-8 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
                 No percentage of savings. No hidden fees. Just a flat rate.
               </p>
               
-              <div className="text-6xl md:text-7xl font-bold mb-8">$49</div>
+              <div className="text-5xl sm:text-6xl md:text-7xl font-bold mb-6 sm:mb-8">$49</div>
               
-              <ul className="space-y-4 mb-10">
+              <ul className="space-y-3 sm:space-y-4 mb-8">
                 {[
                   "Complete appeal package with 5+ comparable properties",
                   "Pre-filled appeal forms ready to submit",
@@ -315,17 +340,21 @@ export default function Home() {
                   "Delivered in 48 hours",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-emerald-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    <span className={`${isDark ? "text-gray-300" : "text-gray-700"}`}>{item}</span>
+                    <span className={`text-sm sm:text-base ${isDark ? "text-gray-300" : "text-gray-700"}`}>{item}</span>
                   </li>
                 ))}
               </ul>
               
               <button 
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="px-8 py-4 rounded-lg bg-white text-black font-medium hover:bg-gray-100 transition-colors"
+                className={`w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors ${
+                  isDark 
+                    ? "bg-white text-black hover:bg-gray-100" 
+                    : "bg-black text-white hover:bg-gray-800"
+                }`}
               >
                 Get Your Appeal Package
               </button>
@@ -336,18 +365,18 @@ export default function Home() {
             </div>
             
             <div className="hidden lg:block">
-              <div className="p-8 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 border border-violet-500/20">
-                <div className={`text-sm mb-6 ${isDark ? "text-gray-400" : "text-gray-600"}`}>What you get</div>
+              <div className={`p-8 rounded-2xl ${isDark ? "bg-gradient-to-br from-violet-500/20 to-purple-600/20 border border-violet-500/20" : "bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-100"}`}>
+                <div className={`text-sm font-medium mb-6 ${isDark ? "text-gray-400" : "text-gray-600"}`}>What you get</div>
                 <div className="space-y-4">
-                  <div className={`p-4 rounded-lg ${isDark ? "bg-black/30" : "bg-white/50"}`}>
+                  <div className={`p-4 rounded-lg ${isDark ? "bg-black/30" : "bg-white/80"}`}>
                     <div className="font-medium">Comparable Properties Report</div>
                     <div className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>5-8 similar homes with lower assessments</div>
                   </div>
-                  <div className={`p-4 rounded-lg ${isDark ? "bg-black/30" : "bg-white/50"}`}>
+                  <div className={`p-4 rounded-lg ${isDark ? "bg-black/30" : "bg-white/80"}`}>
                     <div className="font-medium">Pre-filled Appeal Forms</div>
                     <div className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>Ready to print and submit</div>
                   </div>
-                  <div className={`p-4 rounded-lg ${isDark ? "bg-black/30" : "bg-white/50"}`}>
+                  <div className={`p-4 rounded-lg ${isDark ? "bg-black/30" : "bg-white/80"}`}>
                     <div className="font-medium">Filing Instructions</div>
                     <div className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>Step-by-step guide with deadlines</div>
                   </div>
@@ -359,21 +388,21 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className={`py-20 px-8 ${isDark ? "bg-white/[0.01]" : "bg-black/[0.01]"}`}>
+      <section id="faq" className={`py-16 sm:py-20 px-4 sm:px-8 ${isDark ? "bg-white/[0.02]" : "bg-black/[0.02]"}`}>
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-semibold mb-12">Questions & Answers</h2>
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-8 sm:mb-12">Questions & Answers</h2>
           
-          <div className="space-y-8">
+          <div className="space-y-6 sm:space-y-8">
             {[
               { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves (called \"pro se\") at both the Assessor's Office and Board of Review. We give you everything you need." },
               { q: "What if my appeal doesn't work?", a: "Appeals have a high success rate when you have good comparable properties. If your assessment isn't reduced, you've lost nothing but the filing time — there's no penalty for appealing." },
               { q: "When can I file an appeal?", a: "Cook County opens appeals by township on a rotating schedule. We'll tell you if your township is currently open or when it will be." },
               { q: "Why is this so much cheaper than attorneys?", a: "Attorneys charge a percentage of savings because they can. We use technology to automate the research that used to take hours. You get the same comparable property analysis at a fraction of the cost." },
-              { q: "What properties do you support?", a: "Currently we support single-family homes and small multi-family buildings (2-4 units) in Cook County, IL. Condos and commercial properties require different approaches — contact us if you need help with those." },
+              { q: "What properties do you support?", a: "Currently we support single-family homes and small multi-family buildings (2-4 units) in Cook County, IL. Condos and commercial properties require different approaches." },
             ].map((item, i) => (
               <div key={i}>
-                <h3 className="text-lg font-medium mb-2">{item.q}</h3>
-                <p className={`leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>{item.a}</p>
+                <h3 className="text-base sm:text-lg font-medium mb-2">{item.q}</h3>
+                <p className={`text-sm sm:text-base leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>{item.a}</p>
               </div>
             ))}
           </div>
@@ -381,17 +410,17 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="py-32 px-8 text-center">
-        <h2 className="text-4xl md:text-5xl font-semibold mb-6">See if you have a case</h2>
-        <p className={`text-lg mb-10 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+      <section className="py-20 sm:py-24 px-4 sm:px-8 text-center">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-4 sm:mb-6">See if you have a case</h2>
+        <p className={`text-base sm:text-lg mb-8 sm:mb-10 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
           Check your property in 30 seconds — it&apos;s free.
         </p>
         <button 
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className={`px-8 py-4 rounded-lg font-medium transition-colors ${
+          className={`w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors ${
             isDark 
               ? "bg-white text-black hover:bg-gray-100" 
-              : "bg-black text-white hover:bg-gray-900"
+              : "bg-black text-white hover:bg-gray-800"
           }`}
         >
           Check My Property
@@ -399,8 +428,8 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className={`py-12 px-8 border-t ${isDark ? "border-white/5" : "border-black/5"}`}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className={`py-8 sm:py-12 px-4 sm:px-8 border-t ${isDark ? "border-white/5" : "border-black/5"}`}>
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
             © 2026 Overtaxed
           </div>
