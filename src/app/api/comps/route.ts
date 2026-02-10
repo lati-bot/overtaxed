@@ -71,15 +71,17 @@ export async function GET(request: NextRequest) {
                     WHERE c.nbhd = @nbhd 
                     AND c.id != @pin 
                     AND c.sqft > 0 
-                    AND (c.current_assessment / c.sqft) < @perSqft
-                    ORDER BY ABS(c.sqft - @sqft)`,
+                    AND (c.current_assessment / c.sqft) < @perSqft`,
             parameters: [
               { name: "@nbhd", value: mainProp.nbhd },
               { name: "@pin", value: pin },
               { name: "@perSqft", value: mainPerSqft },
-              { name: "@sqft", value: mainProp.sqft || 0 },
             ],
           }).fetchAll();
+          
+          // Sort by sqft similarity client-side
+          const targetSqft = mainProp.sqft || 0;
+          resources.sort((a: any, b: any) => Math.abs(a.sqft - targetSqft) - Math.abs(b.sqft - targetSqft));
           
           comps = resources.map((c: any) => ({
             pin: c.id || c.pin,

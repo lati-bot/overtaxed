@@ -186,22 +186,24 @@ async function getCompPins(pin: string): Promise<string[]> {
     
     const mainPerSqft = mainProp.sqft > 0 ? mainProp.current_assessment / mainProp.sqft : 0;
     
-    // Get 15 comps (we'll filter to best 9 after enrichment)
+    // Get 20 comps (we'll sort by sqft similarity and filter to best 9 after enrichment)
     const { resources } = await container.items.query({
-      query: `SELECT TOP 15 c.id, c.sqft, c.beds, c.current_assessment
+      query: `SELECT TOP 20 c.id, c.sqft, c.beds, c.current_assessment
               FROM c 
               WHERE c.nbhd = @nbhd 
               AND c.id != @pin 
               AND c.sqft > 0 
-              AND (c.current_assessment / c.sqft) < @perSqft
-              ORDER BY ABS(c.sqft - @sqft)`,
+              AND (c.current_assessment / c.sqft) < @perSqft`,
       parameters: [
         { name: "@nbhd", value: mainProp.nbhd },
         { name: "@pin", value: pin },
         { name: "@perSqft", value: mainPerSqft },
-        { name: "@sqft", value: mainProp.sqft || 0 },
       ],
     }).fetchAll();
+    
+    // Sort by sqft similarity client-side (Cosmos doesn't support ORDER BY ABS())
+    const targetSqft = mainProp.sqft || 0;
+    resources.sort((a: any, b: any) => Math.abs(a.sqft - targetSqft) - Math.abs(b.sqft - targetSqft));
     
     return resources.map((c: any) => c.id);
   } catch (err) {
