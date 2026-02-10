@@ -153,7 +153,7 @@ export default function ResultsContent() {
   }, [address, pin]);
 
   // Shared styles
-  const bgMain = isDark ? "bg-[#0a0a0a]" : "bg-[#fafafa]";
+  const bgMain = isDark ? "bg-[#0a0a14]" : "bg-[#fafafa]";
   const bgCard = isDark ? "bg-[#111]" : "bg-white";
   const borderColor = isDark ? "border-white/10" : "border-black/5";
   const textPrimary = isDark ? "text-white" : "text-[#111]";
@@ -180,7 +180,7 @@ export default function ResultsContent() {
   if (error) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300`}>
-        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a14]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-lg font-semibold tracking-tight">
               overtaxed
@@ -296,7 +296,7 @@ export default function ResultsContent() {
   if (multipleResults) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300`}>
-        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a14]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-lg font-semibold tracking-tight">
               overtaxed
@@ -356,7 +356,7 @@ export default function ResultsContent() {
 
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300`}>
-      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a14]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" className="text-lg font-semibold tracking-tight">
             overtaxed

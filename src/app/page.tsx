@@ -107,10 +107,10 @@ export default function Home() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-[#0a0a0a] text-white" : "bg-[#fafafa] text-[#111]"}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-[#0a0a14] text-white" : "bg-[#fafafa] text-[#111]"}`}>
 
       {/* Navigation */}
-      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
+      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a14]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
           <div className={`text-lg font-semibold tracking-tight ${isDark ? "text-white" : "text-black"}`}>
             overtaxed
@@ -256,7 +256,7 @@ export default function Home() {
             
             {/* Right side - Visual */}
             <div className="hidden lg:block">
-              <div className={`rounded-2xl p-8 ${isDark ? "bg-white/[0.03] border border-white/10" : "bg-white border border-black/5 shadow-xl shadow-black/5"}`}>
+              <div className={`rounded-2xl p-8 ${isDark ? "bg-white/[0.02] border border-white/10" : "bg-white border border-black/5 shadow-xl shadow-black/5"}`}>
                 <div className={`text-xs font-medium uppercase tracking-wider mb-6 ${isDark ? "text-gray-500" : "text-gray-400"}`}>Sample Analysis</div>
                 <div className="space-y-5">
                   <div className="flex items-center justify-between">
@@ -322,7 +322,7 @@ export default function Home() {
               { num: "02", title: "We find your comps", desc: "Our system identifies similar homes assessed lower than yours." },
               { num: "03", title: "File your appeal", desc: "Get your complete appeal package with forms and instructions." },
             ].map((step) => (
-              <div key={step.num} className={`p-5 sm:p-6 rounded-xl ${isDark ? "bg-white/[0.03] border border-white/10" : "bg-white border border-black/5 shadow-sm"}`}>
+              <div key={step.num} className={`p-5 sm:p-6 rounded-xl ${isDark ? "bg-white/[0.02] border border-white/10" : "bg-white border border-black/5 shadow-sm"}`}>
                 <div className={`text-xs font-mono mb-3 sm:mb-4 ${isDark ? "text-gray-500" : "text-gray-400"}`}>{step.num}</div>
                 <h3 className="text-base sm:text-lg font-medium mb-2">{step.title}</h3>
                 <p className={`text-sm leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>{step.desc}</p>
@@ -377,7 +377,7 @@ export default function Home() {
             </div>
             
             <div className="hidden lg:block">
-              <div className={`p-8 rounded-2xl border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/5 shadow-lg"}`}>
+              <div className={`p-8 rounded-2xl border ${isDark ? "bg-white/[0.02] border-white/10" : "bg-white border-black/5 shadow-lg"}`}>
                 <div className={`text-sm font-medium mb-6 ${isDark ? "text-gray-400" : "text-gray-600"}`}>What you get</div>
                 <div className="space-y-4">
                   <div className={`p-4 rounded-lg ${isDark ? "bg-white/5 border border-white/5" : "bg-gray-50 border border-black/5"}`}>
