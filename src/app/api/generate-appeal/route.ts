@@ -300,11 +300,12 @@ function generatePdfHtml(data: PropertyData): string {
 }
 
 async function generatePdf(html: string): Promise<Buffer> {
-  const response = await fetch("https://chrome.browserless.io/pdf", {
+  // Use the new Browserless API endpoint with token as query param
+  const response = await fetch(`https://production-sfo.browserless.io/pdf?token=${BROWSERLESS_TOKEN}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${BROWSERLESS_TOKEN}`,
+      "Cache-Control": "no-cache",
     },
     body: JSON.stringify({
       html,
@@ -317,6 +318,8 @@ async function generatePdf(html: string): Promise<Buffer> {
   });
 
   if (!response.ok) {
+    const errorText = await response.text().catch(() => "");
+    console.error(`Browserless error: ${response.status} - ${errorText}`);
     throw new Error(`Browserless error: ${response.status}`);
   }
 
