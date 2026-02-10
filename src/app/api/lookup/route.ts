@@ -35,15 +35,19 @@ interface ParcelResult {
 interface PropertyCharacteristics {
   pin: string;
   class: string;
+  tax_year?: string;
   township_code: string;
   nbhd: string;
-  char_bldg_sf?: string;
-  char_land_sf?: string;
-  char_yrblt?: string;
-  char_beds?: string;
-  char_fbath?: string;
-  char_hbath?: string;
-  char_ext_wall?: string;
+  bldg_sf?: string;
+  hd_sf?: string;
+  total_bldg_sf?: string;
+  age?: string;
+  beds?: string;
+  fbath?: string;
+  hbath?: string;
+  ext_wall?: string;
+  rooms?: string;
+  addr?: string;
 }
 
 interface Assessment {
@@ -123,7 +127,7 @@ async function searchByPin(pin: string): Promise<ParcelResult[]> {
 }
 
 async function getCharacteristics(pin: string): Promise<PropertyCharacteristics | null> {
-  const url = `${CHARACTERISTICS_API}?pin=${pin}&$order=year DESC&$limit=1`;
+  const url = `${CHARACTERISTICS_API}?pin=${pin}&$order=tax_year DESC&$limit=1`;
   
   const response = await fetch(url);
   if (!response.ok) return null;
@@ -245,13 +249,13 @@ export async function GET(request: NextRequest) {
           longitude: parcel.longitude,
           characteristics: characteristics ? {
             class: characteristics.class,
-            buildingSqFt: characteristics.char_bldg_sf ? parseInt(characteristics.char_bldg_sf) : null,
-            landSqFt: characteristics.char_land_sf ? parseInt(characteristics.char_land_sf) : null,
-            yearBuilt: characteristics.char_yrblt ? parseInt(characteristics.char_yrblt) : null,
-            bedrooms: characteristics.char_beds ? parseInt(characteristics.char_beds) : null,
-            fullBaths: characteristics.char_fbath ? parseInt(characteristics.char_fbath) : null,
-            halfBaths: characteristics.char_hbath ? parseInt(characteristics.char_hbath) : null,
-            exteriorWall: characteristics.char_ext_wall,
+            buildingSqFt: characteristics.bldg_sf ? parseInt(characteristics.bldg_sf) : null,
+            landSqFt: characteristics.hd_sf ? parseInt(characteristics.hd_sf) : null,
+            yearBuilt: characteristics.age ? (new Date().getFullYear() - parseInt(characteristics.age)) : null,
+            bedrooms: characteristics.beds ? parseInt(characteristics.beds) : null,
+            fullBaths: characteristics.fbath ? parseInt(characteristics.fbath) : null,
+            halfBaths: characteristics.hbath ? parseInt(characteristics.hbath) : null,
+            exteriorWall: characteristics.ext_wall,
           } : null,
           assessment: latestAssessment && latestAssessment.mailed_tot ? {
             year: latestAssessment.year,
@@ -285,13 +289,13 @@ export async function GET(request: NextRequest) {
         longitude: parcel.longitude,
         characteristics: characteristics ? {
           class: characteristics.class,
-          buildingSqFt: characteristics.char_bldg_sf ? parseInt(characteristics.char_bldg_sf) : null,
-          landSqFt: characteristics.char_land_sf ? parseInt(characteristics.char_land_sf) : null,
-          yearBuilt: characteristics.char_yrblt ? parseInt(characteristics.char_yrblt) : null,
-          bedrooms: characteristics.char_beds ? parseInt(characteristics.char_beds) : null,
-          fullBaths: characteristics.char_fbath ? parseInt(characteristics.char_fbath) : null,
-          halfBaths: characteristics.char_hbath ? parseInt(characteristics.char_hbath) : null,
-          exteriorWall: characteristics.char_ext_wall,
+          buildingSqFt: characteristics.bldg_sf ? parseInt(characteristics.bldg_sf) : null,
+          landSqFt: characteristics.hd_sf ? parseInt(characteristics.hd_sf) : null,
+          yearBuilt: characteristics.age ? (new Date().getFullYear() - parseInt(characteristics.age)) : null,
+          bedrooms: characteristics.beds ? parseInt(characteristics.beds) : null,
+          fullBaths: characteristics.fbath ? parseInt(characteristics.fbath) : null,
+          halfBaths: characteristics.hbath ? parseInt(characteristics.hbath) : null,
+          exteriorWall: characteristics.ext_wall,
         } : null,
         assessment: latestAssessment && latestAssessment.mailed_tot ? {
           year: latestAssessment.year,

@@ -24,107 +24,333 @@ function getResend() {
 
 const BROWSERLESS_TOKEN = process.env.BROWSERLESS_TOKEN || "";
 
+// Cook County API endpoints
+const PARCEL_API = "https://datacatalog.cookcountyil.gov/resource/c49d-89sn.json";
+const CHARACTERISTICS_API = "https://datacatalog.cookcountyil.gov/resource/bcnq-qi2z.json";
+const ASSESSMENTS_API = "https://datacatalog.cookcountyil.gov/resource/uzyt-m557.json";
+
+// Cosmos DB
+import { CosmosClient } from "@azure/cosmos";
+let cosmosClient: CosmosClient | null = null;
+function getCosmosClient() {
+  if (!cosmosClient && process.env.COSMOS_CONNECTION_STRING) {
+    cosmosClient = new CosmosClient(process.env.COSMOS_CONNECTION_STRING);
+  }
+  return cosmosClient;
+}
+
+// Property class code descriptions
+const CLASS_DESCRIPTIONS: Record<string, string> = {
+  "202": "One-story residence, any age, up to 1,000 sq ft",
+  "203": "One-story residence, any age, 1,001-1,800 sq ft",
+  "204": "One-story residence, any age, over 1,800 sq ft",
+  "205": "Two-story residence, up to 2,200 sq ft",
+  "206": "Two-story residence, 2,201-4,999 sq ft",
+  "207": "Two-story residence, over 5,000 sq ft",
+  "208": "Split-level or tri-level residence",
+  "209": "One-story residence with attic, any age",
+  "210": "Old style row house",
+  "211": "Two to six apartments, any age",
+  "212": "Mixed commercial/residential, 6 units or fewer",
+  "218": "Coach house/granny flat",
+  "234": "Split-level residence",
+  "278": "Two-story with basement apartment",
+  "295": "Townhouse/row house",
+};
+
+// Exterior wall descriptions
+const EXT_WALL: Record<string, string> = {
+  "1": "Wood", "2": "Masonry", "3": "Wood & Masonry",
+  "4": "Stucco", "5": "Other",
+};
+
+interface CompProperty {
+  pin: string;
+  address: string;
+  classCode: string;
+  sqft: number;
+  totalSqft: number;
+  beds: number;
+  fbath: number;
+  hbath: number;
+  yearBuilt: number;
+  age: number;
+  extWall: string;
+  rooms: number;
+  assessmentTotal: number;
+  assessmentBldg: number;
+  assessmentLand: number;
+  perSqft: number;
+}
+
 interface PropertyData {
   pin: string;
   address: string;
   city: string;
   zip: string;
   township: string;
+  neighborhood: string;
+  classCode: string;
+  classDescription: string;
   sqft: number;
+  totalSqft: number;
+  landSqft: number;
   beds: number;
+  fbath: number;
+  hbath: number;
+  rooms: number;
   yearBuilt: number;
+  age: number;
+  extWall: string;
   currentAssessment: number;
+  currentBldg: number;
+  currentLand: number;
   fairAssessment: number;
   reduction: number;
   savings: number;
   perSqft: number;
   fairPerSqft: number;
-  comps: Array<{
-    pin: string;
-    address: string;
-    sqft: number;
-    beds: number;
-    year: number;
-    perSqft: number;
+  assessmentHistory: Array<{
+    year: string;
+    mailedTotal: number;
+    certifiedTotal: number | null;
+    boardTotal: number | null;
   }>;
+  comps: CompProperty[];
+  compMedianPerSqft: number;
+  compAvgPerSqft: number;
+  overAssessedPct: number;
+}
+
+// Fetch characteristics for a PIN from Cook County
+async function fetchCharacteristics(pin: string): Promise<any> {
+  try {
+    const url = `${CHARACTERISTICS_API}?pin=${pin}&$order=tax_year%20DESC&$limit=1`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+// Fetch latest assessment for a PIN from Cook County
+async function fetchAssessment(pin: string): Promise<any> {
+  try {
+    const url = `${ASSESSMENTS_API}?pin=${pin}&$order=year%20DESC&$limit=1&$where=mailed_tot%20IS%20NOT%20NULL`;
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+// Fetch assessment history for subject property
+async function fetchAssessmentHistory(pin: string): Promise<any[]> {
+  try {
+    const url = `${ASSESSMENTS_API}?pin=${pin}&$order=year%20DESC&$limit=5&$where=mailed_tot%20IS%20NOT%20NULL`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+// Fetch address for a PIN from Cook County parcel data
+async function fetchAddress(pin: string): Promise<string> {
+  try {
+    const url = `${PARCEL_API}?pin=${pin}&$limit=1`;
+    const res = await fetch(url);
+    if (!res.ok) return "N/A";
+    const data = await res.json();
+    return data[0]?.property_address || "N/A";
+  } catch {
+    return "N/A";
+  }
+}
+
+// Get comp PINs from Cosmos
+async function getCompPins(pin: string): Promise<string[]> {
+  const client = getCosmosClient();
+  if (!client) return [];
+  
+  try {
+    const container = client.database("overtaxed").container("properties");
+    const { resource: mainProp } = await container.item(pin, pin).read();
+    
+    if (!mainProp?.nbhd) return [];
+    
+    const mainPerSqft = mainProp.sqft > 0 ? mainProp.current_assessment / mainProp.sqft : 0;
+    
+    // Get 15 comps (we'll filter to best 9 after enrichment)
+    const { resources } = await container.items.query({
+      query: `SELECT TOP 15 c.id, c.sqft, c.beds, c.current_assessment
+              FROM c 
+              WHERE c.nbhd = @nbhd 
+              AND c.id != @pin 
+              AND c.sqft > 0 
+              AND (c.current_assessment / c.sqft) < @perSqft
+              ORDER BY ABS(c.sqft - @sqft)`,
+      parameters: [
+        { name: "@nbhd", value: mainProp.nbhd },
+        { name: "@pin", value: pin },
+        { name: "@perSqft", value: mainPerSqft },
+        { name: "@sqft", value: mainProp.sqft || 0 },
+      ],
+    }).fetchAll();
+    
+    return resources.map((c: any) => c.id);
+  } catch (err) {
+    console.error("[getCompPins] Error:", err);
+    return [];
+  }
+}
+
+// Enrich a comp PIN with full data from Cook County APIs
+async function enrichCompPin(pin: string): Promise<CompProperty | null> {
+  try {
+    const [chars, assessment, address] = await Promise.all([
+      fetchCharacteristics(pin),
+      fetchAssessment(pin),
+      fetchAddress(pin),
+    ]);
+    
+    if (!assessment?.mailed_tot) return null;
+    
+    const sqft = parseInt(chars?.bldg_sf || "0") || 0;
+    const totalSqft = parseInt(chars?.total_bldg_sf || chars?.bldg_sf || "0") || 0;
+    const assessmentTotal = parseFloat(assessment.mailed_tot) || 0;
+    
+    return {
+      pin,
+      address: address || "N/A",
+      classCode: chars?.class || assessment?.class || "",
+      sqft,
+      totalSqft,
+      beds: parseInt(chars?.beds || "0") || 0,
+      fbath: parseInt(chars?.fbath || "0") || 0,
+      hbath: parseInt(chars?.hbath || "0") || 0,
+      yearBuilt: chars?.age ? (new Date().getFullYear() - parseInt(chars.age)) : 0,
+      age: parseInt(chars?.age || "0") || 0,
+      extWall: EXT_WALL[chars?.ext_wall || ""] || "Unknown",
+      rooms: parseInt(chars?.rooms || "0") || 0,
+      assessmentTotal,
+      assessmentBldg: parseFloat(assessment.mailed_bldg) || 0,
+      assessmentLand: parseFloat(assessment.mailed_land) || 0,
+      perSqft: sqft > 0 ? assessmentTotal / sqft : 0,
+    };
+  } catch {
+    return null;
+  }
 }
 
 async function getPropertyData(pin: string): Promise<PropertyData | null> {
   try {
     console.log(`[getPropertyData] Starting for PIN: ${pin}`);
     
-    // Get from our existing lookup API which already has all the data
+    // Fetch all data in parallel
+    const [chars, assessmentHistory, compPins] = await Promise.all([
+      fetchCharacteristics(pin),
+      fetchAssessmentHistory(pin),
+      getCompPins(pin),
+    ]);
+    
+    // Also get parcel info for address
     const baseUrl = "https://www.getovertaxed.com";
     const lookupRes = await fetch(`${baseUrl}/api/lookup?pin=${pin}`);
-    console.log(`[getPropertyData] Lookup response status: ${lookupRes.status}`);
-    
-    if (!lookupRes.ok) {
-      console.log(`[getPropertyData] Lookup failed`);
-      return null;
-    }
-    
+    if (!lookupRes.ok) return null;
     const lookupData = await lookupRes.json();
-    console.log(`[getPropertyData] Lookup data:`, JSON.stringify(lookupData).slice(0, 500));
-    
-    if (!lookupData.property) {
-      console.log(`[getPropertyData] No property in lookup data`);
-      return null;
-    }
+    if (!lookupData.property) return null;
     
     const prop = lookupData.property;
-    const assessment = prop.assessment || {};
     const analysis = prop.analysis || {};
-    const chars = prop.characteristics || {};
+    const assessment = prop.assessment || {};
     
-    // Get comps from our comps API (returns comp details)
-    const compsRes = await fetch(`${baseUrl}/api/comps?pin=${pin}&details=true`);
-    const compsData = await compsRes.json();
-    console.log(`[getPropertyData] Comps response:`, JSON.stringify(compsData).slice(0, 500));
+    // Enrich comp PINs with full Cook County data (parallel, batched)
+    console.log(`[getPropertyData] Enriching ${compPins.length} comps...`);
+    const enrichedComps = await Promise.all(compPins.map(enrichCompPin));
     
-    // Map comps - the API returns them at top level when details=true
-    let comps: PropertyData["comps"] = [];
-    if (compsData.comps && Array.isArray(compsData.comps)) {
-      comps = compsData.comps.slice(0, 5).map((c: any) => ({
-        pin: c.pin || c.id,
-        address: c.address || "N/A",
-        sqft: c.sqft || 0,
-        beds: c.beds || 0,
-        year: c.yearBuilt || c.year || 0,
-        perSqft: c.assessmentPerSqft || c.perSqft || 0,
-      }));
+    // Filter to valid comps with same class code, then take best 9
+    const subjectClass = chars?.class || "";
+    let validComps = enrichedComps
+      .filter((c): c is CompProperty => c !== null && c.sqft > 0 && c.perSqft > 0)
+      .sort((a, b) => a.perSqft - b.perSqft); // Lowest $/sqft first (strongest evidence)
+    
+    // Prefer same class code, but fall back to all if not enough
+    const sameClassComps = validComps.filter(c => c.classCode === subjectClass);
+    if (sameClassComps.length >= 5) {
+      validComps = sameClassComps.slice(0, 9);
+    } else {
+      validComps = validComps.slice(0, 9);
     }
-
-    // Current assessment from live data, with Cosmos fallback
-    const currentAssessment = assessment.mailedTotal || assessment.certifiedTotal || compsData.current_assessment || 0;
-    const fairAssessment = analysis.fairAssessment || compsData.fair_assessment || currentAssessment;
-    // Characteristics from Cook County API, with Cosmos fallback
-    const sqft = chars.buildingSqFt || chars.char_bldg_sf || compsData.sqft || 0;
-    const beds = chars.bedrooms || chars.char_beds || compsData.beds || 0;
-    const yearBuilt = chars.yearBuilt || chars.char_yrblt || 0;
     
-    const perSqft = sqft > 0 ? currentAssessment / sqft : 0;
-    const fairPerSqft = sqft > 0 ? fairAssessment / sqft : 0;
+    // Calculate stats
+    const sqft = parseInt(chars?.bldg_sf || "0") || prop.characteristics?.buildingSqFt || 0;
+    const totalSqft = parseInt(chars?.total_bldg_sf || "0") || sqft;
+    const landSqft = parseInt(chars?.hd_sf || "0") || 0;
+    const currentAssessment = assessment.mailedTotal || 0;
+    const currentBldg = assessment.mailedBuilding || 0;
+    const currentLand = assessment.mailedLand || 0;
+    const fairAssessment = analysis.fairAssessment || currentAssessment;
     const reduction = currentAssessment - fairAssessment;
     const savings = Math.round(reduction * 0.20);
-
-    console.log(`[getPropertyData] Mapped values: currentAssessment=${currentAssessment}, fairAssessment=${fairAssessment}, sqft=${sqft}, comps=${comps.length}`);
-
+    const perSqft = sqft > 0 ? currentAssessment / sqft : 0;
+    const fairPerSqft = sqft > 0 ? fairAssessment / sqft : 0;
+    const overAssessedPct = currentAssessment > 0 ? Math.round((reduction / currentAssessment) * 100) : 0;
+    
+    const compPerSqfts = validComps.map(c => c.perSqft);
+    const compMedianPerSqft = compPerSqfts.length > 0 
+      ? compPerSqfts[Math.floor(compPerSqfts.length / 2)] 
+      : 0;
+    const compAvgPerSqft = compPerSqfts.length > 0
+      ? compPerSqfts.reduce((a, b) => a + b, 0) / compPerSqfts.length
+      : 0;
+    
+    const yearBuilt = chars?.age ? (new Date().getFullYear() - parseInt(chars.age)) : (prop.characteristics?.yearBuilt || 0);
+    
+    console.log(`[getPropertyData] Done: ${validComps.length} comps, $${currentAssessment} assessment, $${savings} savings`);
+    
     return {
       pin,
       address: prop.address || "",
       city: prop.city || "CHICAGO",
       zip: prop.zip || "",
       township: prop.township || "",
+      neighborhood: chars?.nbhd || prop.neighborhood || "",
+      classCode: subjectClass,
+      classDescription: CLASS_DESCRIPTIONS[subjectClass] || `Class ${subjectClass}`,
       sqft,
-      beds,
+      totalSqft,
+      landSqft,
+      beds: parseInt(chars?.beds || "0") || prop.characteristics?.bedrooms || 0,
+      fbath: parseInt(chars?.fbath || "0") || 0,
+      hbath: parseInt(chars?.hbath || "0") || 0,
+      rooms: parseInt(chars?.rooms || "0") || 0,
       yearBuilt,
+      age: parseInt(chars?.age || "0") || 0,
+      extWall: EXT_WALL[chars?.ext_wall || ""] || "Unknown",
       currentAssessment,
+      currentBldg,
+      currentLand,
       fairAssessment,
       reduction,
       savings,
       perSqft,
       fairPerSqft,
-      comps,
+      assessmentHistory: assessmentHistory.map(a => ({
+        year: a.year,
+        mailedTotal: parseFloat(a.mailed_tot) || 0,
+        certifiedTotal: a.certified_tot ? parseFloat(a.certified_tot) : null,
+        boardTotal: a.board_tot ? parseFloat(a.board_tot) : null,
+      })),
+      comps: validComps,
+      compMedianPerSqft,
+      compAvgPerSqft,
+      overAssessedPct,
     };
   } catch (error) {
     console.error("[getPropertyData] Error:", error);
@@ -133,175 +359,376 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
 }
 
 function generatePdfHtml(data: PropertyData): string {
-  const overAssessedPct = data.currentAssessment > 0 
-    ? Math.round((data.reduction / data.currentAssessment) * 100) 
-    : 0;
+  const formattedPin = data.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5");
+  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
   
-  const compsHtml = data.comps.map(c => `
+  const compsHtml = data.comps.map((c, i) => {
+    const formattedCompPin = c.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5");
+    return `
     <tr>
-      <td class="comp-address">${c.address}<br><span class="pin-cell">${c.pin}</span></td>
-      <td>${c.sqft.toLocaleString()}</td>
-      <td>${c.beds}</td>
-      <td>${c.year}</td>
-      <td class="comp-highlight">$${c.perSqft.toFixed(2)}</td>
+      <td class="comp-num">${i + 1}</td>
+      <td>
+        <div class="comp-address">${c.address}</div>
+        <div class="comp-pin">${formattedCompPin}</div>
+      </td>
+      <td class="right">${c.classCode}</td>
+      <td class="right">${c.sqft.toLocaleString()}</td>
+      <td class="right">${c.beds}/${c.fbath}${c.hbath ? `.${c.hbath}` : ""}</td>
+      <td class="right">${c.extWall}</td>
+      <td class="right">${c.yearBuilt || "—"}</td>
+      <td class="right">$${c.assessmentBldg.toLocaleString()}</td>
+      <td class="right">$${c.assessmentLand.toLocaleString()}</td>
+      <td class="right">$${c.assessmentTotal.toLocaleString()}</td>
+      <td class="right highlight">$${c.perSqft.toFixed(2)}</td>
+    </tr>`;
+  }).join("");
+
+  // Assessment history rows
+  const historyHtml = data.assessmentHistory.map(h => `
+    <tr>
+      <td>${h.year}</td>
+      <td class="right">$${h.mailedTotal.toLocaleString()}</td>
+      <td class="right">${h.certifiedTotal !== null ? "$" + h.certifiedTotal.toLocaleString() : "—"}</td>
+      <td class="right">${h.boardTotal !== null ? "$" + h.boardTotal.toLocaleString() : "—"}</td>
     </tr>
   `).join("");
+
+  // Generate the uniformity brief
+  const brief = generateBrief(data);
 
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Property Tax Appeal Package - ${data.address}</title>
+  <title>Property Tax Appeal — Lack of Uniformity — ${data.address}</title>
   <style>
+    @page { size: Letter; margin: 0.6in 0.65in; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.5; color: #1a1a1a; background: #fff; }
-    .page { max-width: 8.5in; margin: 0 auto; padding: 48px; }
-    .hero-number { font-size: 64px; font-weight: 700; color: #16a34a; margin: 24px 0 8px; }
-    .hero-label { font-size: 18px; color: #666; margin-bottom: 32px; }
-    .property-address { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
-    .property-details { font-size: 14px; color: #666; margin-bottom: 32px; }
-    .section { margin: 32px 0; }
-    .section-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb; }
-    .verdict { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border-radius: 12px; padding: 20px; margin: 24px 0; }
-    .verdict-text { font-size: 16px; font-weight: 500; }
-    .comparison { display: flex; gap: 24px; margin: 24px 0; }
-    .comparison-row { flex: 1; }
-    .comparison-label { font-size: 12px; color: #666; margin-bottom: 4px; }
-    .comparison-bar-container { height: 40px; background: #f3f4f6; border-radius: 8px; overflow: hidden; }
-    .comparison-bar { height: 100%; display: flex; align-items: center; padding: 0 12px; font-weight: 600; font-size: 14px; }
-    .bar-you { background: #fee2e2; color: #dc2626; }
-    .bar-fair { background: #dcfce7; color: #16a34a; }
-    table { width: 100%; border-collapse: collapse; margin: 16px 0; }
-    th { text-align: left; padding: 12px 8px; background: #f9fafb; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #666; border-bottom: 2px solid #e5e7eb; }
-    td { padding: 12px 8px; border-bottom: 1px solid #e5e7eb; }
-    .comp-address { font-weight: 500; }
-    .comp-highlight { color: #16a34a; font-weight: 600; }
-    .pin-cell { font-family: monospace; font-size: 10px; color: #666; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 11px; line-height: 1.45; color: #1a1a2e; background: #fff; }
+    .page { max-width: 8.5in; margin: 0 auto; padding: 0; }
+    
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 3px solid #1a1a2e; }
+    .header-left .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #1a1a2e; }
+    .header-left .subtitle { font-size: 10px; color: #666; margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+    .header-right { text-align: right; font-size: 10px; color: #666; }
+    .header-right .date { font-weight: 600; color: #1a1a2e; }
+    
+    /* Title block */
+    .title-block { background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
+    .appeal-type { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 6px; font-weight: 600; }
+    .property-address { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+    .property-meta { font-size: 11px; color: #555; }
+    .property-meta span { margin-right: 16px; }
+    
+    /* Summary cards */
+    .summary-row { display: flex; gap: 12px; margin-bottom: 20px; }
+    .summary-card { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; }
+    .summary-card.alert { border-color: #dc2626; background: #fef2f2; }
+    .summary-card.success { border-color: #16a34a; background: #f0fdf4; }
+    .summary-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 4px; font-weight: 600; }
+    .summary-value { font-size: 22px; font-weight: 700; }
+    .summary-card.alert .summary-value { color: #dc2626; }
+    .summary-card.success .summary-value { color: #16a34a; }
+    .summary-detail { font-size: 10px; color: #666; margin-top: 2px; }
+    
+    /* Assessment breakdown */
+    .breakdown-row { display: flex; gap: 12px; margin-bottom: 20px; }
+    .breakdown-card { flex: 1; }
+    .breakdown-card h4 { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 8px; }
+    .breakdown-table { width: 100%; border-collapse: collapse; }
+    .breakdown-table td { padding: 5px 8px; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
+    .breakdown-table td:last-child { text-align: right; font-weight: 600; }
+    .breakdown-table tr:last-child td { border-bottom: 2px solid #1a1a2e; font-weight: 700; }
+    
+    /* Section */
+    .section { margin-bottom: 20px; }
+    .section-title { font-size: 13px; font-weight: 700; color: #1a1a2e; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    
+    /* Brief */
+    .brief { background: #f8f9fa; border-left: 4px solid #1a1a2e; padding: 14px 18px; margin-bottom: 20px; font-size: 11px; line-height: 1.6; color: #333; }
+    .brief p { margin-bottom: 8px; }
+    .brief p:last-child { margin-bottom: 0; }
+    
+    /* Comps table */
+    .comps-table { width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 8px; }
+    .comps-table th { background: #1a1a2e; color: #fff; padding: 7px 5px; text-align: left; font-weight: 600; font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .comps-table th.right, .comps-table td.right { text-align: right; }
+    .comps-table td { padding: 6px 5px; border-bottom: 1px solid #e8e8e8; }
+    .comps-table tr:nth-child(even) { background: #fafafa; }
+    .comp-num { color: #999; font-weight: 600; width: 20px; }
+    .comp-address { font-weight: 600; font-size: 10px; }
+    .comp-pin { font-family: 'SF Mono', 'Consolas', monospace; font-size: 8.5px; color: #888; }
+    .highlight { color: #16a34a; font-weight: 700; }
+    
+    /* Summary row at bottom of comps */
+    .comps-summary { display: flex; gap: 20px; padding: 10px 0; border-top: 2px solid #1a1a2e; font-size: 10px; }
+    .comps-summary-item { }
+    .comps-summary-item .label { color: #666; font-size: 9px; text-transform: uppercase; }
+    .comps-summary-item .value { font-weight: 700; font-size: 13px; color: #16a34a; }
+    
+    /* Subject highlight row */
+    .comps-table tr.subject-row { background: #fef2f2; border: 2px solid #dc2626; }
+    .comps-table tr.subject-row td { font-weight: 600; color: #dc2626; }
+    
+    /* Assessment history */
+    .history-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+    .history-table th { background: #f8f9fa; padding: 6px 8px; text-align: left; font-weight: 600; font-size: 9px; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+    .history-table th.right { text-align: right; }
+    .history-table td { padding: 6px 8px; border-bottom: 1px solid #f0f0f0; }
+    .history-table td.right { text-align: right; }
+    
+    /* Filing steps */
     .steps { counter-reset: step; }
-    .step { display: flex; margin-bottom: 24px; padding-bottom: 24px; border-bottom: 1px solid #f3f4f6; }
-    .step:last-child { border-bottom: none; }
-    .step-number { width: 32px; height: 32px; background: #1a1a1a; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; flex-shrink: 0; margin-right: 16px; }
+    .step { display: flex; margin-bottom: 14px; }
+    .step-number { width: 24px; height: 24px; background: #1a1a2e; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0; margin-right: 12px; margin-top: 1px; }
     .step-content { flex: 1; }
-    .step-title { font-weight: 600; margin-bottom: 4px; }
-    .step-description { font-size: 14px; color: #666; }
-    .step-link { display: inline-block; margin-top: 8px; color: #2563eb; font-size: 13px; }
-    .footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid #e5e7eb; font-size: 11px; color: #999; }
-    .logo { font-size: 20px; font-weight: 700; font-style: italic; color: #1a1a1a; margin-bottom: 24px; }
-    @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } .page { padding: 32px; } }
+    .step-title { font-weight: 700; font-size: 11px; margin-bottom: 2px; }
+    .step-desc { font-size: 10px; color: #555; line-height: 1.5; }
+    .step-link { color: #2563eb; font-size: 10px; }
+    
+    /* Footer */
+    .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 8.5px; color: #999; line-height: 1.5; }
+    
+    /* Page break helper */
+    .page-break { page-break-before: always; }
+    
+    @media print { body { print-color-adjust: exact; -webkit-print-color-adjust: exact; } }
   </style>
 </head>
 <body>
   <div class="page">
-    <div class="logo">overtaxed</div>
-    <div class="hero-number">$${data.savings.toLocaleString()}</div>
-    <div class="hero-label">estimated annual savings</div>
-    <div class="property-address">${data.address}</div>
-    <div class="property-details">${data.city}, IL ${data.zip} · PIN: ${data.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5")} · ${data.township} Township</div>
-    
-    <div class="verdict">
-      <div class="verdict-text">Your property is assessed ${overAssessedPct}% higher than similar homes in your neighborhood.</div>
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <div class="logo">overtaxed</div>
+        <div class="subtitle">Property Tax Appeal Evidence Package</div>
+      </div>
+      <div class="header-right">
+        <div class="date">${today}</div>
+        <div>Cook County, Illinois</div>
+        <div>Appeal Type: Lack of Uniformity</div>
+      </div>
     </div>
-
+    
+    <!-- Title Block -->
+    <div class="title-block">
+      <div class="appeal-type">Subject Property</div>
+      <div class="property-address">${data.address}</div>
+      <div class="property-meta">
+        <span><strong>PIN:</strong> ${formattedPin}</span>
+        <span><strong>Township:</strong> ${data.township}</span>
+        <span><strong>Neighborhood:</strong> ${data.neighborhood}</span>
+        <span><strong>Class:</strong> ${data.classCode} — ${data.classDescription}</span>
+      </div>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="summary-row">
+      <div class="summary-card alert">
+        <div class="summary-label">Current Assessment</div>
+        <div class="summary-value">$${data.currentAssessment.toLocaleString()}</div>
+        <div class="summary-detail">$${data.perSqft.toFixed(2)}/sqft · ${data.overAssessedPct}% above comparable median</div>
+      </div>
+      <div class="summary-card success">
+        <div class="summary-label">Fair Assessment (Based on Comparables)</div>
+        <div class="summary-value">$${data.fairAssessment.toLocaleString()}</div>
+        <div class="summary-detail">$${data.fairPerSqft.toFixed(2)}/sqft · Median of ${data.comps.length} comparable properties</div>
+      </div>
+      <div class="summary-card success">
+        <div class="summary-label">Estimated Annual Tax Savings</div>
+        <div class="summary-value">$${data.savings.toLocaleString()}</div>
+        <div class="summary-detail">Based on assessment reduction of $${data.reduction.toLocaleString()}</div>
+      </div>
+    </div>
+    
+    <!-- Assessment Breakdown -->
+    <div class="breakdown-row">
+      <div class="breakdown-card">
+        <h4>Subject Property Details</h4>
+        <table class="breakdown-table">
+          <tr><td>Building Sq Ft</td><td>${data.sqft.toLocaleString()}</td></tr>
+          <tr><td>Total Sq Ft</td><td>${data.totalSqft.toLocaleString()}</td></tr>
+          <tr><td>Land Sq Ft</td><td>${data.landSqft.toLocaleString()}</td></tr>
+          <tr><td>Bedrooms / Baths</td><td>${data.beds} bed / ${data.fbath} full${data.hbath ? ` / ${data.hbath} half` : ""}</td></tr>
+          <tr><td>Year Built</td><td>${data.yearBuilt || "N/A"}</td></tr>
+          <tr><td>Exterior</td><td>${data.extWall}</td></tr>
+          <tr><td>Rooms</td><td>${data.rooms}</td></tr>
+        </table>
+      </div>
+      <div class="breakdown-card">
+        <h4>Current Assessment Breakdown</h4>
+        <table class="breakdown-table">
+          <tr><td>Building Assessment</td><td>$${data.currentBldg.toLocaleString()}</td></tr>
+          <tr><td>Land Assessment</td><td>$${data.currentLand.toLocaleString()}</td></tr>
+          <tr><td>Total Assessment</td><td>$${data.currentAssessment.toLocaleString()}</td></tr>
+        </table>
+        <h4 style="margin-top: 12px;">Requested Assessment</h4>
+        <table class="breakdown-table">
+          <tr><td>Requested Total</td><td>$${data.fairAssessment.toLocaleString()}</td></tr>
+          <tr><td>Reduction Amount</td><td>$${data.reduction.toLocaleString()}</td></tr>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Uniformity Brief -->
     <div class="section">
-      <div class="section-title">Assessment Comparison</div>
-      <div class="comparison">
-        <div class="comparison-row">
-          <div class="comparison-label">Your Current Assessment (per sqft)</div>
-          <div class="comparison-bar-container">
-            <div class="comparison-bar bar-you" style="width: 100%">$${data.perSqft.toFixed(2)}/sqft</div>
-          </div>
+      <div class="section-title">Statement of Lack of Uniformity</div>
+      <div class="brief">
+        ${brief}
+      </div>
+    </div>
+    
+    <!-- Comparable Properties -->
+    <div class="section">
+      <div class="section-title">Comparable Properties Evidence</div>
+      <p style="font-size: 10px; color: #555; margin-bottom: 10px;">The following ${data.comps.length} comparable properties are located within the same assessment neighborhood (${data.neighborhood}), share the same or similar property classification, and demonstrate that the subject property is assessed at a rate significantly above comparable properties on a per-square-foot basis.</p>
+      
+      <!-- Subject property row first -->
+      <table class="comps-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Address / PIN</th>
+            <th class="right">Class</th>
+            <th class="right">Bldg SF</th>
+            <th class="right">Bed/Bath</th>
+            <th class="right">Ext.</th>
+            <th class="right">Year</th>
+            <th class="right">Bldg Asmt</th>
+            <th class="right">Land Asmt</th>
+            <th class="right">Total Asmt</th>
+            <th class="right">$/SF</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="subject-row">
+            <td class="comp-num">★</td>
+            <td>
+              <div class="comp-address">${data.address} (SUBJECT)</div>
+              <div class="comp-pin">${formattedPin}</div>
+            </td>
+            <td class="right">${data.classCode}</td>
+            <td class="right">${data.sqft.toLocaleString()}</td>
+            <td class="right">${data.beds}/${data.fbath}${data.hbath ? `.${data.hbath}` : ""}</td>
+            <td class="right">${data.extWall}</td>
+            <td class="right">${data.yearBuilt || "—"}</td>
+            <td class="right">$${data.currentBldg.toLocaleString()}</td>
+            <td class="right">$${data.currentLand.toLocaleString()}</td>
+            <td class="right">$${data.currentAssessment.toLocaleString()}</td>
+            <td class="right" style="color: #dc2626; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>
+          </tr>
+          ${compsHtml}
+        </tbody>
+      </table>
+      
+      <div class="comps-summary">
+        <div class="comps-summary-item">
+          <div class="label">Subject $/SF</div>
+          <div class="value" style="color: #dc2626;">$${data.perSqft.toFixed(2)}</div>
         </div>
-        <div class="comparison-row">
-          <div class="comparison-label">Fair Assessment Based on Comparables</div>
-          <div class="comparison-bar-container">
-            <div class="comparison-bar bar-fair" style="width: ${Math.round((data.fairPerSqft / data.perSqft) * 100)}%">$${data.fairPerSqft.toFixed(2)}/sqft</div>
-          </div>
+        <div class="comps-summary-item">
+          <div class="label">Comp Median $/SF</div>
+          <div class="value">$${data.compMedianPerSqft.toFixed(2)}</div>
+        </div>
+        <div class="comps-summary-item">
+          <div class="label">Comp Average $/SF</div>
+          <div class="value">$${data.compAvgPerSqft.toFixed(2)}</div>
+        </div>
+        <div class="comps-summary-item">
+          <div class="label">Difference</div>
+          <div class="value">$${(data.perSqft - data.compMedianPerSqft).toFixed(2)}/SF (${data.overAssessedPct}%)</div>
         </div>
       </div>
-      <table>
-        <tr>
-          <th style="width: 50%">Metric</th>
-          <th style="width: 25%">Current</th>
-          <th style="width: 25%">Fair Value</th>
-        </tr>
-        <tr>
-          <td>Total Assessment</td>
-          <td>$${data.currentAssessment.toLocaleString()}</td>
-          <td class="comp-highlight">$${data.fairAssessment.toLocaleString()}</td>
-        </tr>
-        <tr>
-          <td>Assessment per Sqft</td>
-          <td>$${data.perSqft.toFixed(2)}</td>
-          <td class="comp-highlight">$${data.fairPerSqft.toFixed(2)}</td>
-        </tr>
-        <tr>
-          <td>Estimated Annual Tax Savings</td>
-          <td colspan="2" class="comp-highlight" style="font-size: 18px; font-weight: 700;">$${data.savings.toLocaleString()}</td>
-        </tr>
+    </div>
+    
+    <!-- Assessment History -->
+    ${data.assessmentHistory.length > 0 ? `
+    <div class="section">
+      <div class="section-title">Assessment History</div>
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Tax Year</th>
+            <th class="right">Mailed Assessment</th>
+            <th class="right">Certified Assessment</th>
+            <th class="right">Board of Review</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${historyHtml}
+        </tbody>
       </table>
     </div>
-
+    ` : ""}
+    
+    <!-- How to File -->
     <div class="section">
-      <div class="section-title">Comparable Properties</div>
-      <p style="color: #666; margin-bottom: 16px;">These similar properties in your neighborhood are assessed at lower values per square foot:</p>
-      <table>
-        <tr>
-          <th>Address</th>
-          <th>Sqft</th>
-          <th>Beds</th>
-          <th>Year</th>
-          <th>$/Sqft</th>
-        </tr>
-        ${compsHtml}
-      </table>
-    </div>
-
-    <div class="section">
-      <div class="section-title">How to File Your Appeal</div>
+      <div class="section-title">Filing Instructions</div>
       <div class="steps">
         <div class="step">
           <div class="step-number">1</div>
           <div class="step-content">
-            <div class="step-title">Go to the Cook County Assessor's Office website</div>
-            <div class="step-description">Visit the online appeals portal to start your appeal.</div>
-            <div class="step-link">cookcountyassessor.com/appeals</div>
+            <div class="step-title">Visit the Cook County Assessor's Appeals Portal</div>
+            <div class="step-desc">Go to <span class="step-link">cookcountyassessor.com/appeals</span> to file online, or download the complaint form from the Board of Review at <span class="step-link">cookcountyboardofreview.com</span>.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-number">2</div>
           <div class="step-content">
-            <div class="step-title">Enter your PIN and select "Lack of Uniformity"</div>
-            <div class="step-description">Your PIN is ${data.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5")}. Select "Lack of Uniformity" as your appeal reason — this means comparable homes are assessed lower than yours.</div>
+            <div class="step-title">Select "Lack of Uniformity" as Your Appeal Basis</div>
+            <div class="step-desc">Enter PIN ${formattedPin}. Select "Lack of Uniformity" — this argues that comparable properties in your neighborhood are assessed at lower values per square foot than your property.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-number">3</div>
           <div class="step-content">
-            <div class="step-title">Enter the comparable property PINs</div>
-            <div class="step-description">Use the PINs from the comparable properties table above. Enter at least 3-5 comparable PINs to strengthen your case.</div>
+            <div class="step-title">Enter Comparable Property PINs</div>
+            <div class="step-desc">Submit the ${data.comps.length} comparable PINs listed above. The Board requires 3–5 comparables; submitting up to 9 strengthens your case. Attach this document as supporting evidence.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-number">4</div>
           <div class="step-content">
-            <div class="step-title">Submit and wait for your decision</div>
-            <div class="step-description">You'll receive a decision by mail within 4-8 weeks. If approved, your assessment will be reduced and you'll see savings on your next tax bill.</div>
+            <div class="step-title">Submit Photos</div>
+            <div class="step-desc">Include a photo of the front of your property (required by Board of Review Rule #17). Photos of comparable properties are helpful but not required.</div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">5</div>
+          <div class="step-content">
+            <div class="step-title">Await Decision</div>
+            <div class="step-desc">The Assessor's Office typically responds within 60–90 days. The Board of Review responds within 90 days after the appeal period closes. If approved, your reduced assessment appears on your next tax bill.</div>
           </div>
         </div>
       </div>
     </div>
-
+    
+    <!-- Footer -->
     <div class="footer">
-      <p>Generated by Overtaxed · ${new Date().toLocaleDateString()} · This document provides comparable property data to support your appeal. It is not legal advice. Filing deadlines and procedures vary — verify with the Cook County Assessor's Office.</p>
+      <p><strong>Disclaimer:</strong> This document provides comparable property data and analysis to support a property tax appeal based on lack of uniformity under the Illinois Constitution (Article IX, Section 4). It does not constitute legal advice. All assessment data is sourced from the Cook County Assessor's Office public records. Filing deadlines and procedures are subject to change — verify current deadlines with the Cook County Assessor's Office or Board of Review before filing.</p>
+      <p style="margin-top: 6px;">Generated by Overtaxed · ${today} · Reference PIN: ${formattedPin}</p>
     </div>
   </div>
 </body>
 </html>`;
 }
 
+function generateBrief(data: PropertyData): string {
+  const formattedPin = data.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5");
+  const sameClass = data.comps.filter(c => c.classCode === data.classCode).length;
+  
+  return `
+    <p>The subject property at <strong>${data.address}</strong> (PIN: ${formattedPin}), classified as Class ${data.classCode} (${data.classDescription}), is currently assessed at <strong>$${data.currentAssessment.toLocaleString()}</strong>, which equates to <strong>$${data.perSqft.toFixed(2)} per square foot</strong> of building area.</p>
+    
+    <p>An analysis of ${data.comps.length} comparable properties within Assessment Neighborhood ${data.neighborhood}${sameClass > 0 ? `, ${sameClass} of which share the same Class ${data.classCode} classification,` : ""} demonstrates that the subject property is assessed at a rate <strong>${data.overAssessedPct}% above the comparable median</strong> of $${data.compMedianPerSqft.toFixed(2)} per square foot. This constitutes a lack of uniformity in violation of Article IX, Section 4 of the Illinois Constitution, which requires that taxes upon real property be levied uniformly by valuation.</p>
+    
+    <p>Based on the comparable evidence presented, the petitioner requests a reduction in assessed value from <strong>$${data.currentAssessment.toLocaleString()}</strong> to <strong>$${data.fairAssessment.toLocaleString()}</strong>, a reduction of <strong>$${data.reduction.toLocaleString()}</strong>, which would result in estimated annual tax savings of approximately <strong>$${data.savings.toLocaleString()}</strong>.</p>
+  `;
+}
+
 async function generatePdf(html: string): Promise<Buffer> {
-  // Use the new Browserless API endpoint with token as query param
   const response = await fetch(`https://production-sfo.browserless.io/pdf?token=${BROWSERLESS_TOKEN}`, {
     method: "POST",
     headers: {
@@ -313,7 +740,7 @@ async function generatePdf(html: string): Promise<Buffer> {
       options: {
         format: "Letter",
         printBackground: true,
-        margin: { top: "0.5in", right: "0.5in", bottom: "0.5in", left: "0.5in" },
+        margin: { top: "0.4in", right: "0.4in", bottom: "0.4in", left: "0.4in" },
       },
     }),
   });
@@ -332,44 +759,51 @@ async function sendEmail(
   email: string, 
   pin: string, 
   pdfBuffer: Buffer, 
-  address: string,
+  data: PropertyData,
   accessToken: string
 ): Promise<void> {
   const accessLink = `https://www.getovertaxed.com/appeal/${accessToken}`;
+  const formattedPin = pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5");
   
   await getResend().emails.send({
     from: "Overtaxed <hello@getovertaxed.com>",
     to: email,
-    subject: `Your Property Tax Appeal Package - ${address}`,
+    subject: `Property Tax Appeal Package — ${data.address} — PIN ${formattedPin}`,
     html: `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="font-size: 24px; font-weight: 700; margin-bottom: 16px;">Your appeal package is ready!</h1>
-        <p style="color: #666; margin-bottom: 24px;">Here's everything you need to appeal your property tax assessment for <strong>${address}</strong>.</p>
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
+        <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Your appeal package is ready</h1>
+        <p style="color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to appeal your property tax assessment for <strong>${data.address}</strong>.</p>
         
-        <div style="background: #f0fdf4; border: 2px solid #16a34a; border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-          <p style="margin: 0; color: #166534;"><strong>Your appeal package is attached to this email.</strong></p>
+        <div style="background: #f0fdf4; border: 2px solid #16a34a; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
+          <p style="margin: 0 0 4px 0; font-size: 14px; color: #166534;"><strong>Estimated Annual Savings: $${data.savings.toLocaleString()}</strong></p>
+          <p style="margin: 0; font-size: 13px; color: #166534;">Current: $${data.currentAssessment.toLocaleString()} → Fair: $${data.fairAssessment.toLocaleString()} (${data.overAssessedPct}% over-assessed)</p>
         </div>
         
-        <p style="margin-bottom: 16px;">You can also access your appeal package anytime:</p>
-        <a href="${accessLink}" style="display: inline-block; background: #1a1a1a; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">View Your Appeal Package</a>
+        <p style="font-size: 14px; margin-bottom: 8px;"><strong>Your appeal package includes:</strong></p>
+        <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px;">
+          <li>${data.comps.length} comparable properties with full assessment details</li>
+          <li>Written uniformity argument citing the Illinois Constitution</li>
+          <li>Assessment history and breakdown</li>
+          <li>Step-by-step filing instructions</li>
+        </ul>
         
-        <p style="color: #999; font-size: 12px; margin-top: 32px;">This link will expire in 30 days. If you need assistance, reply to this email.</p>
+        <p style="margin-bottom: 16px; font-size: 14px;">Your appeal package PDF is attached to this email. You can also access it online:</p>
+        <a href="${accessLink}" style="display: inline-block; background: #1a1a2e; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">View Appeal Package</a>
         
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
-        <p style="color: #999; font-size: 12px;">Overtaxed · hello@getovertaxed.com</p>
+        <p style="color: #999; font-size: 11px;">This link expires in 30 days. For questions, reply to this email.</p>
+        <p style="color: #999; font-size: 11px;">Overtaxed · hello@getovertaxed.com</p>
       </div>
     `,
     attachments: [
       {
-        filename: `appeal-package-${pin}.pdf`,
+        filename: `appeal-package-${formattedPin}.pdf`,
         content: pdfBuffer.toString("base64"),
       },
     ],
   });
 }
 
-// Simple in-memory store for access tokens (in production, use a database)
-// For now, we'll encode the PIN in the token and verify via Stripe
 function generateAccessToken(sessionId: string, pin: string): string {
   const data = `${sessionId}:${pin}:${Date.now()}`;
   const hash = crypto.createHash("sha256").update(data + process.env.STRIPE_SECRET_KEY).digest("hex");
@@ -380,11 +814,9 @@ function verifyAccessToken(token: string): { pin: string; sessionId: string } | 
   try {
     const [encoded, hash] = token.split(".");
     if (!encoded || !hash) return null;
-    
     const decoded = Buffer.from(encoded, "base64url").toString();
     const [pin, sessionId] = decoded.split(":");
     if (!pin || !sessionId) return null;
-    
     return { pin, sessionId };
   } catch {
     return null;
@@ -396,14 +828,11 @@ export async function GET(request: NextRequest) {
   const sessionId = searchParams.get("session_id");
   const accessToken = searchParams.get("token");
 
-  // If access token provided, verify and return data
   if (accessToken) {
     const tokenData = verifyAccessToken(accessToken);
     if (!tokenData) {
       return NextResponse.json({ error: "Invalid token" }, { status: 400 });
     }
-
-    // Verify the session exists and was paid
     try {
       const session = await getStripe().checkout.sessions.retrieve(tokenData.sessionId);
       if (session.payment_status !== "paid") {
@@ -412,57 +841,36 @@ export async function GET(request: NextRequest) {
     } catch {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
-
     const propertyData = await getPropertyData(tokenData.pin);
     if (!propertyData) {
       return NextResponse.json({ error: "Property not found" }, { status: 404 });
     }
-
-    return NextResponse.json({ 
-      success: true, 
-      property: propertyData,
-      token: accessToken,
-    });
+    return NextResponse.json({ success: true, property: propertyData, token: accessToken });
   }
 
-  // If session_id provided, this is post-checkout
   if (sessionId) {
     try {
       const session = await getStripe().checkout.sessions.retrieve(sessionId);
-      
       if (session.payment_status !== "paid") {
         return NextResponse.json({ error: "Payment not completed" }, { status: 400 });
       }
-
       const pin = session.client_reference_id;
       const email = session.customer_details?.email;
-
       if (!pin) {
         return NextResponse.json({ error: "No PIN in session" }, { status: 400 });
       }
-
       const propertyData = await getPropertyData(pin);
       if (!propertyData) {
         return NextResponse.json({ error: "Property not found" }, { status: 404 });
       }
-
-      // Generate access token for this purchase
       const token = generateAccessToken(sessionId, pin);
-
-      // Send email in background (don't wait)
+      // Send email in background
       if (email) {
         generatePdf(generatePdfHtml(propertyData)).then(pdfBuffer => {
-          sendEmail(email, pin, pdfBuffer, propertyData.address, token).catch(console.error);
+          sendEmail(email, pin, pdfBuffer, propertyData, token).catch(console.error);
         }).catch(console.error);
       }
-
-      return NextResponse.json({ 
-        success: true, 
-        property: propertyData,
-        token,
-        email: email || null,
-      });
-
+      return NextResponse.json({ success: true, property: propertyData, token, email: email || null });
     } catch (error) {
       console.error("Error retrieving session:", error);
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
@@ -472,10 +880,8 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({ error: "Missing session_id or token" }, { status: 400 });
 }
 
-// POST endpoint to download PDF
 export async function POST(request: NextRequest) {
   console.log("[POST] PDF download request received");
-  
   let body;
   try {
     body = await request.json();
@@ -485,24 +891,17 @@ export async function POST(request: NextRequest) {
   }
   
   const { token } = body;
-  console.log("[POST] Token received:", token ? token.slice(0, 20) + "..." : "none");
-  
   if (!token) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
   }
 
   const tokenData = verifyAccessToken(token);
-  console.log("[POST] Token data:", tokenData);
-  
   if (!tokenData) {
     return NextResponse.json({ error: "Invalid token" }, { status: 400 });
   }
 
-  // Verify payment
   try {
-    console.log("[POST] Verifying session:", tokenData.sessionId);
     const session = await getStripe().checkout.sessions.retrieve(tokenData.sessionId);
-    console.log("[POST] Session payment status:", session.payment_status);
     if (session.payment_status !== "paid") {
       return NextResponse.json({ error: "Payment not completed" }, { status: 400 });
     }
@@ -511,19 +910,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  console.log("[POST] Fetching property data for PIN:", tokenData.pin);
   const propertyData = await getPropertyData(tokenData.pin);
   if (!propertyData) {
-    console.error("[POST] Property not found");
     return NextResponse.json({ error: "Property not found" }, { status: 404 });
   }
 
-  console.log("[POST] Generating PDF HTML");
   const html = generatePdfHtml(propertyData);
-  
-  console.log("[POST] Calling Browserless");
   const pdfBuffer = await generatePdf(html);
-  console.log("[POST] PDF generated, size:", pdfBuffer.length);
 
   return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {
