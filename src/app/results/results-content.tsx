@@ -304,8 +304,10 @@ export default function ResultsContent() {
   const estimatedMarketValue = currentAssessment * 10;
   
   const hasAnalysis = analysisAvailable && property.analysis;
-  const estimatedSavings = hasAnalysis ? property.analysis!.potentialSavings : 0;
   const fairAssessment = hasAnalysis ? property.analysis!.fairAssessment : currentAssessment;
+  const reduction = currentAssessment - fairAssessment;
+  // Calculate savings dynamically: reduction × 20% tax rate (Cook County average)
+  const estimatedSavings = reduction > 0 ? Math.round(reduction * 0.20) : 0;
   const compCount = hasAnalysis ? property.analysis!.compCount : 0;
 
   return (
