@@ -152,10 +152,10 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-16 sm:pt-24 lg:pt-32 pb-16 sm:pb-20 px-4 sm:px-8">
-        <div className="max-w-3xl mx-auto text-center">
+      <section className="pt-12 sm:pt-16 lg:pt-20 pb-12 sm:pb-16 px-4 sm:px-8">
+        <div className="max-w-2xl mx-auto text-center">
           {/* Cook County badge */}
-          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 ${
+          <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-5 ${
             isDark 
               ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-400" 
               : "bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-700"
@@ -169,26 +169,15 @@ export default function Home() {
             <span className={isDark ? "text-gray-400" : "text-gray-500"}>More markets soon</span>
           </div>
           
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1]">
-            Stop overpaying
-            <br />
-            property tax
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-semibold tracking-tight leading-[1.15]">
+            Stop overpaying property tax
           </h1>
           
-          <p className={`mt-5 sm:mt-6 text-lg sm:text-xl leading-relaxed max-w-xl mx-auto ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          <p className={`mt-4 text-base sm:text-lg leading-relaxed max-w-md mx-auto ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             We analyze your home against similar properties and build your appeal case. Takes 30 seconds.
           </p>
           
-          {/* Big social proof stat */}
-          <div className={`mt-6 inline-flex items-center gap-3 px-4 py-3 rounded-xl ${isDark ? "bg-white/5 border border-white/10" : "bg-emerald-50 border border-emerald-100"}`}>
-            <div className={`text-2xl sm:text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>$355M</div>
-            <div className={`text-sm text-left ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-              in potential savings found<br />
-              <span className={isDark ? "text-gray-500" : "text-gray-400"}>across Cook County homeowners</span>
-            </div>
-          </div>
-          
-          <form onSubmit={handleSearch} className="mt-8 sm:mt-10">
+          <form onSubmit={handleSearch} className="mt-8">
             <div className="relative max-w-md mx-auto">
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
@@ -196,7 +185,7 @@ export default function Home() {
                     ref={inputRef}
                     type="text"
                     placeholder="Enter your Cook County address..."
-                    className={`w-full h-12 sm:h-14 px-4 rounded-xl text-base transition-all ${
+                    className={`w-full h-12 px-4 rounded-xl text-base transition-all ${
                       isDark 
                         ? "bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-white/30" 
                         : "bg-white border border-black/10 text-black placeholder-gray-400 focus:border-black/30 shadow-sm"
@@ -235,7 +224,7 @@ export default function Home() {
                 <button 
                   type="submit"
                   disabled={loading || !address.trim()}
-                  className={`h-12 sm:h-14 px-6 sm:px-8 rounded-xl font-medium text-base transition-all disabled:opacity-50 ${
+                  className={`h-12 px-6 rounded-xl font-medium text-base transition-all disabled:opacity-50 ${
                     isDark 
                       ? "bg-white text-black hover:bg-gray-100" 
                       : "bg-black text-white hover:bg-gray-800"
@@ -252,21 +241,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats - Clean Cards with Emerald Accent */}
-      <section className="py-12 sm:py-16 px-4 sm:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
-              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>$1,136</div>
-              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Average annual savings</div>
+      {/* Stats */}
+      <section className="py-8 sm:py-12 px-4 sm:px-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+            <div className={`p-4 sm:p-6 rounded-xl border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
+              <div className={`text-2xl sm:text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>$355M</div>
+              <div className={`mt-1 text-xs sm:text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Potential savings found</div>
             </div>
-            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-gray-500/10 border-gray-500/20" : "bg-gray-100 border-gray-200"}`}>
-              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-gray-300" : "text-gray-700"}`}>32%</div>
-              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Of homes are over-assessed</div>
+            <div className={`p-4 sm:p-6 rounded-xl border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
+              <div className={`text-2xl sm:text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>$1,136</div>
+              <div className={`mt-1 text-xs sm:text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Avg annual savings</div>
             </div>
-            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
-              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>72%</div>
-              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Appeal success rate</div>
+            <div className={`p-4 sm:p-6 rounded-xl border ${isDark ? "bg-gray-500/10 border-gray-500/20" : "bg-gray-100 border-gray-200"}`}>
+              <div className={`text-2xl sm:text-3xl font-bold ${isDark ? "text-gray-300" : "text-gray-700"}`}>32%</div>
+              <div className={`mt-1 text-xs sm:text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Homes over-assessed</div>
+            </div>
+            <div className={`p-4 sm:p-6 rounded-xl border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
+              <div className={`text-2xl sm:text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>72%</div>
+              <div className={`mt-1 text-xs sm:text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Appeal success rate</div>
             </div>
           </div>
         </div>
