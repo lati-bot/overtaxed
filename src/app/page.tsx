@@ -300,21 +300,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats - Tinted Cards */}
+      {/* Stats - Clean Cards with Emerald Accent */}
       <section className="py-12 sm:py-16 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-rose-500/10 border-rose-500/20" : "bg-rose-50 border-rose-100"}`}>
-              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-rose-400" : "text-rose-600"}`}>$847</div>
-              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-rose-300/70" : "text-rose-600/70"}`}>Average annual savings</div>
+            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
+              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>$1,136</div>
+              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Average annual savings</div>
             </div>
-            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-violet-500/10 border-violet-500/20" : "bg-violet-50 border-violet-100"}`}>
-              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-violet-400" : "text-violet-600"}`}>21%</div>
-              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-violet-300/70" : "text-violet-600/70"}`}>Average reduction</div>
+            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-white/[0.02] border-white/10" : "bg-white border-black/5 shadow-sm"}`}>
+              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>32%</div>
+              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Of homes are over-assessed</div>
             </div>
             <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
               <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>72%</div>
-              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Success rate</div>
+              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Appeal success rate</div>
             </div>
           </div>
         </div>
