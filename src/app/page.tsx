@@ -156,12 +156,12 @@ export default function Home() {
           {/* Cook County badge */}
           <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-8 ${
             isDark 
-              ? "bg-white/5 border border-white/10 text-emerald-400" 
-              : "bg-emerald-50 border border-emerald-200 text-emerald-700"
+              ? "bg-white/5 border border-white/10 text-violet-400" 
+              : "bg-violet-50 border border-violet-200 text-violet-700"
           }`}>
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
             </span>
             <span>Serving Cook County, IL</span>
             <span className={isDark ? "text-gray-500" : "text-gray-400"}>•</span>
@@ -171,7 +171,7 @@ export default function Home() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.1]">
             Find out if you&apos;re
             <br />
-            <span className="bg-gradient-to-r from-emerald-500 to-green-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-violet-500 to-purple-400 bg-clip-text text-transparent">
               overpaying property tax
             </span>
           </h1>
@@ -189,9 +189,9 @@ export default function Home() {
                   placeholder="Enter your property address..."
                   className={`w-full h-14 px-5 rounded-xl text-base transition-all ${
                     isDark 
-                      ? "bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-emerald-500/50" 
-                      : "bg-white border border-gray-200 text-black placeholder-gray-400 focus:border-emerald-500 shadow-sm"
-                  } focus:outline-none focus:ring-2 focus:ring-emerald-500/20`}
+                      ? "bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-violet-500/50" 
+                      : "bg-white border border-gray-200 text-black placeholder-gray-400 focus:border-violet-500 shadow-sm"
+                  } focus:outline-none focus:ring-2 focus:ring-violet-500/20`}
                   value={address}
                   onChange={handleInputChange}
                   onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
@@ -226,7 +226,7 @@ export default function Home() {
               <button 
                 type="submit"
                 disabled={loading || !address.trim()}
-                className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-50 bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/25"
+                className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 shadow-lg shadow-violet-500/25"
               >
                 {loading ? "..." : "Check My Property"}
               </button>
@@ -274,7 +274,7 @@ export default function Home() {
             ].map((step) => (
               <div key={step.num} className="text-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-5 text-lg font-semibold ${
-                  isDark ? "bg-emerald-500/20 text-emerald-400" : "bg-emerald-100 text-emerald-600"
+                  isDark ? "bg-violet-500/20 text-violet-400" : "bg-violet-100 text-violet-600"
                 }`}>
                   {step.num}
                 </div>
@@ -304,7 +304,7 @@ export default function Home() {
               </div>
               <button 
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="h-14 px-8 rounded-xl font-medium text-base transition-all bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/25"
+                className="h-14 px-8 rounded-xl font-medium text-base transition-all bg-violet-500 text-white hover:bg-violet-600 shadow-lg shadow-violet-500/25"
               >
                 Get Your Appeal Package
               </button>
@@ -319,7 +319,7 @@ export default function Home() {
                   "Delivered to your email in 48 hours",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-emerald-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-5 h-5 text-violet-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span className={`text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>{item}</span>
@@ -365,7 +365,7 @@ export default function Home() {
         </p>
         <button 
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="h-14 px-10 rounded-xl font-medium text-base transition-all bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg shadow-emerald-500/25"
+          className="h-14 px-10 rounded-xl font-medium text-base transition-all bg-violet-500 text-white hover:bg-violet-600 shadow-lg shadow-violet-500/25"
         >
           Check My Property
         </button>
