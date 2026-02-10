@@ -182,6 +182,15 @@ export default function Home() {
                 We analyze your home against similar properties and build your appeal case. Takes 30 seconds.
               </p>
               
+              {/* Big social proof stat */}
+              <div className={`mt-6 inline-flex items-center gap-3 px-4 py-3 rounded-xl ${isDark ? "bg-white/5 border border-white/10" : "bg-emerald-50 border border-emerald-100"}`}>
+                <div className={`text-2xl sm:text-3xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>$355M</div>
+                <div className={`text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+                  in potential savings found<br />
+                  <span className={isDark ? "text-gray-500" : "text-gray-400"}>across Cook County homeowners</span>
+                </div>
+              </div>
+              
               <form onSubmit={handleSearch} className="mt-8 sm:mt-10">
                 <div className="relative max-w-md">
                   <div className="flex flex-col sm:flex-row gap-3">
