@@ -79,9 +79,10 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
     const perSqft = sqft > 0 ? currentAssessment / sqft : 0;
 
     // Get Cosmos analysis for fair assessment
-    const cosmosRes = await fetch(
-      `${process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000"}/api/lookup?pin=${pin}`
-    );
+    const baseUrl = process.env.VERCEL_ENV === "production" 
+      ? "https://www.getovertaxed.com" 
+      : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    const cosmosRes = await fetch(`${baseUrl}/api/lookup?pin=${pin}`);
     const cosmosData = await cosmosRes.json();
     
     const fairAssessment = cosmosData.property?.analysis?.fairAssessment || currentAssessment;
