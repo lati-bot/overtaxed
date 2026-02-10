@@ -24,11 +24,6 @@ function getResend() {
 
 const BROWSERLESS_TOKEN = process.env.BROWSERLESS_TOKEN || "";
 
-// Cook County APIs
-const PARCEL_API = "https://datacatalog.cookcountyil.gov/resource/c49d-89sn.json";
-const CHARACTERISTICS_API = "https://datacatalog.cookcountyil.gov/resource/bcnq-qi2z.json";
-const ASSESSMENTS_API = "https://datacatalog.cookcountyil.gov/resource/uzyt-m557.json";
-
 interface PropertyData {
   pin: string;
   address: string;
@@ -56,103 +51,70 @@ interface PropertyData {
 
 async function getPropertyData(pin: string): Promise<PropertyData | null> {
   try {
-    // Get parcel info
-    const parcelRes = await fetch(`${PARCEL_API}?pin=${pin}&$limit=1`);
-    const parcels = await parcelRes.json();
-    if (!parcels.length) return null;
-    const parcel = parcels[0];
-
-    // Get characteristics
-    const charRes = await fetch(`${CHARACTERISTICS_API}?pin=${pin}&$limit=1`);
-    const chars = await charRes.json();
-    const char = chars[0] || {};
-
-    // Get assessment
-    const assessRes = await fetch(`${ASSESSMENTS_API}?pin=${pin}&$order=year DESC&$limit=1`);
-    const assessments = await assessRes.json();
-    const assessment = assessments[0] || {};
-
-    const currentAssessment = parseInt(assessment.mailed_tot || assessment.certified_tot || "0");
-    const sqft = parseInt(char.char_bldg_sf || "0");
-    const beds = parseInt(char.char_beds || "0");
-    const yearBuilt = parseInt(char.char_yrblt || "0");
-    const perSqft = sqft > 0 ? currentAssessment / sqft : 0;
-
-    // Get Cosmos analysis for fair assessment
-    const baseUrl = "https://www.getovertaxed.com";
-    const cosmosRes = await fetch(`${baseUrl}/api/lookup?pin=${pin}`);
-    const cosmosData = await cosmosRes.json();
+    console.log(`[getPropertyData] Starting for PIN: ${pin}`);
     
-    const fairAssessment = cosmosData.property?.analysis?.fairAssessment || currentAssessment;
+    // Get from our existing lookup API which already has all the data
+    const baseUrl = "https://www.getovertaxed.com";
+    const lookupRes = await fetch(`${baseUrl}/api/lookup?pin=${pin}`);
+    console.log(`[getPropertyData] Lookup response status: ${lookupRes.status}`);
+    
+    if (!lookupRes.ok) {
+      console.log(`[getPropertyData] Lookup failed`);
+      return null;
+    }
+    
+    const lookupData = await lookupRes.json();
+    console.log(`[getPropertyData] Lookup data:`, JSON.stringify(lookupData).slice(0, 200));
+    
+    if (!lookupData.property) {
+      console.log(`[getPropertyData] No property in lookup data`);
+      return null;
+    }
+    
+    const prop = lookupData.property;
+    const analysis = prop.analysis || {};
+    
+    // Get comps from our comps API
+    const compsRes = await fetch(`${baseUrl}/api/comps?pin=${pin}`);
+    const compsData = await compsRes.json();
+    console.log(`[getPropertyData] Comps count: ${compsData.comps?.length || 0}`);
+    
+    const comps = (compsData.comps || []).slice(0, 5).map((c: any) => ({
+      pin: c.pin,
+      address: c.address || "N/A",
+      sqft: c.sqft || 0,
+      beds: c.beds || 0,
+      year: c.yearBuilt || 0,
+      perSqft: c.assessmentPerSqft || 0,
+    }));
+
+    const currentAssessment = analysis.currentAssessment || 0;
+    const fairAssessment = analysis.fairAssessment || currentAssessment;
+    const sqft = prop.sqft || 0;
+    const perSqft = sqft > 0 ? currentAssessment / sqft : 0;
     const fairPerSqft = sqft > 0 ? fairAssessment / sqft : 0;
     const reduction = currentAssessment - fairAssessment;
     const savings = Math.round(reduction * 0.20);
 
-    // Get comps from same neighborhood
-    const nbhd = char.nbhd || parcel.nbhd;
-    const compsRes = await fetch(
-      `${CHARACTERISTICS_API}?nbhd=${nbhd}&$limit=200&$order=year DESC`
-    );
-    const allComps = await compsRes.json();
-
-    // Filter and score comps
-    const comps: PropertyData["comps"] = [];
-    for (const c of allComps) {
-      if (c.pin === pin) continue;
-      const cSqft = parseInt(c.char_bldg_sf || "0");
-      const cBeds = parseInt(c.char_beds || "0");
-      const cYear = parseInt(c.char_yrblt || "0");
-      
-      if (cSqft <= 0) continue;
-      
-      // Get assessment for this comp
-      const cAssessRes = await fetch(
-        `${ASSESSMENTS_API}?pin=${c.pin}&$order=year DESC&$limit=1`
-      );
-      const cAssessments = await cAssessRes.json();
-      const cAssess = cAssessments[0];
-      if (!cAssess) continue;
-      
-      const cAssessment = parseInt(cAssess.mailed_tot || cAssess.certified_tot || "0");
-      const cPerSqft = cAssessment / cSqft;
-      
-      // Only include if assessed lower per sqft
-      if (cPerSqft < perSqft && cPerSqft > 0) {
-        comps.push({
-          pin: c.pin,
-          address: `${c.char_site_hno || ""} ${c.char_site_dir || ""} ${c.char_site_street || ""} ${c.char_site_suffix || ""}`.trim(),
-          sqft: cSqft,
-          beds: cBeds,
-          year: cYear,
-          perSqft: cPerSqft,
-        });
-      }
-      
-      if (comps.length >= 10) break;
-    }
-
-    // Sort by most similar sqft
-    comps.sort((a, b) => Math.abs(a.sqft - sqft) - Math.abs(b.sqft - sqft));
-
     return {
       pin,
-      address: parcel.property_address || "",
-      city: parcel.property_city || "CHICAGO",
-      zip: parcel.property_zip || "",
-      township: parcel.township_name || "",
+      address: prop.address || "",
+      city: prop.city || "CHICAGO",
+      zip: prop.zip || "",
+      township: prop.township || "",
       sqft,
-      beds,
-      yearBuilt,
+      beds: prop.beds || 0,
+      yearBuilt: prop.yearBuilt || 0,
       currentAssessment,
       fairAssessment,
       reduction,
       savings,
       perSqft,
       fairPerSqft,
-      comps: comps.slice(0, 5),
+      comps,
     };
   } catch (error) {
-    console.error("Error fetching property data:", error);
+    console.error("[getPropertyData] Error:", error);
     return null;
   }
 }
