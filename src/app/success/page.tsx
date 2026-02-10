@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -29,7 +29,7 @@ interface PropertyData {
   }>;
 }
 
-export default function SuccessPage() {
+function SuccessPage() {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -317,5 +317,20 @@ export default function SuccessPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function SuccessPageWrapper() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#faf9f7] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your appeal package...</p>
+        </div>
+      </div>
+    }>
+      <SuccessPage />
+    </Suspense>
   );
 }

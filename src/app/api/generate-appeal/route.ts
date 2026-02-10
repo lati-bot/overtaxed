@@ -525,7 +525,7 @@ export async function POST(request: NextRequest) {
   const html = generatePdfHtml(propertyData);
   const pdfBuffer = await generatePdf(html);
 
-  return new NextResponse(pdfBuffer, {
+  return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `attachment; filename="appeal-package-${tokenData.pin}.pdf"`,
