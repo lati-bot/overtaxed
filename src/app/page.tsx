@@ -102,14 +102,14 @@ export default function Home() {
   const isDark = theme === "dark";
 
   if (!mounted) {
-    return <div className="min-h-screen bg-white" />;
+    return <div className="min-h-screen bg-[#f5f3f7]" />;
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-[#0a0a0a] text-white" : "bg-white text-[#111]"}`}>
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-[#0a0a0a] text-white" : "bg-[#f5f3f7] text-[#111]"}`}>
 
       {/* Navigation */}
-      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/90" : "bg-white/90"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
+      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/90" : "bg-[#f5f3f7]/90"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className={`text-xl font-semibold tracking-tight ${isDark ? "text-white" : "text-black"}`}>
             overtaxed
@@ -156,22 +156,22 @@ export default function Home() {
           {/* Cook County badge */}
           <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-8 ${
             isDark 
-              ? "bg-white/5 border border-white/10 text-violet-400" 
-              : "bg-violet-50 border border-violet-200 text-violet-700"
+              ? "bg-white/5 border border-white/10 text-purple-400" 
+              : "bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200/50 text-purple-700"
           }`}>
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
             </span>
             <span>Serving Cook County, IL</span>
-            <span className={isDark ? "text-gray-500" : "text-gray-400"}>•</span>
-            <span className={isDark ? "text-gray-400" : "text-gray-500"}>More markets coming soon</span>
+            <span className={isDark ? "text-gray-500" : "text-purple-400"}>•</span>
+            <span className={isDark ? "text-gray-400" : "text-purple-500/70"}>More markets coming soon</span>
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.1]">
             Find out if you&apos;re
             <br />
-            <span className="bg-gradient-to-r from-violet-500 to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
               overpaying property tax
             </span>
           </h1>
@@ -189,9 +189,9 @@ export default function Home() {
                   placeholder="Enter your property address..."
                   className={`w-full h-14 px-5 rounded-xl text-base transition-all ${
                     isDark 
-                      ? "bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-violet-500/50" 
-                      : "bg-white border border-gray-200 text-black placeholder-gray-400 focus:border-violet-500 shadow-sm"
-                  } focus:outline-none focus:ring-2 focus:ring-violet-500/20`}
+                      ? "bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-purple-500/50" 
+                      : "bg-white border border-gray-200 text-black placeholder-gray-400 focus:border-purple-500 shadow-sm"
+                  } focus:outline-none focus:ring-2 focus:ring-purple-500/20`}
                   value={address}
                   onChange={handleInputChange}
                   onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
@@ -226,7 +226,7 @@ export default function Home() {
               <button 
                 type="submit"
                 disabled={loading || !address.trim()}
-                className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-50 bg-violet-500 text-white hover:bg-violet-600 shadow-lg shadow-violet-500/25"
+                className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-50 bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-purple-500/25"
               >
                 {loading ? "..." : "Check My Property"}
               </button>
@@ -239,7 +239,7 @@ export default function Home() {
       </section>
 
       {/* Stats */}
-      <section className={`py-16 sm:py-20 ${isDark ? "bg-white/[0.02]" : "bg-gray-50"}`}>
+      <section className={`py-16 sm:py-20 ${isDark ? "bg-white/[0.02]" : "bg-gradient-to-r from-purple-100/50 to-pink-100/50"}`}>
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 text-center">
             <div>
@@ -274,7 +274,7 @@ export default function Home() {
             ].map((step) => (
               <div key={step.num} className="text-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-5 text-lg font-semibold ${
-                  isDark ? "bg-violet-500/20 text-violet-400" : "bg-violet-100 text-violet-600"
+                  isDark ? "bg-[#6b4fbb]/20 text-purple-400" : "bg-purple-100 text-purple-600"
                 }`}>
                   {step.num}
                 </div>
@@ -287,7 +287,7 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className={`py-16 sm:py-24 px-6 ${isDark ? "bg-white/[0.02]" : "bg-gray-50"}`}>
+      <section id="pricing" className={`py-16 sm:py-24 px-6 ${isDark ? "bg-white/[0.02]" : "bg-gradient-to-r from-purple-100/30 to-pink-100/30"}`}>
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl font-semibold mb-4">Simple pricing</h2>
@@ -304,7 +304,7 @@ export default function Home() {
               </div>
               <button 
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="h-14 px-8 rounded-xl font-medium text-base transition-all bg-violet-500 text-white hover:bg-violet-600 shadow-lg shadow-violet-500/25"
+                className="h-14 px-8 rounded-xl font-medium text-base transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-purple-500/25"
               >
                 Get Your Appeal Package
               </button>
@@ -319,7 +319,7 @@ export default function Home() {
                   "Delivered to your email in 48 hours",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-violet-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                     <span className={`text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>{item}</span>
@@ -358,14 +358,14 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className={`py-20 sm:py-28 px-6 text-center ${isDark ? "bg-white/[0.02]" : "bg-gray-50"}`}>
+      <section className={`py-20 sm:py-28 px-6 text-center ${isDark ? "bg-white/[0.02]" : "bg-gradient-to-r from-purple-100/40 to-pink-100/40"}`}>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-6">See if you have a case</h2>
         <p className={`text-lg mb-10 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
           Check your property in 30 seconds — it&apos;s free.
         </p>
         <button 
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="h-14 px-10 rounded-xl font-medium text-base transition-all bg-violet-500 text-white hover:bg-violet-600 shadow-lg shadow-violet-500/25"
+          className="h-14 px-10 rounded-xl font-medium text-base transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-purple-500/25"
         >
           Check My Property
         </button>
