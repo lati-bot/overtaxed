@@ -79,9 +79,9 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
     // Get comps from our comps API (returns comp details)
     const compsRes = await fetch(`${baseUrl}/api/comps?pin=${pin}&details=true`);
     const compsData = await compsRes.json();
-    console.log(`[getPropertyData] Comps response:`, JSON.stringify(compsData).slice(0, 300));
+    console.log(`[getPropertyData] Comps response:`, JSON.stringify(compsData).slice(0, 500));
     
-    // Map comps - the API returns them in compsData.comps or we need to fetch from Cosmos
+    // Map comps - the API returns them at top level when details=true
     let comps: PropertyData["comps"] = [];
     if (compsData.comps && Array.isArray(compsData.comps)) {
       comps = compsData.comps.slice(0, 5).map((c: any) => ({
@@ -94,11 +94,12 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
       }));
     }
 
-    // Current assessment from the live assessment data
+    // Current assessment from live data, with Cosmos fallback
     const currentAssessment = assessment.mailedTotal || assessment.certifiedTotal || compsData.current_assessment || 0;
     const fairAssessment = analysis.fairAssessment || compsData.fair_assessment || currentAssessment;
-    const sqft = chars.sqft || chars.char_bldg_sf || compsData.sqft || 0;
-    const beds = chars.beds || chars.char_beds || compsData.beds || 0;
+    // Characteristics from Cook County API, with Cosmos fallback
+    const sqft = chars.buildingSqFt || chars.char_bldg_sf || compsData.sqft || 0;
+    const beds = chars.bedrooms || chars.char_beds || compsData.beds || 0;
     const yearBuilt = chars.yearBuilt || chars.char_yrblt || 0;
     
     const perSqft = sqft > 0 ? currentAssessment / sqft : 0;

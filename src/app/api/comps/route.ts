@@ -56,25 +56,25 @@ export async function GET(request: NextRequest) {
     try {
       const client = getCosmosClient();
       if (client) {
-        const container = client.database("overtaxed").container("cook-county-properties");
+        const container = client.database("overtaxed").container("properties");
         
         // First get the property to find its neighborhood
         const { resource: mainProp } = await container.item(pin, pin).read();
         
-        if (mainProp && mainProp.neighborhood) {
+        if (mainProp && mainProp.nbhd) {
           // Query for comps in same neighborhood with lower assessment per sqft
           const mainPerSqft = mainProp.sqft > 0 ? mainProp.current_assessment / mainProp.sqft : 0;
           
           const { resources } = await container.items.query({
-            query: `SELECT TOP 10 c.id, c.address, c.sqft, c.beds, c.year_built, c.current_assessment 
+            query: `SELECT TOP 10 c.id, c.pin, c.sqft, c.beds, c.current_assessment, c.nbhd
                     FROM c 
-                    WHERE c.neighborhood = @nbhd 
+                    WHERE c.nbhd = @nbhd 
                     AND c.id != @pin 
                     AND c.sqft > 0 
                     AND (c.current_assessment / c.sqft) < @perSqft
                     ORDER BY ABS(c.sqft - @sqft)`,
             parameters: [
-              { name: "@nbhd", value: mainProp.neighborhood },
+              { name: "@nbhd", value: mainProp.nbhd },
               { name: "@pin", value: pin },
               { name: "@perSqft", value: mainPerSqft },
               { name: "@sqft", value: mainProp.sqft || 0 },
@@ -82,11 +82,11 @@ export async function GET(request: NextRequest) {
           }).fetchAll();
           
           comps = resources.map((c: any) => ({
-            pin: c.id,
-            address: c.address || "N/A",
+            pin: c.id || c.pin,
+            address: "N/A", // Address not stored in Cosmos - will be enriched later
             sqft: c.sqft || 0,
             beds: c.beds || 0,
-            yearBuilt: c.year_built || 0,
+            yearBuilt: 0, // Not stored in Cosmos
             perSqft: c.sqft > 0 ? c.current_assessment / c.sqft : 0,
           }));
         }
