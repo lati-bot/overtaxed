@@ -107,22 +107,10 @@ export default function Home() {
   }
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 relative ${isDark ? "bg-[#050508] text-white" : "bg-[#fafafa] text-[#111]"}`}>
-      
-      {/* Gradient background blobs - dark mode only */}
-      {isDark && (
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
-          {/* Top right purple glow */}
-          <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-violet-600/20 rounded-full blur-[120px]" />
-          {/* Bottom left blue glow */}
-          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-blue-600/15 rounded-full blur-[100px]" />
-          {/* Middle emerald accent */}
-          <div className="absolute top-1/2 left-1/3 w-[400px] h-[400px] bg-emerald-600/10 rounded-full blur-[120px]" />
-        </div>
-      )}
+    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-[#0a0a0a] text-white" : "bg-[#fafafa] text-[#111]"}`}>
 
       {/* Navigation */}
-      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#050508]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
+      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
           <div className={`text-lg font-semibold tracking-tight ${isDark ? "text-white" : "text-black"}`}>
             overtaxed

@@ -153,20 +153,12 @@ export default function ResultsContent() {
   }, [address, pin]);
 
   // Shared styles
-  const bgMain = isDark ? "bg-[#050508]" : "bg-[#fafafa]";
+  const bgMain = isDark ? "bg-[#0a0a0a]" : "bg-[#fafafa]";
   const bgCard = isDark ? "bg-white/[0.02]" : "bg-white";
   const borderColor = isDark ? "border-white/10" : "border-black/5";
   const textPrimary = isDark ? "text-white" : "text-[#111]";
   const textSecondary = isDark ? "text-gray-400" : "text-gray-600";
   const textMuted = isDark ? "text-gray-500" : "text-gray-400";
-
-  // Gradient background component for dark mode
-  const GradientBg = () => isDark ? (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none">
-      <div className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-emerald-600/20 rounded-full blur-[120px]" />
-      <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] bg-violet-600/15 rounded-full blur-[100px]" />
-    </div>
-  ) : null;
 
   // Prevent flash
   if (!mounted) {
@@ -176,8 +168,8 @@ export default function ResultsContent() {
   if (loading) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} flex items-center justify-center transition-colors duration-300 relative`}>
-        <GradientBg />
-        <div className="text-center relative z-10">
+        
+        <div className="text-center">
           <div className={`animate-spin rounded-full h-10 w-10 border-2 ${isDark ? "border-white/20 border-t-white" : "border-black/20 border-t-black"} mx-auto`}></div>
           <p className={`mt-4 ${textSecondary}`}>Looking up your property...</p>
         </div>
@@ -189,8 +181,8 @@ export default function ResultsContent() {
   if (error) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
-        <GradientBg />
-        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#050508]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+        
+        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-lg font-semibold tracking-tight">
               overtaxed
@@ -306,8 +298,8 @@ export default function ResultsContent() {
   if (multipleResults) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
-        <GradientBg />
-        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#050508]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+        
+        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
             <Link href="/" className="text-lg font-semibold tracking-tight">
               overtaxed
@@ -367,8 +359,8 @@ export default function ResultsContent() {
 
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
-      <GradientBg />
-      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#050508]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+      
+      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${borderColor}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
           <Link href="/" className="text-lg font-semibold tracking-tight">
             overtaxed
