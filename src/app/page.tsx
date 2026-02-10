@@ -108,18 +108,6 @@ export default function Home() {
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-[#0a0a0a] text-white" : "bg-[#fafafa] text-[#111]"}`}>
-      
-      {/* Cook County Banner */}
-      <div className={`${isDark ? "bg-emerald-500/10 border-b border-emerald-500/20" : "bg-emerald-50 border-b border-emerald-100"}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-8 py-2.5 flex items-center justify-center gap-2 text-sm">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className={isDark ? "text-emerald-400" : "text-emerald-700"}>
-            Now serving <strong>Cook County, Illinois</strong>
-          </span>
-          <span className={isDark ? "text-gray-500" : "text-gray-400"}>•</span>
-          <span className={isDark ? "text-gray-400" : "text-gray-500"}>More markets coming soon</span>
-        </div>
-      </div>
 
       {/* Navigation */}
       <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#fafafa]/80"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
@@ -169,6 +157,21 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
             {/* Left side - Text */}
             <div>
+              {/* Cook County badge - integrated into hero */}
+              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium mb-6 ${
+                isDark 
+                  ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-400" 
+                  : "bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 text-emerald-700"
+              }`}>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span>Cook County, IL</span>
+                <span className={isDark ? "text-gray-500" : "text-gray-400"}>•</span>
+                <span className={isDark ? "text-gray-400" : "text-gray-500"}>More markets soon</span>
+              </div>
+              
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-semibold tracking-tight leading-[1.1]">
                 Stop overpaying
                 <br />

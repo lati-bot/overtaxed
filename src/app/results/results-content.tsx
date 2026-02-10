@@ -176,6 +176,7 @@ export default function ResultsContent() {
     );
   }
 
+  // Fun, helpful error page
   if (error) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300`}>
@@ -193,15 +194,100 @@ export default function ResultsContent() {
             </button>
           </div>
         </nav>
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
-          <h1 className="text-2xl font-semibold">Property Not Found</h1>
-          <p className={`mt-4 ${textSecondary}`}>{error}</p>
-          <Link 
-            href="/" 
-            className={`inline-block mt-8 px-6 py-3 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-black text-white hover:bg-gray-800"}`}
-          >
-            Try Again
-          </Link>
+        
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
+          {/* Fun illustration */}
+          <div className="text-center mb-8">
+            <div className="text-6xl sm:text-8xl mb-4">🏠❓</div>
+          </div>
+          
+          <h1 className="text-2xl sm:text-3xl font-semibold text-center">
+            Hmm, we couldn&apos;t find that one
+          </h1>
+          
+          <p className={`mt-3 text-center ${textSecondary} text-lg`}>
+            We searched high and low, but no luck. Here&apos;s what might be going on:
+          </p>
+          
+          <div className={`mt-8 rounded-2xl ${bgCard} border ${borderColor} p-6 ${isDark ? "" : "shadow-sm"}`}>
+            <div className="space-y-4">
+              <div className="flex items-start gap-4">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? "bg-white/10" : "bg-black/5"}`}>
+                  <span className="text-sm">📍</span>
+                </div>
+                <div>
+                  <div className="font-medium">Not in Cook County?</div>
+                  <p className={`text-sm ${textSecondary} mt-0.5`}>
+                    We currently only cover Cook County, Illinois. More markets coming soon!
+                  </p>
+                </div>
+              </div>
+              
+              <div className={`border-t ${borderColor}`}></div>
+              
+              <div className="flex items-start gap-4">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? "bg-white/10" : "bg-black/5"}`}>
+                  <span className="text-sm">✏️</span>
+                </div>
+                <div>
+                  <div className="font-medium">Typo in the address?</div>
+                  <p className={`text-sm ${textSecondary} mt-0.5`}>
+                    Double-check the spelling. Our autocomplete should help — start typing and pick from the list.
+                  </p>
+                </div>
+              </div>
+              
+              <div className={`border-t ${borderColor}`}></div>
+              
+              <div className="flex items-start gap-4">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? "bg-white/10" : "bg-black/5"}`}>
+                  <span className="text-sm">🏢</span>
+                </div>
+                <div>
+                  <div className="font-medium">Condo or commercial property?</div>
+                  <p className={`text-sm ${textSecondary} mt-0.5`}>
+                    We specialize in single-family homes and small multi-family (2-4 units). Condos and commercial have different appeal processes.
+                  </p>
+                </div>
+              </div>
+              
+              <div className={`border-t ${borderColor}`}></div>
+              
+              <div className="flex items-start gap-4">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? "bg-white/10" : "bg-black/5"}`}>
+                  <span className="text-sm">🆕</span>
+                </div>
+                <div>
+                  <div className="font-medium">New construction?</div>
+                  <p className={`text-sm ${textSecondary} mt-0.5`}>
+                    Brand new homes might not be in the assessor&apos;s database yet. Check back in a few months.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className={`mt-6 rounded-2xl p-5 text-center ${isDark ? "bg-violet-500/10 border border-violet-500/20" : "bg-violet-50 border border-violet-100"}`}>
+            <p className={`text-sm ${isDark ? "text-violet-300" : "text-violet-700"}`}>
+              🚀 <strong>Not in Cook County yet?</strong> We&apos;re expanding to Texas soon. Drop your email on the homepage to get notified!
+            </p>
+          </div>
+          
+          <div className="mt-8 text-center">
+            <Link 
+              href="/" 
+              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-black text-white hover:bg-gray-800"}`}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Try another address
+            </Link>
+          </div>
+          
+          <p className={`mt-8 text-center text-sm ${textMuted}`}>
+            Still stuck? Email us at <a href="mailto:hello@getovertaxed.com" className={`underline ${isDark ? "hover:text-white" : "hover:text-black"}`}>hello@getovertaxed.com</a>
+          </p>
         </div>
       </div>
     );
@@ -225,14 +311,17 @@ export default function ResultsContent() {
           </div>
         </nav>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-          <h1 className="text-xl sm:text-2xl font-semibold">Multiple Properties Found</h1>
-          <p className={`mt-2 ${textSecondary}`}>Select your property:</p>
-          <div className="mt-6 space-y-3">
+          <div className="text-center mb-6">
+            <div className="text-4xl mb-3">🎯</div>
+            <h1 className="text-xl sm:text-2xl font-semibold">We found a few matches</h1>
+            <p className={`mt-2 ${textSecondary}`}>Which one is yours?</p>
+          </div>
+          <div className="space-y-3">
             {multipleResults.map((result) => (
               <button
                 key={result.pin}
                 onClick={() => handleSelectProperty(result.pin)}
-                className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bgCard} hover:border-emerald-500/50 transition-all ${isDark ? "" : "shadow-sm"}`}
+                className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bgCard} hover:border-emerald-500/50 transition-all ${isDark ? "" : "shadow-sm hover:shadow-md"}`}
               >
                 <div className="font-medium">{result.address}</div>
                 <div className={`text-sm ${textSecondary}`}>
@@ -350,30 +439,40 @@ export default function ResultsContent() {
         {/* Analysis Result - Fairly Assessed */}
         {analysis?.found && analysis.status === "fair" && (
           <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${borderColor} ${bgCard} ${isDark ? "" : "shadow-sm"}`}>
-            <div className={`flex items-center gap-2 font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Fairly Assessed
+            <div className="text-center">
+              <div className="text-4xl mb-3">🎉</div>
+              <div className={`flex items-center justify-center gap-2 font-medium text-lg ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+                Good news — you&apos;re fairly assessed!
+              </div>
+              <p className={`mt-2 ${textSecondary}`}>
+                Based on {compCount} comparable properties, your assessment is in line with similar homes. No action needed!
+              </p>
             </div>
-            <p className={`mt-2 text-sm ${textSecondary}`}>
-              Based on {compCount} comparable properties, your assessment appears to be in line with similar homes.
-            </p>
           </div>
         )}
 
         {/* Not in analyzed area */}
         {analysis && !analysis.found && (
           <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 ${isDark ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30" : "bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200"}`}>
-            <div className={`flex items-center gap-2 font-medium ${isDark ? "text-amber-400" : "text-amber-600"}`}>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-              Analysis Coming Soon
+            <div className="text-center">
+              <div className="text-4xl mb-3">🔍</div>
+              <div className={`font-medium text-lg ${isDark ? "text-amber-400" : "text-amber-600"}`}>
+                We&apos;re still crunching the numbers
+              </div>
+              <p className={`mt-2 ${textSecondary}`}>
+                Your neighborhood is in our queue. Drop your email below and we&apos;ll notify you when your analysis is ready.
+              </p>
+              <div className="mt-4 flex gap-2 max-w-sm mx-auto">
+                <input 
+                  type="email" 
+                  placeholder="your@email.com"
+                  className={`flex-1 h-11 px-4 rounded-lg text-sm ${isDark ? "bg-black/30 border-white/10 text-white placeholder-gray-500" : "bg-white border-amber-200 text-black placeholder-gray-400"} border focus:outline-none focus:ring-2 focus:ring-amber-500/50`}
+                />
+                <button className={`px-4 h-11 rounded-lg font-medium text-sm ${isDark ? "bg-amber-500 text-black hover:bg-amber-400" : "bg-amber-500 text-white hover:bg-amber-600"} transition-colors`}>
+                  Notify Me
+                </button>
+              </div>
             </div>
-            <p className={`mt-2 text-sm ${textSecondary}`}>
-              We&apos;re still analyzing properties in your area. Check back soon or enter your email to be notified.
-            </p>
           </div>
         )}
 
@@ -488,18 +587,6 @@ export default function ResultsContent() {
             </a>
             <p className={`mt-3 text-sm ${textMuted}`}>
               One-time fee • Delivered in 48 hours
-            </p>
-          </div>
-        )}
-
-        {/* CTA - Fairly Assessed */}
-        {analysis?.found && analysis.status === "fair" && (
-          <div className={`mt-6 sm:mt-8 rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 text-center ${isDark ? "" : "shadow-sm"}`}>
-            <h2 className="text-lg sm:text-xl font-semibold">
-              Good news — you&apos;re not overpaying
-            </h2>
-            <p className={`mt-2 text-sm sm:text-base ${textSecondary} max-w-lg mx-auto`}>
-              Based on our analysis, your property is fairly assessed compared to similar homes. No action needed!
             </p>
           </div>
         )}
