@@ -288,21 +288,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats - Gradient Cards */}
+      {/* Stats - Clean Cards */}
       <section className="py-12 sm:py-16 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-rose-500 to-orange-400 text-white">
-              <div className="text-4xl sm:text-5xl font-bold">$847</div>
-              <div className="mt-1 sm:mt-2 text-white/80 text-sm">Average annual savings</div>
+            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/5 shadow-sm"}`}>
+              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-rose-400" : "text-rose-500"}`}>$847</div>
+              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Average annual savings</div>
             </div>
-            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-400 text-white">
-              <div className="text-4xl sm:text-5xl font-bold">21%</div>
-              <div className="mt-1 sm:mt-2 text-white/80 text-sm">Average reduction</div>
+            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/5 shadow-sm"}`}>
+              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-violet-400" : "text-violet-500"}`}>21%</div>
+              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Average reduction</div>
             </div>
-            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-400 text-white">
-              <div className="text-4xl sm:text-5xl font-bold">72%</div>
-              <div className="mt-1 sm:mt-2 text-white/80 text-sm">Success rate</div>
+            <div className={`p-6 sm:p-8 rounded-2xl border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/5 shadow-sm"}`}>
+              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-500"}`}>72%</div>
+              <div className={`mt-1 sm:mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Success rate</div>
             </div>
           </div>
         </div>
@@ -377,18 +377,18 @@ export default function Home() {
             </div>
             
             <div className="hidden lg:block">
-              <div className={`p-8 rounded-2xl ${isDark ? "bg-gradient-to-br from-violet-500/20 to-purple-600/20 border border-violet-500/20" : "bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-100"}`}>
+              <div className={`p-8 rounded-2xl border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/5 shadow-lg"}`}>
                 <div className={`text-sm font-medium mb-6 ${isDark ? "text-gray-400" : "text-gray-600"}`}>What you get</div>
                 <div className="space-y-4">
-                  <div className={`p-4 rounded-lg ${isDark ? "bg-black/30" : "bg-white/80"}`}>
+                  <div className={`p-4 rounded-lg ${isDark ? "bg-white/5 border border-white/5" : "bg-gray-50 border border-black/5"}`}>
                     <div className="font-medium">Comparable Properties Report</div>
                     <div className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>5-8 similar homes with lower assessments</div>
                   </div>
-                  <div className={`p-4 rounded-lg ${isDark ? "bg-black/30" : "bg-white/80"}`}>
+                  <div className={`p-4 rounded-lg ${isDark ? "bg-white/5 border border-white/5" : "bg-gray-50 border border-black/5"}`}>
                     <div className="font-medium">Pre-filled Appeal Forms</div>
                     <div className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>Ready to print and submit</div>
                   </div>
-                  <div className={`p-4 rounded-lg ${isDark ? "bg-black/30" : "bg-white/80"}`}>
+                  <div className={`p-4 rounded-lg ${isDark ? "bg-white/5 border border-white/5" : "bg-gray-50 border border-black/5"}`}>
                     <div className="font-medium">Filing Instructions</div>
                     <div className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-600"}`}>Step-by-step guide with deadlines</div>
                   </div>

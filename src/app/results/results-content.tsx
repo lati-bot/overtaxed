@@ -403,7 +403,7 @@ export default function ResultsContent() {
 
         {/* Analysis Result - Over Assessed */}
         {analysis?.found && analysis.status === "over" && (
-          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 ${isDark ? "bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30" : "bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200"}`}>
+          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-white/[0.03] border-emerald-500/30" : "bg-white border-emerald-200 shadow-sm"}`}>
             <div className={`flex items-center gap-2 font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -453,7 +453,7 @@ export default function ResultsContent() {
 
         {/* Not in analyzed area */}
         {analysis && !analysis.found && (
-          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 ${isDark ? "bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/30" : "bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200"}`}>
+          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-white/[0.03] border-amber-500/30" : "bg-white border-amber-200 shadow-sm"}`}>
             <div className="text-center">
               <div className="text-4xl mb-3">🔍</div>
               <div className={`font-medium text-lg ${isDark ? "text-amber-400" : "text-amber-600"}`}>
@@ -466,7 +466,7 @@ export default function ResultsContent() {
                 <input 
                   type="email" 
                   placeholder="your@email.com"
-                  className={`flex-1 h-11 px-4 rounded-lg text-sm ${isDark ? "bg-black/30 border-white/10 text-white placeholder-gray-500" : "bg-white border-amber-200 text-black placeholder-gray-400"} border focus:outline-none focus:ring-2 focus:ring-amber-500/50`}
+                  className={`flex-1 h-11 px-4 rounded-lg text-sm ${isDark ? "bg-black/30 border-white/10 text-white placeholder-gray-500" : "bg-gray-50 border-gray-200 text-black placeholder-gray-400"} border focus:outline-none focus:ring-2 focus:ring-amber-500/50`}
                 />
                 <button className={`px-4 h-11 rounded-lg font-medium text-sm ${isDark ? "bg-amber-500 text-black hover:bg-amber-400" : "bg-amber-500 text-white hover:bg-amber-600"} transition-colors`}>
                   Notify Me
@@ -570,9 +570,9 @@ export default function ResultsContent() {
 
         {/* CTA - Over Assessed */}
         {hasAnalysis && (
-          <div className={`mt-6 sm:mt-8 rounded-xl p-5 sm:p-6 md:p-8 text-center ${isDark ? "bg-gradient-to-br from-violet-500/20 to-purple-500/20 border border-violet-500/30" : "bg-gradient-to-br from-violet-50 to-purple-50 border border-violet-200"}`}>
+          <div className={`mt-6 sm:mt-8 rounded-xl p-5 sm:p-6 md:p-8 text-center border ${isDark ? "bg-white/[0.03] border-white/10" : "bg-white border-black/5 shadow-lg"}`}>
             <h2 className="text-lg sm:text-xl font-semibold">
-              Save ${estimatedSavings.toLocaleString()}/year on your property taxes
+              Save <span className={isDark ? "text-emerald-400" : "text-emerald-600"}>${estimatedSavings.toLocaleString()}/year</span> on your property taxes
             </h2>
             <p className={`mt-2 text-sm sm:text-base ${textSecondary} max-w-lg mx-auto`}>
               Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
