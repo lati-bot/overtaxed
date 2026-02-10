@@ -62,30 +62,15 @@ interface Assessment {
 
 interface CosmosProperty {
   pin: string;
-  address: string;
-  city: string;
-  zip: string;
-  township: string;
-  neighborhood: string;
-  class: string;
+  status: string;
+  nbhd: string;
   sqft: number;
-  land_sqft: number;
-  year_built: number;
-  bedrooms: number;
-  bathrooms: number;
-  assessment: number;
+  beds: number;
+  current_assessment: number;
   fair_assessment: number;
-  potential_savings: number;
-  reduction_pct: number;
-  comps: Array<{
-    pin: string;
-    address: string;
-    sqft: number;
-    year_built: number;
-    assessment: number;
-    sale_price?: number;
-    sale_date?: string;
-  }>;
+  estimated_savings: number;
+  comp_count: number;
+  median_per_sqft: number;
 }
 
 function parseAddress(input: string): { houseNum: string; street: string } | null {
@@ -327,9 +312,8 @@ export async function GET(request: NextRequest) {
         // Analysis data from Cosmos
         analysis: {
           fairAssessment: analysis.fair_assessment,
-          potentialSavings: analysis.potential_savings,
-          reductionPct: analysis.reduction_pct,
-          comps: analysis.comps,
+          potentialSavings: analysis.estimated_savings || 0,
+          compCount: analysis.comp_count || 0,
         },
       },
     });

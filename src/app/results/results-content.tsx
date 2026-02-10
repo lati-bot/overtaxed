@@ -37,16 +37,7 @@ interface PropertyData {
   analysis?: {
     fairAssessment: number;
     potentialSavings: number;
-    reductionPct: number;
-    comps: Array<{
-      pin: string;
-      address: string;
-      sqft: number;
-      year_built: number;
-      assessment: number;
-      sale_price?: number;
-      sale_date?: string;
-    }>;
+    compCount: number;
   };
 }
 
@@ -315,7 +306,7 @@ export default function ResultsContent() {
   const hasAnalysis = analysisAvailable && property.analysis;
   const estimatedSavings = hasAnalysis ? property.analysis!.potentialSavings : 0;
   const fairAssessment = hasAnalysis ? property.analysis!.fairAssessment : currentAssessment;
-  const compCount = hasAnalysis ? property.analysis!.comps.length : 0;
+  const compCount = hasAnalysis ? property.analysis!.compCount : 0;
 
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
