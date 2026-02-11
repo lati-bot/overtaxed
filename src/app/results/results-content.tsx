@@ -136,11 +136,11 @@ export default function ResultsContent() {
             certifiedTotal: null,
             boardTotal: null,
           },
-          analysis: hp.status === "over" ? {
-            fairAssessment: hp.fairAssessment,
-            potentialSavings: hp.estimatedSavings,
+          analysis: {
+            fairAssessment: hp.status === "over" ? hp.fairAssessment : hp.currentAssessment,
+            potentialSavings: hp.status === "over" ? hp.estimatedSavings : 0,
             compCount: (hp.comps || []).length,
-          } : undefined,
+          },
           neighborhoodStats: hp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
@@ -369,9 +369,12 @@ export default function ResultsContent() {
   const fairAssessment = hasAnalysis ? property.analysis!.fairAssessment : currentAssessment;
   const reduction = currentAssessment - fairAssessment;
   // Houston uses ~2.2% tax rate; Cook County uses assessment reduction × 20%
-  const estimatedSavings = reduction > 0 
+  const rawSavings = reduction > 0 
     ? (isHouston ? Math.round(reduction * 0.022) : Math.round(reduction * 0.20))
     : 0;
+  // Minimum threshold: don't show as over-assessed if savings are trivial
+  const MIN_SAVINGS_THRESHOLD = 100;
+  const estimatedSavings = rawSavings >= MIN_SAVINGS_THRESHOLD ? rawSavings : 0;
   const compCount = hasAnalysis ? property.analysis!.compCount : 0;
 
   return (
