@@ -948,6 +948,10 @@ export async function GET(request: NextRequest) {
       if (!pin) {
         return NextResponse.json({ error: "No PIN in session" }, { status: 400 });
       }
+      // Houston properties use "houston:ACCT" format — reject so frontend falls back to Houston endpoint
+      if (pin.startsWith("houston:")) {
+        return NextResponse.json({ error: "Not a Houston property" }, { status: 400 });
+      }
       const propertyData = await getPropertyData(pin);
       if (!propertyData) {
         return NextResponse.json({ error: "Property not found" }, { status: 404 });
