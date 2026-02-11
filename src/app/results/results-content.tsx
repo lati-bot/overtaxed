@@ -373,9 +373,21 @@ export default function ResultsContent() {
     ? (isHouston ? Math.round(reduction * 0.022) : Math.round(reduction * 0.20))
     : 0;
   // Minimum threshold: don't show as over-assessed if savings are trivial
-  const MIN_SAVINGS_THRESHOLD = 100;
+  const MIN_SAVINGS_THRESHOLD = 250;
   const estimatedSavings = rawSavings >= MIN_SAVINGS_THRESHOLD ? rawSavings : 0;
   const compCount = hasAnalysis ? property.analysis!.compCount : 0;
+
+  // Tax bill calculations
+  const estimatedTaxBill = isHouston 
+    ? Math.round(currentAssessment * 0.022)
+    : Math.round(currentAssessment * 2.0); // Cook County: assessed × ~20 (equalized rate)
+  const estimatedTaxBillAfter = estimatedTaxBill - estimatedSavings;
+  const taxBillReductionPct = estimatedTaxBill > 0 ? Math.round((estimatedSavings / estimatedTaxBill) * 100) : 0;
+
+  // Multi-year impact
+  const multiYearMultiplier = isHouston ? 5 : 3;
+  const multiYearSavings = estimatedSavings * multiYearMultiplier;
+  const multiYearLabel = isHouston ? "5 years" : "3 years";
 
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
@@ -473,31 +485,56 @@ export default function ResultsContent() {
                 </svg>
                 {isHouston ? "You\u2019re Over-Appraised" : "You\u2019re Over-Assessed"}
               </div>
-              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-                <div>
-                  <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>{isHouston ? "Current Appraised" : "Current"}</div>
-                  <div className={`text-lg sm:text-xl font-semibold ${textPrimary}`}>${currentAssessment.toLocaleString()}</div>
+
+              {/* Tax bill comparison — the hero moment */}
+              <div className="mt-5 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
+                <div className={`flex-1 w-full rounded-xl p-4 ${isDark ? "bg-red-500/10 border border-red-500/20" : "bg-red-50 border border-red-100"}`}>
+                  <div className={`text-xs font-medium uppercase tracking-wide ${isDark ? "text-red-400/70" : "text-red-500/70"}`}>Est. Annual Tax Bill</div>
+                  <div className={`text-2xl sm:text-3xl font-bold mt-1 ${isDark ? "text-red-400" : "text-red-600"}`}>${estimatedTaxBill.toLocaleString()}</div>
                 </div>
-                <div>
-                  <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Fair Value</div>
-                  <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${fairAssessment.toLocaleString()}</div>
+                <div className="hidden sm:flex items-center">
+                  <svg className={`w-6 h-6 ${isDark ? "text-emerald-400" : "text-emerald-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
                 </div>
-                <div>
-                  <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Reduction</div>
-                  <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
-                    ${(currentAssessment - fairAssessment).toLocaleString()}
-                  </div>
+                <div className="flex sm:hidden items-center">
+                  <svg className={`w-6 h-6 ${isDark ? "text-emerald-400" : "text-emerald-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                  </svg>
                 </div>
-                <div>
-                  <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Tax Savings</div>
-                  <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${estimatedSavings.toLocaleString()}/yr</div>
+                <div className={`flex-1 w-full rounded-xl p-4 ${isDark ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-emerald-100/80 border border-emerald-200"}`}>
+                  <div className={`text-xs font-medium uppercase tracking-wide ${isDark ? "text-emerald-400/70" : "text-emerald-600/70"}`}>After {isHouston ? "Protest" : "Appeal"}</div>
+                  <div className={`text-2xl sm:text-3xl font-bold mt-1 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${estimatedTaxBillAfter.toLocaleString()}</div>
                 </div>
               </div>
-              <p className={`mt-3 text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>
+
+              {/* Savings highlight bar */}
+              <div className={`mt-4 rounded-xl p-4 ${isDark ? "bg-black/20" : "bg-white/70"} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
+                <div className="flex items-center gap-6 flex-wrap">
+                  <div>
+                    <div className={`text-xs ${textMuted}`}>Annual Savings</div>
+                    <div className={`text-xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${estimatedSavings.toLocaleString()}/yr</div>
+                  </div>
+                  <div>
+                    <div className={`text-xs ${textMuted}`}>Over {multiYearLabel}</div>
+                    <div className={`text-xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${multiYearSavings.toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className={`text-xs ${textMuted}`}>Tax Bill Reduction</div>
+                    <div className={`text-xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>{taxBillReductionPct}%</div>
+                  </div>
+                </div>
+              </div>
+
+              <p className={`mt-3 text-sm ${isDark ? "text-emerald-300/60" : "text-emerald-600/60"}`}>
                 Based on {compCount} comparable properties in your neighborhood.
+                {isHouston 
+                  ? " A successful protest this year establishes a lower baseline for future years."
+                  : " Cook County reassesses every 3 years — a reduction now saves you each year until the next reassessment."
+                }
               </p>
 
-              {/* CTA — right inside the analysis section */}
+              {/* CTA */}
               <div className={`mt-5 pt-5 border-t ${isDark ? "border-emerald-500/20" : "border-emerald-200"}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
@@ -688,9 +725,11 @@ export default function ResultsContent() {
         {/* Disclaimer */}
         <p className={`mt-4 text-xs ${textMuted} text-center`}>
           {isHouston 
-            ? "Appraisal data from Harris County Appraisal District (HCAD). Savings estimates based on comparable properties and may vary."
-            : "Assessment data from Cook County Assessor\u2019s Office. Savings estimates based on comparable properties and may vary."
-          } Past results do not guarantee future outcomes.
+            ? "Appraisal data from Harris County Appraisal District (HCAD). Tax bill estimates use an average Harris County rate of ~2.2% and may vary by taxing jurisdiction."
+            : "Assessment data from Cook County Assessor\u2019s Office. Tax bill estimates are approximate and vary by municipality and taxing district."
+          } Savings estimates based on comparable properties. Past results do not guarantee future outcomes.
+          {!isHouston && " Cook County reassesses every 3 years; multi-year savings assume the reduction holds through the current cycle."}
+          {isHouston && " Multi-year projections assume similar assessment levels; Texas reassesses annually."}
         </p>
       </div>
     </div>
