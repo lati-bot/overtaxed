@@ -320,12 +320,12 @@ function AppealPage() {
                   <div className="font-medium text-gray-900">File your protest via iFile</div>
                   <p className="text-sm text-gray-600">Go to hcad.org, select &quot;Unequal Appraisal&quot;, and upload this PDF as evidence.</p>
                   <a 
-                    href="https://ifile.hcad.org" 
+                    href="https://hcad.org/hcad-online-services/ifile-protest/" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline mt-1"
                   >
-                    ifile.hcad.org
+                    HCAD iFile Protest
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>

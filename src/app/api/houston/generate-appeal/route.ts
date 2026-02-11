@@ -422,7 +422,7 @@ function generateHoustonPdfHtml(data: HoustonPropertyData): string {
           <div class="step-content">
             <div class="step-title">File Online via iFile</div>
             <div class="step-desc">
-              Go to <span class="step-link">hcad.org</span> and click <strong>"File a Protest"</strong> or go directly to <span class="step-link">ifile.hcad.org</span><br/>
+              Go to <span class="step-link">hcad.org</span> and click <strong>"File a Protest"</strong> or go directly to <a href="https://hcad.org/hcad-online-services/ifile-protest/" class="step-link">HCAD iFile Protest</a><br/>
               • Enter your <strong>Account Number</strong>: <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${data.acct}</strong><br/>
               • Select <strong>"Unequal Appraisal"</strong> as your reason for protest (this is the strongest legal argument)<br/>
               • You can also check <strong>"Value is Over Market Value"</strong> as an additional reason<br/>
