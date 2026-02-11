@@ -5,27 +5,33 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 
 interface PropertyData {
-  pin: string;
+  pin?: string;
+  acct?: string;
   address: string;
   city: string;
-  zip: string;
-  township: string;
+  zip?: string;
+  township?: string;
   sqft: number;
-  beds: number;
-  yearBuilt: number;
+  beds?: number;
+  yearBuilt?: number;
   currentAssessment: number;
   fairAssessment: number;
-  reduction: number;
-  savings: number;
+  reduction?: number;
+  potentialReduction?: number;
+  savings?: number;
+  estimatedSavings?: number;
   perSqft: number;
   fairPerSqft: number;
+  overAssessedPct?: number;
   comps: Array<{
-    pin: string;
+    pin?: string;
+    acct?: string;
     address: string;
     sqft: number;
-    beds: number;
-    year: number;
-    perSqft: number;
+    beds?: number;
+    year?: number;
+    perSqft?: number;
+    assessedVal?: number;
   }>;
 }
 
@@ -36,6 +42,7 @@ function AppealPage() {
   const [error, setError] = useState<string | null>(null);
   const [property, setProperty] = useState<PropertyData | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [isHouston, setIsHouston] = useState(false);
 
   useEffect(() => {
     if (!token) {
@@ -46,15 +53,26 @@ function AppealPage() {
 
     const fetchData = async () => {
       try {
+        // Try Cook County first
         const res = await fetch(`/api/generate-appeal?token=${token}`);
         const data = await res.json();
 
-        if (!res.ok) {
-          setError(data.error || "Failed to load appeal package");
+        if (res.ok) {
+          setProperty(data.property);
           return;
         }
 
-        setProperty(data.property);
+        // Try Houston endpoint
+        const houstonRes = await fetch(`/api/houston/generate-appeal?token=${token}`);
+        const houstonData = await houstonRes.json();
+
+        if (houstonRes.ok) {
+          setProperty(houstonData.property);
+          setIsHouston(true);
+          return;
+        }
+
+        setError(data.error || houstonData.error || "Failed to load appeal package");
       } catch (err) {
         setError("Failed to load appeal package. This link may have expired.");
       } finally {
@@ -70,7 +88,8 @@ function AppealPage() {
     
     setDownloading(true);
     try {
-      const res = await fetch("/api/generate-appeal", {
+      const endpoint = isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token }),
@@ -82,7 +101,10 @@ function AppealPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `appeal-package-${property?.pin}.pdf`;
+      const id = isHouston ? property?.acct : property?.pin;
+      a.download = isHouston 
+        ? `protest-package-${id}.pdf`
+        : `appeal-package-${id}.pdf`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -127,9 +149,11 @@ function AppealPage() {
 
   if (!property) return null;
 
-  const overAssessedPct = property.currentAssessment > 0 
-    ? Math.round((property.reduction / property.currentAssessment) * 100) 
-    : 0;
+  const reduction = property.reduction || property.potentialReduction || 0;
+  const savings = property.savings || property.estimatedSavings || 0;
+  const overAssessedPct = property.overAssessedPct || 
+    (property.currentAssessment > 0 ? Math.round((reduction / property.currentAssessment) * 100) : 0);
+  const propertyId = isHouston ? property.acct : property.pin;
 
   return (
     <div className="min-h-screen bg-[#faf9f7]">
@@ -150,8 +174,15 @@ function AppealPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Your Appeal Package</h1>
-          <p className="text-gray-600">Access your property tax appeal evidence and filing instructions</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {isHouston ? "Your Protest Package" : "Your Appeal Package"}
+          </h1>
+          <p className="text-gray-600">
+            {isHouston 
+              ? "Access your property tax protest evidence and filing instructions"
+              : "Access your property tax appeal evidence and filing instructions"
+            }
+          </p>
         </div>
 
         {/* Property Summary Card */}
@@ -159,26 +190,39 @@ function AppealPage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{property.address}</h2>
-              <p className="text-gray-500">{property.city}, IL {property.zip} · {property.township} Township</p>
-              <p className="text-sm text-gray-400 font-mono">PIN: {property.pin}</p>
+              <p className="text-gray-500">
+                {isHouston 
+                  ? `${property.city}, TX · Harris County`
+                  : `${property.city}, IL ${property.zip || ""} · ${property.township || ""} Township`
+                }
+              </p>
+              <p className="text-sm text-gray-400 font-mono">
+                {isHouston ? `Account: ${propertyId}` : `PIN: ${propertyId}`}
+              </p>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-green-600">${property.savings.toLocaleString()}</div>
+              <div className="text-3xl font-bold text-green-600">${savings.toLocaleString()}</div>
               <div className="text-sm text-gray-500">estimated annual savings</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
             <div>
-              <div className="text-sm text-gray-500">Current Assessment</div>
+              <div className="text-sm text-gray-500">
+                {isHouston ? "Current Appraised" : "Current Assessment"}
+              </div>
               <div className="text-lg font-semibold text-red-600">${property.currentAssessment.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">Fair Assessment</div>
+              <div className="text-sm text-gray-500">
+                {isHouston ? "Fair Value" : "Fair Assessment"}
+              </div>
               <div className="text-lg font-semibold text-green-600">${property.fairAssessment.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">Over-Assessed By</div>
+              <div className="text-sm text-gray-500">
+                {isHouston ? "Over-Appraised By" : "Over-Assessed By"}
+              </div>
               <div className="text-lg font-semibold text-amber-600">{overAssessedPct}%</div>
             </div>
           </div>
@@ -186,8 +230,15 @@ function AppealPage() {
 
         {/* Download Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Download Your Appeal Package</h3>
-          <p className="text-gray-600 mb-4">Your complete appeal package includes comparable properties, assessment analysis, and step-by-step Board of Review filing instructions.</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {isHouston ? "Download Your Protest Package" : "Download Your Appeal Package"}
+          </h3>
+          <p className="text-gray-600 mb-4">
+            {isHouston
+              ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step iFile instructions."
+              : "Your complete appeal package includes comparable properties, assessment analysis, and step-by-step Board of Review filing instructions."
+            }
+          </p>
           
           <button
             onClick={handleDownload}
@@ -213,7 +264,12 @@ function AppealPage() {
         {/* Comparable Properties Preview */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Comparable Properties</h3>
-          <p className="text-gray-600 mb-4">These similar properties are assessed at lower values than yours:</p>
+          <p className="text-gray-600 mb-4">
+            {isHouston 
+              ? "These similar properties are appraised at lower values than yours:"
+              : "These similar properties are assessed at lower values than yours:"
+            }
+          </p>
           
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -229,10 +285,14 @@ function AppealPage() {
                   <tr key={i} className="border-b border-gray-100">
                     <td className="py-3 px-2">
                       <div className="font-medium text-gray-900">{comp.address}</div>
-                      <div className="text-xs text-gray-400 font-mono">{comp.pin}</div>
+                      <div className="text-xs text-gray-400 font-mono">
+                        {isHouston ? `Acct: ${comp.acct || comp.pin}` : comp.pin}
+                      </div>
                     </td>
                     <td className="text-right py-3 px-2 text-gray-600">{comp.sqft.toLocaleString()}</td>
-                    <td className="text-right py-3 px-2 text-green-600 font-medium">${comp.perSqft.toFixed(2)}</td>
+                    <td className="text-right py-3 px-2 text-green-600 font-medium">
+                      ${(comp.perSqft || (comp.assessedVal && comp.sqft ? comp.assessedVal / comp.sqft : 0)).toFixed(2)}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -245,50 +305,91 @@ function AppealPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">How to File</h3>
           
-          <div className="space-y-4">
-            <div className="flex gap-4">
-              <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">1</div>
-              <div>
-                <div className="font-medium text-gray-900">Download your appeal package above</div>
-                <p className="text-sm text-gray-600">Review the comparable properties and filing instructions in the PDF.</p>
+          {isHouston ? (
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">1</div>
+                <div>
+                  <div className="font-medium text-gray-900">Download your protest package above</div>
+                  <p className="text-sm text-gray-600">Review the comparable properties, hearing script, and filing instructions in the PDF.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">2</div>
+                <div>
+                  <div className="font-medium text-gray-900">File your protest via iFile</div>
+                  <p className="text-sm text-gray-600">Go to hcad.org, select &quot;Unequal Appraisal&quot;, and upload this PDF as evidence.</p>
+                  <a 
+                    href="https://ifile.hcad.org" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline mt-1"
+                  >
+                    ifile.hcad.org
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">3</div>
+                <div>
+                  <div className="font-medium text-gray-900">Check for an iSettle offer</div>
+                  <p className="text-sm text-gray-600">HCAD may offer to settle without a hearing. If the offer is fair, accept it!</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">4</div>
+                <div>
+                  <div className="font-medium text-gray-900">Attend your ARB hearing (if needed)</div>
+                  <p className="text-sm text-gray-600">Bring this PDF and use the hearing script included. Most protests resolve before this step.</p>
+                </div>
               </div>
             </div>
-            
-            <div className="flex gap-4">
-              <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">2</div>
-              <div>
-                <div className="font-medium text-gray-900">File with the Board of Review</div>
-                <p className="text-sm text-gray-600">Follow the step-by-step instructions in your PDF. No account needed — file as a guest.</p>
-                <a 
-                  href="https://www.cookcountyboardofreview.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline mt-1"
-                >
-                  cookcountyboardofreview.com
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                </a>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">1</div>
+                <div>
+                  <div className="font-medium text-gray-900">Download your appeal package above</div>
+                  <p className="text-sm text-gray-600">Review the comparable properties and filing instructions in the PDF.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">2</div>
+                <div>
+                  <div className="font-medium text-gray-900">File with the Board of Review</div>
+                  <p className="text-sm text-gray-600">Follow the step-by-step instructions in your PDF. No account needed — file as a guest.</p>
+                  <a 
+                    href="https://appeals.cookcountyboardofreview.com" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline mt-1"
+                  >
+                    cookcountyboardofreview.com
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">3</div>
+                <div>
+                  <div className="font-medium text-gray-900">Take a photo of your property</div>
+                  <p className="text-sm text-gray-600">The Board of Review requires a clear photo of the front of your building (Rule #17). Upload it with your appeal.</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">4</div>
+                <div>
+                  <div className="font-medium text-gray-900">Wait for your decision</div>
+                  <p className="text-sm text-gray-600">The Board typically responds within 90 days after your township&apos;s filing period closes.</p>
+                </div>
               </div>
             </div>
-            
-            <div className="flex gap-4">
-              <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">3</div>
-              <div>
-                <div className="font-medium text-gray-900">Take a photo of your property</div>
-                <p className="text-sm text-gray-600">The Board of Review requires a clear photo of the front of your building (Rule #17). Upload it with your appeal.</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">4</div>
-              <div>
-                <div className="font-medium text-gray-900">Wait for your decision</div>
-                <p className="text-sm text-gray-600">The Board typically responds within 90 days after your township's filing period closes.</p>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Support */}
