@@ -80,7 +80,32 @@ function SuccessPage() {
         try {
           const houstonData = await houstonRes.json();
           if (houstonRes.ok) {
-            setProperty(houstonData.property);
+            // Map Houston property shape to our PropertyData interface
+            const hp = houstonData.property;
+            setProperty({
+              pin: hp.acct,
+              address: hp.address,
+              city: hp.city || "HOUSTON",
+              zip: "",
+              township: "",
+              sqft: hp.sqft || 0,
+              beds: 0,
+              yearBuilt: hp.yearBuilt || 0,
+              currentAssessment: hp.currentAssessment,
+              fairAssessment: hp.fairAssessment,
+              reduction: hp.potentialReduction || 0,
+              savings: hp.estimatedSavings || 0,
+              perSqft: hp.perSqft || 0,
+              fairPerSqft: hp.fairPerSqft || 0,
+              comps: (hp.comps || []).map((c: any) => ({
+                pin: c.acct || "",
+                address: c.address || "",
+                sqft: c.sqft || 0,
+                beds: 0,
+                year: c.yearBuilt || 0,
+                perSqft: c.perSqft || c.assessedVal && c.sqft ? Math.round((c.assessedVal / c.sqft) * 100) / 100 : 0,
+              })),
+            });
             setToken(houstonData.token);
             setEmail(houstonData.email || null);
             setIsHouston(true);
