@@ -682,10 +682,15 @@ export async function GET(request: NextRequest) {
       }
       const token = generateAccessToken(sessionId, acct);
       // Send email in background
+      // Generate PDF and send email before returning
       if (email) {
-        generatePdf(generateHoustonPdfHtml(propertyData)).then(pdfBuffer => {
-          sendHoustonEmail(email, acct, pdfBuffer, propertyData, token).catch(console.error);
-        }).catch(console.error);
+        try {
+          const pdfBuffer = await generatePdf(generateHoustonPdfHtml(propertyData));
+          await sendHoustonEmail(email, acct, pdfBuffer, propertyData, token);
+        } catch (emailErr) {
+          console.error("Email send error:", emailErr);
+          // Don't fail the response — email is best-effort
+        }
       }
       return NextResponse.json({ success: true, property: propertyData, token, email: email || null, jurisdiction: "houston" });
     } catch (error) {
