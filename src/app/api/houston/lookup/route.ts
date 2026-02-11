@@ -44,6 +44,41 @@ export async function GET(request: NextRequest) {
       ? Math.round((prop.potential_reduction / prop.current_assessment) * 100)
       : 0;
 
+    // Fetch neighborhood stats — how many over-assessed in same neighborhood
+    let neighborhoodStats = null;
+    try {
+      const nbhd = prop.neighborhood_code;
+      if (nbhd) {
+        const { resources: nbhdProps } = await container.items.query({
+          query: `SELECT c.current_assessment, c.fair_assessment, c.potential_reduction, c.sqft FROM c WHERE c.neighborhood_code = @nbhd`,
+          parameters: [{ name: "@nbhd", value: nbhd }],
+        }, { partitionKey: nbhd }).fetchAll();
+
+        if (nbhdProps.length > 0) {
+          const overAssessed = nbhdProps.filter((p: any) => p.potential_reduction > 0);
+          const allPerSqft = nbhdProps
+            .filter((p: any) => p.sqft > 0)
+            .map((p: any) => p.current_assessment / p.sqft);
+          const medianPerSqft = allPerSqft.length > 0
+            ? allPerSqft.sort((a: number, b: number) => a - b)[Math.floor(allPerSqft.length / 2)]
+            : 0;
+          const avgReduction = overAssessed.length > 0
+            ? Math.round(overAssessed.reduce((sum: number, p: any) => sum + p.potential_reduction, 0) / overAssessed.length)
+            : 0;
+
+          neighborhoodStats = {
+            totalProperties: nbhdProps.length,
+            overAssessedCount: overAssessed.length,
+            overAssessedPct: Math.round((overAssessed.length / nbhdProps.length) * 100),
+            medianPerSqft: Math.round(medianPerSqft * 100) / 100,
+            avgReduction,
+          };
+        }
+      }
+    } catch (err) {
+      console.error("[houston/lookup] Neighborhood stats error:", err);
+    }
+
     // Format comps
     const comps = (prop.comps || []).map((c: any) => ({
       acct: c.acct,
@@ -74,6 +109,7 @@ export async function GET(request: NextRequest) {
         overAssessedPct,
         comps,
         status: prop.potential_reduction > 0 ? "over" : "fair",
+        neighborhoodStats,
       },
     });
   } catch (error) {
