@@ -403,7 +403,7 @@ function generatePdfHtml(data: PropertyData): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Property Tax Appeal — Lack of Uniformity — ${data.address}</title>
+  <title>Board of Review Appeal — Lack of Uniformity — ${data.address}</title>
   <style>
     @page { size: Letter; margin: 0.6in 0.65in; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -505,11 +505,12 @@ function generatePdfHtml(data: PropertyData): string {
     <div class="header">
       <div class="header-left">
         <div class="logo">overtaxed</div>
-        <div class="subtitle">Property Tax Appeal Evidence Package</div>
+        <div class="subtitle">Board of Review Appeal Evidence Package</div>
       </div>
       <div class="header-right">
         <div class="date">${today}</div>
         <div>Cook County, Illinois</div>
+        <div>Filing Body: Board of Review</div>
         <div>Appeal Type: Lack of Uniformity</div>
       </div>
     </div>
@@ -665,45 +666,126 @@ function generatePdfHtml(data: PropertyData): string {
     </div>
     ` : ""}
     
-    <!-- How to File -->
-    <div class="section">
-      <div class="section-title">Filing Instructions</div>
+    <!-- BOARD OF REVIEW FILING INSTRUCTIONS -->
+    <div class="section page-break">
+      <div class="section-title">📋 How to File — Board of Review (Step by Step)</div>
+      <p style="font-size: 10px; color: #555; margin-bottom: 14px; line-height: 1.6;">The Cook County Board of Review is your best opportunity for a property tax reduction. You can file as a guest — <strong>no account required</strong>. Follow these steps exactly:</p>
+      
       <div class="steps">
         <div class="step">
           <div class="step-number">1</div>
           <div class="step-content">
-            <div class="step-title">Visit the Cook County Assessor's Appeals Portal</div>
-            <div class="step-desc">Go to <span class="step-link">cookcountyassessor.com/appeals</span> to file online, or download the complaint form from the Board of Review at <span class="step-link">cookcountyboardofreview.com</span>.</div>
+            <div class="step-title">Check if Your Township is Open</div>
+            <div class="step-desc">Go to <span class="step-link">cookcountyboardofreview.com</span> and check the homepage. Your township (<strong>${data.township}</strong>) must show as "OPEN" to file. Each township opens for approximately 30 days after the Assessor closes.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-number">2</div>
           <div class="step-content">
-            <div class="step-title">Select "Lack of Uniformity" as Your Appeal Basis</div>
-            <div class="step-desc">Enter PIN ${formattedPin}. Select "Lack of Uniformity" — this argues that comparable properties in your neighborhood are assessed at lower values per square foot than your property.</div>
+            <div class="step-title">Click "Submit Appeal as Guest"</div>
+            <div class="step-desc">On the Board of Review homepage, click <strong>"Submit Appeal as Guest"</strong> in the top menu. You do NOT need to create an account. Read the Terms of Use and click <strong>"I Agree"</strong>.</div>
           </div>
         </div>
         <div class="step">
           <div class="step-number">3</div>
           <div class="step-content">
-            <div class="step-title">Enter Comparable Property PINs</div>
-            <div class="step-desc">Submit the ${data.comps.length} comparable PINs listed above. The Board requires 3–5 comparables; submitting up to 9 strengthens your case. Attach this document as supporting evidence.</div>
+            <div class="step-title">Fill Out Page 1</div>
+            <div class="step-desc">
+              • <strong>Type of Appeal:</strong> Select <strong>"Property Over-Assessed"</strong><br/>
+              • <strong>Property Index Number:</strong> Enter <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${data.pin}</strong> (the system will auto-format it with dashes)<br/>
+              • <strong>"Are you a registered Board of Review Attorney?"</strong> → Click <strong>"No"</strong><br/>
+              • Complete the reCAPTCHA ("I'm not a robot")<br/>
+              • Click <strong>"Next"</strong>
+            </div>
           </div>
         </div>
         <div class="step">
           <div class="step-number">4</div>
           <div class="step-content">
-            <div class="step-title">Submit Photos</div>
-            <div class="step-desc">Include a photo of the front of your property (required by Board of Review Rule #17). Photos of comparable properties are helpful but not required.</div>
+            <div class="step-title">Fill Out Page 2 — Your Information</div>
+            <div class="step-desc">
+              • <strong>Associated PINs:</strong> Select "No" unless you have multiple parcels for one property<br/>
+              • Enter your <strong>name, address, phone, and email</strong> (this is YOUR info, not the property's)<br/>
+              • <strong>Appellant Type:</strong> Select "Property Owner"<br/>
+              • <strong>Request a Hearing?</strong> Select <strong>"No"</strong> — hearings are only for unique situations. Your written evidence is stronger.<br/>
+              • <strong>Recent Purchase:</strong> If you bought in the last 3 years, select the year. Otherwise select "Other"<br/>
+              • <strong>Notes:</strong> Copy and paste the text from the "Notes for Filing" section below. This is where you make your case.<br/>
+              • Click <strong>"Next"</strong>
+            </div>
           </div>
         </div>
         <div class="step">
           <div class="step-number">5</div>
           <div class="step-content">
-            <div class="step-title">Await Decision</div>
-            <div class="step-desc">The Assessor's Office typically responds within 60–90 days. The Board of Review responds within 90 days after the appeal period closes. If approved, your reduced assessment appears on your next tax bill.</div>
+            <div class="step-title">Page 3 — Review & Submit</div>
+            <div class="step-desc">
+              • Review all your information<br/>
+              • <strong>Check the confirmation box</strong><br/>
+              • <strong>Type your initials</strong> where prompted (this is your electronic signature)<br/>
+              • Click <strong>"Submit"</strong>
+            </div>
           </div>
         </div>
+        <div class="step">
+          <div class="step-number">6</div>
+          <div class="step-content">
+            <div class="step-title">Page 4 — Upload Evidence</div>
+            <div class="step-desc">
+              • When asked "Do you plan on submitting Evidence?" → Click <strong>"Yes"</strong><br/>
+              • Click <strong>"Browse"</strong> and select <strong>this PDF file</strong><br/>
+              • For Document Type, select <strong>"BOR Appraisal"</strong> from the dropdown<br/>
+              • Click <strong>"Submit"</strong><br/>
+              • <strong>IMPORTANT:</strong> Also upload a <strong>photo of the front of your property</strong> (required by Board Rule #17). Use your phone to take a clear photo showing the full front of the building.
+            </div>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">7</div>
+          <div class="step-content">
+            <div class="step-title">Done! Save Your Complaint Number</div>
+            <div class="step-desc">After submitting, you'll receive a <strong>BOR Complaint Number</strong>. Save this — it's your proof the appeal was filed. The Board typically responds within 90 days after the filing period closes for your township.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- NOTES FOR FILING (copy-paste ready) -->
+    <div class="section">
+      <div class="section-title">📝 Notes for Filing — Copy & Paste Into Board of Review Form</div>
+      <p style="font-size: 10px; color: #555; margin-bottom: 10px;">Copy the text below and paste it into the "Notes" field on Page 2 of the Board of Review appeal form:</p>
+      <div style="background: #f8f9fa; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 16px 18px; font-size: 10px; line-height: 1.7; color: #333; font-family: 'Georgia', serif;">
+        <p style="margin-bottom: 8px;">I am filing this appeal on the grounds of LACK OF UNIFORMITY.</p>
+        <p style="margin-bottom: 8px;">My property at ${data.address} (PIN: ${formattedPin}), Class ${data.classCode}, is currently assessed at $${data.currentAssessment.toLocaleString()} total ($${data.perSqft.toFixed(2)}/sq ft of building area).</p>
+        <p style="margin-bottom: 8px;">An analysis of ${data.comps.length} comparable properties in Assessment Neighborhood ${data.neighborhood} shows a median assessment of $${data.compMedianPerSqft.toFixed(2)}/sq ft — my property is assessed ${data.overAssessedPct}% above comparable properties.</p>
+        <p style="margin-bottom: 8px;">Comparable PINs (all Class ${data.classCode}, Neighborhood ${data.neighborhood}):</p>
+        <p style="margin-bottom: 8px; font-family: monospace; font-size: 9px;">${data.comps.map(c => c.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5")).join(", ")}</p>
+        <p style="margin-bottom: 0;">I request a reduction to $${data.fairAssessment.toLocaleString()} based on comparable property assessments. Full evidence package with property details, assessment history, and comparable analysis is uploaded as supporting documentation.</p>
+      </div>
+    </div>
+    
+    <!-- PHOTO REMINDER -->
+    <div class="section">
+      <div class="section-title">📸 Required: Photo of Your Property</div>
+      <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 14px 18px; font-size: 11px; line-height: 1.6;">
+        <p style="margin-bottom: 8px;"><strong>Board of Review Rule #17 requires a photo of the front of your property.</strong></p>
+        <p style="margin-bottom: 8px;">Take a clear photo of the <strong>full front</strong> of your building with your phone. Make sure the photo shows:</p>
+        <ul style="margin: 0 0 8px 16px; padding: 0;">
+          <li>The entire front of the building</li>
+          <li>The building's exterior material (brick, frame, etc.)</li>
+          <li>General condition of the property</li>
+        </ul>
+        <p style="margin: 0;">Upload this photo as a separate file on Page 4 of the Board of Review form. Photos of comparable properties are helpful but not required.</p>
+      </div>
+    </div>
+    
+    <!-- IMPORTANT NOTES -->
+    <div class="section">
+      <div class="section-title">⚠️ Important Information</div>
+      <div style="font-size: 10px; line-height: 1.7; color: #555;">
+        <p style="margin-bottom: 8px;"><strong>LLC / Trust / Corporation-Owned Properties:</strong> If your property is owned by an LLC, trust, or corporation, the Board of Review <strong>requires an attorney</strong> to file the appeal on your behalf. Individual homeowners can file themselves.</p>
+        <p style="margin-bottom: 8px;"><strong>Filing Deadline:</strong> Each township has a specific closing date. Check <span class="step-link">cookcountyboardofreview.com</span> for your township's deadline. You must file before the closing date.</p>
+        <p style="margin-bottom: 8px;"><strong>Two Chances:</strong> You can appeal with both the Assessor's Office (first level) AND the Board of Review (second level). This is called "the two-bite strategy" — professional tax appeal firms file with both to maximize chances of a reduction.</p>
+        <p style="margin-bottom: 0;"><strong>No Cost to File:</strong> Filing an appeal with the Board of Review is completely free. You do not need a lawyer unless your property is owned by an LLC or corporation.</p>
       </div>
     </div>
     
@@ -770,11 +852,11 @@ async function sendEmail(
   await getResend().emails.send({
     from: "Overtaxed <hello@getovertaxed.com>",
     to: email,
-    subject: `Property Tax Appeal Package — ${data.address} — PIN ${formattedPin}`,
+    subject: `Board of Review Appeal Package — ${data.address} — PIN ${formattedPin}`,
     html: `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
-        <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Your appeal package is ready</h1>
-        <p style="color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to appeal your property tax assessment for <strong>${data.address}</strong>.</p>
+        <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Your Board of Review appeal package is ready</h1>
+        <p style="color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to file your property tax appeal for <strong>${data.address}</strong> with the Cook County Board of Review.</p>
         
         <div style="background: #f0fdf4; border: 2px solid #16a34a; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
           <p style="margin: 0 0 4px 0; font-size: 14px; color: #166534;"><strong>Estimated Annual Savings: $${data.savings.toLocaleString()}</strong></p>
@@ -786,8 +868,13 @@ async function sendEmail(
           <li>${data.comps.length} comparable properties with full assessment details</li>
           <li>Written uniformity argument citing the Illinois Constitution</li>
           <li>Assessment history and breakdown</li>
-          <li>Step-by-step filing instructions</li>
+          <li>Step-by-step Board of Review filing instructions</li>
+          <li>Pre-written notes you can copy & paste into the filing form</li>
         </ul>
+        
+        <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;">
+          <p style="margin: 0; font-size: 13px; color: #92400e;"><strong>📸 Don't forget:</strong> The Board of Review requires a photo of the front of your property (Rule #17). Take a clear photo with your phone before you file.</p>
+        </div>
         
         <p style="margin-bottom: 16px; font-size: 14px;">Your appeal package PDF is attached to this email. You can also access it online:</p>
         <a href="${accessLink}" style="display: inline-block; background: #1a1a2e; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">View Appeal Package</a>
