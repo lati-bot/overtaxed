@@ -4,12 +4,16 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 interface AutocompleteResult {
-  pin: string;
+  pin?: string;
+  acct?: string;
   address: string;
   city: string;
-  zip: string;
-  township: string;
-  display: string;
+  zip?: string;
+  state?: string;
+  township?: string;
+  neighborhood?: string;
+  display?: string;
+  jurisdiction: "cook_county_il" | "harris_county_tx";
 }
 
 export default function Home() {
@@ -18,6 +22,7 @@ export default function Home() {
   const [suggestions, setSuggestions] = useState<AutocompleteResult[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedPin, setSelectedPin] = useState<string | null>(null);
+  const [selectedJurisdiction, setSelectedJurisdiction] = useState<string | null>(null);
   const [theme, setTheme] = useState<"dark" | "light">("light");
   const [mounted, setMounted] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -43,9 +48,26 @@ export default function Home() {
     }
     const timer = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/autocomplete?q=${encodeURIComponent(address)}`);
-        const data = await response.json();
-        setSuggestions(data.results || []);
+        // Search both Cook County and Houston in parallel
+        const [cookRes, houstonRes] = await Promise.all([
+          fetch(`/api/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/houston/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
+        ]);
+        
+        const cookResults = (cookRes.results || []).map((r: any) => ({
+          ...r,
+          jurisdiction: "cook_county_il" as const,
+          display: r.display || r.address,
+        }));
+        
+        const houstonResults = (houstonRes.results || []).map((r: any) => ({
+          ...r,
+          jurisdiction: "harris_county_tx" as const,
+          display: r.address,
+        }));
+        
+        const combined = [...cookResults, ...houstonResults].slice(0, 8);
+        setSuggestions(combined);
         setShowSuggestions(true);
       } catch {
         setSuggestions([]);
@@ -70,8 +92,9 @@ export default function Home() {
   }, []);
 
   const handleSelectSuggestion = (suggestion: AutocompleteResult) => {
-    setAddress(suggestion.display);
-    setSelectedPin(suggestion.pin);
+    setAddress(suggestion.display || suggestion.address);
+    setSelectedPin(suggestion.pin || suggestion.acct || null);
+    setSelectedJurisdiction(suggestion.jurisdiction);
     setSuggestions([]);
     setShowSuggestions(false);
   };
@@ -79,13 +102,16 @@ export default function Home() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setAddress(e.target.value);
     setSelectedPin(null);
+    setSelectedJurisdiction(null);
   };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!address.trim()) return;
     setLoading(true);
-    if (selectedPin) {
+    if (selectedPin && selectedJurisdiction === "harris_county_tx") {
+      router.push(`/results?acct=${selectedPin}&jurisdiction=houston`);
+    } else if (selectedPin) {
       router.push(`/results?pin=${selectedPin}`);
     } else {
       router.push(`/results?address=${encodeURIComponent(address.trim())}`);
@@ -163,9 +189,7 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
             </span>
-            <span>Serving Cook County, IL</span>
-            <span className={isDark ? "text-gray-500" : "text-purple-400"}>•</span>
-            <span className={isDark ? "text-gray-400" : "text-purple-500/70"}>More markets coming soon</span>
+            <span>Serving Cook County, IL & Houston, TX</span>
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.1]">
@@ -207,16 +231,25 @@ export default function Home() {
                   >
                     {suggestions.map((suggestion, index) => (
                       <button
-                        key={suggestion.pin}
+                        key={suggestion.pin || suggestion.acct || index}
                         type="button"
                         className={`w-full px-5 py-4 text-left transition-colors ${
                           isDark ? "hover:bg-white/5" : "hover:bg-gray-50"
                         } ${index !== suggestions.length - 1 ? `border-b ${isDark ? "border-white/5" : "border-gray-100"}` : ""}`}
                         onClick={() => handleSelectSuggestion(suggestion)}
                       >
-                        <div className="font-medium">{suggestion.address}</div>
+                        <div className="flex items-center justify-between">
+                          <div className="font-medium">{suggestion.address}</div>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            suggestion.jurisdiction === "harris_county_tx"
+                              ? "bg-blue-100 text-blue-700"
+                              : "bg-purple-100 text-purple-700"
+                          }`}>
+                            {suggestion.jurisdiction === "harris_county_tx" ? "Houston, TX" : "Cook County, IL"}
+                          </span>
+                        </div>
                         <div className={`text-sm mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                          {suggestion.city}, IL {suggestion.zip.split('-')[0]}
+                          {suggestion.city}, {suggestion.jurisdiction === "harris_county_tx" ? "TX" : `IL ${(suggestion.zip || "").split('-')[0]}`}
                         </div>
                       </button>
                     ))}
@@ -268,7 +301,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
             {[
-              { num: 1, title: "Enter your address", desc: "We pull your property data from Cook County's public records automatically." },
+              { num: 1, title: "Enter your address", desc: "We pull your property data from public records automatically. Works for Cook County, IL and Houston, TX." },
               { num: 2, title: "We find your comps", desc: "Our system identifies similar properties that sold for less or are assessed lower than yours." },
               { num: 3, title: "File your appeal", desc: "Download your complete appeal package and file it yourself — we show you exactly how." },
             ].map((step) => (
@@ -344,9 +377,9 @@ export default function Home() {
             {[
               { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves (called \"pro se\") at both the Assessor's Office and Board of Review. We give you everything you need." },
               { q: "What if my appeal doesn't work?", a: "Appeals have a high success rate when you have good comparable properties. If your assessment isn't reduced, you've lost nothing but the filing time — there's no penalty for appealing." },
-              { q: "When can I file an appeal?", a: "Cook County opens appeals by township on a rotating schedule. We'll tell you if your township is currently open or when it will be." },
+              { q: "When can I file an appeal?", a: "In Cook County, appeals open by township on a rotating schedule. In Houston/Harris County, you can protest after receiving your appraisal notice (usually late March), with a deadline of May 15. We'll tell you when your filing window is open." },
               { q: "Why is this so much cheaper than attorneys?", a: "Attorneys charge a percentage of savings because they can. We use technology to automate the research that used to take hours. You get the same comparable property analysis at a fraction of the cost." },
-              { q: "What properties do you support?", a: "Currently we support single-family homes and small multi-family buildings (2-4 units) in Cook County, IL. Condos and commercial properties require different approaches." },
+              { q: "What properties do you support?", a: "We support single-family homes and small multi-family buildings in Cook County, IL and Houston/Harris County, TX. More markets coming soon." },
             ].map((item, i) => (
               <div key={i}>
                 <h3 className="text-lg font-semibold mb-2">{item.q}</h3>

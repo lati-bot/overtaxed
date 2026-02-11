@@ -63,6 +63,9 @@ export default function ResultsContent() {
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
+  const acct = searchParams.get("acct");
+  const jurisdiction = searchParams.get("jurisdiction");
+  const isHouston = jurisdiction === "houston" || !!acct;
 
   useEffect(() => {
     setMounted(true);
@@ -85,29 +88,80 @@ export default function ResultsContent() {
     setMultipleResults(null);
 
     try {
-      const params = new URLSearchParams();
-      if (searchPin) {
-        params.set("pin", searchPin);
-      } else if (pin) {
-        params.set("pin", pin);
-      } else if (address) {
-        params.set("address", address);
-      }
-
-      const response = await fetch(`/api/lookup?${params}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Something went wrong");
-        return;
-      }
-
-      if (data.multiple) {
-        setMultipleResults(data.results);
+      if (isHouston) {
+        // Houston flow — use Houston lookup API
+        const houstonAcct = searchPin || acct;
+        if (!houstonAcct) {
+          setError("Missing account number");
+          return;
+        }
+        const response = await fetch(`/api/houston/lookup?acct=${houstonAcct}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Property not found");
+          return;
+        }
+        
+        const hp = data.property;
+        // Map Houston data to our PropertyData shape
+        setProperty({
+          pin: hp.acct,
+          address: hp.address,
+          city: hp.city || "HOUSTON",
+          zip: "",
+          township: "",
+          neighborhood: hp.neighborhoodCode || "",
+          characteristics: {
+            class: "",
+            buildingSqFt: hp.sqft,
+            landSqFt: null,
+            yearBuilt: hp.yearBuilt || null,
+            bedrooms: null,
+            fullBaths: null,
+            halfBaths: null,
+          },
+          assessment: {
+            year: "2025",
+            mailedTotal: hp.currentAssessment,
+            mailedBuilding: 0,
+            mailedLand: 0,
+            certifiedTotal: null,
+            boardTotal: null,
+          },
+          analysis: hp.status === "over" ? {
+            fairAssessment: hp.fairAssessment,
+            potentialSavings: hp.estimatedSavings,
+            compCount: (hp.comps || []).length,
+          } : undefined,
+        });
+        setAnalysisAvailable(true);
       } else {
-        setProperty(data.property);
-        setAnalysisAvailable(data.analysisAvailable !== false);
-        setUploadInProgress(data.uploadInProgress === true);
+        // Cook County flow — existing logic
+        const params = new URLSearchParams();
+        if (searchPin) {
+          params.set("pin", searchPin);
+        } else if (pin) {
+          params.set("pin", pin);
+        } else if (address) {
+          params.set("address", address);
+        }
+
+        const response = await fetch(`/api/lookup?${params}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          setError(data.error || "Something went wrong");
+          return;
+        }
+
+        if (data.multiple) {
+          setMultipleResults(data.results);
+        } else {
+          setProperty(data.property);
+          setAnalysisAvailable(data.analysisAvailable !== false);
+          setUploadInProgress(data.uploadInProgress === true);
+        }
       }
     } catch {
       setError("Failed to fetch property data. Please try again.");
@@ -122,7 +176,7 @@ export default function ResultsContent() {
   };
 
   useEffect(() => {
-    if (!address && !pin) {
+    if (!address && !pin && !acct) {
       router.push("/");
       return;
     }
@@ -301,13 +355,15 @@ export default function ResultsContent() {
                            property.assessment?.certifiedTotal || 
                            property.assessment?.mailedTotal || 0;
   
-  const estimatedMarketValue = currentAssessment * 10;
+  const estimatedMarketValue = isHouston ? currentAssessment : currentAssessment * 10;
   
   const hasAnalysis = analysisAvailable && property.analysis;
   const fairAssessment = hasAnalysis ? property.analysis!.fairAssessment : currentAssessment;
   const reduction = currentAssessment - fairAssessment;
-  // Calculate savings dynamically: reduction × 20% tax rate (Cook County average)
-  const estimatedSavings = reduction > 0 ? Math.round(reduction * 0.20) : 0;
+  // Houston uses ~2.2% tax rate; Cook County uses assessment reduction × 20%
+  const estimatedSavings = reduction > 0 
+    ? (isHouston ? Math.round(reduction * 0.022) : Math.round(reduction * 0.20))
+    : 0;
   const compCount = hasAnalysis ? property.analysis!.compCount : 0;
 
   return (
@@ -339,10 +395,13 @@ export default function ResultsContent() {
             <div>
               <h1 className="text-xl sm:text-2xl font-semibold">{property.address}</h1>
               <p className={textSecondary}>
-                {property.city}, IL {property.zip}
+                {property.city}, {isHouston ? "TX" : `IL ${property.zip}`}
               </p>
               <p className={`text-sm ${textMuted} mt-1`}>
-                PIN: {property.pin} • {property.township} Township
+                {isHouston 
+                  ? `Account: ${property.pin} • Harris County`
+                  : `PIN: ${property.pin} • ${property.township} Township`
+                }
               </p>
             </div>
             <div className="md:text-right">
@@ -351,7 +410,7 @@ export default function ResultsContent() {
                 ${currentAssessment.toLocaleString()}
               </div>
               <div className={`text-sm ${textMuted}`}>
-                ~${estimatedMarketValue.toLocaleString()} market value
+                {isHouston ? "Appraised Value" : `~$${estimatedMarketValue.toLocaleString()} market value`}
               </div>
             </div>
           </div>
@@ -547,7 +606,7 @@ export default function ResultsContent() {
               Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
             </p>
             <a 
-              href={`https://buy.stripe.com/test_7sY28t78c4Rj1ZyaVm57W00?client_reference_id=${property.pin}`} 
+              href={`https://buy.stripe.com/test_7sY28t78c4Rj1ZyaVm57W00?client_reference_id=${isHouston ? `houston:${property.pin}` : property.pin}`} 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-block mt-5 sm:mt-6 w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors bg-[#6b4fbb] text-white hover:bg-[#5a3fa8]"
@@ -562,8 +621,10 @@ export default function ResultsContent() {
 
         {/* Disclaimer */}
         <p className={`mt-6 sm:mt-8 text-xs ${textMuted} text-center`}>
-          Assessment data from Cook County Assessor&apos;s Office. Savings estimates based on 
-          comparable properties and may vary. Past results do not guarantee future outcomes.
+          {isHouston 
+            ? "Assessment data from Harris County Appraisal District (HCAD). Savings estimates based on comparable properties and may vary."
+            : "Assessment data from Cook County Assessor\u2019s Office. Savings estimates based on comparable properties and may vary."
+          } Past results do not guarantee future outcomes.
         </p>
       </div>
     </div>
