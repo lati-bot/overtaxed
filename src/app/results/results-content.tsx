@@ -380,7 +380,7 @@ export default function ResultsContent() {
   // Tax bill calculations
   const estimatedTaxBill = isHouston 
     ? Math.round(currentAssessment * 0.022)
-    : Math.round(currentAssessment * 2.0); // Cook County: assessed × ~20 (equalized rate)
+    : Math.round(currentAssessment * 0.20); // Cook County: ~2% of market value ≈ assessed × 0.20
   const estimatedTaxBillAfter = estimatedTaxBill - estimatedSavings;
   const taxBillReductionPct = estimatedTaxBill > 0 ? Math.round((estimatedSavings / estimatedTaxBill) * 100) : 0;
 
