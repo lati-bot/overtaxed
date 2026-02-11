@@ -346,10 +346,10 @@ export default function Home() {
             <div className={`border-t pt-8 ${isDark ? "border-white/10" : "border-gray-200"}`}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  "Complete appeal package with 5+ comparable properties",
-                  "Pre-filled appeal forms ready to submit",
+                  "Complete package with 5+ comparable properties",
+                  "Professional evidence brief ready to submit",
                   "Step-by-step filing instructions",
-                  "Delivered to your email in 48 hours",
+                  "Delivered to your email instantly",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
                     <svg className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
