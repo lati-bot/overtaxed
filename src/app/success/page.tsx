@@ -57,13 +57,18 @@ function SuccessPage() {
           : `/api/generate-appeal?token=${accessToken}`;
         
         const res = await fetch(url);
-        const data = await res.json();
-
-        if (res.ok) {
-          setProperty(data.property);
-          setToken(data.token);
-          setEmail(data.email || null);
-          return;
+        let cookError = "Unknown error";
+        try {
+          const data = await res.json();
+          if (res.ok) {
+            setProperty(data.property);
+            setToken(data.token);
+            setEmail(data.email || null);
+            return;
+          }
+          cookError = data.error || "Cook County lookup failed";
+        } catch {
+          cookError = "Cook County lookup failed";
         }
 
         // If Cook County failed, try Houston endpoint
@@ -72,20 +77,22 @@ function SuccessPage() {
           : `/api/houston/generate-appeal?token=${accessToken}`;
         
         const houstonRes = await fetch(houstonUrl);
-        const houstonData = await houstonRes.json();
-        
-        if (houstonRes.ok) {
-          setProperty(houstonData.property);
-          setToken(houstonData.token);
-          setEmail(houstonData.email || null);
-          setIsHouston(true);
-          return;
+        try {
+          const houstonData = await houstonRes.json();
+          if (houstonRes.ok) {
+            setProperty(houstonData.property);
+            setToken(houstonData.token);
+            setEmail(houstonData.email || null);
+            setIsHouston(true);
+            return;
+          }
+          // Both failed — show Houston error (more likely to be relevant)
+          setError(houstonData.error || cookError || "Failed to load appeal package");
+        } catch {
+          setError(cookError || "Failed to load appeal package");
         }
-
-        // Both failed
-        setError(data.error || houstonData.error || "Failed to load appeal package");
       } catch (err) {
-        setError("Failed to load appeal package");
+        setError("Failed to load appeal package. Please try again.");
       } finally {
         setLoading(false);
       }
