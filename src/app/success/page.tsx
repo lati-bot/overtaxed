@@ -255,7 +255,7 @@ function SuccessPage() {
               <div className="text-lg font-semibold text-green-600">${property.fairAssessment.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">Over-Assessed By</div>
+              <div className="text-sm text-gray-500">{isHouston ? "Over-Appraised By" : "Over-Assessed By"}</div>
               <div className="text-lg font-semibold text-amber-600">{overAssessedPct}%</div>
             </div>
           </div>
@@ -308,7 +308,7 @@ function SuccessPage() {
         {/* Comparable Properties Preview */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Comparable Properties</h3>
-          <p className="text-gray-600 mb-4">These similar properties are assessed at lower values than yours:</p>
+          <p className="text-gray-600 mb-4">These similar properties are {isHouston ? "appraised" : "assessed"} at lower values than yours:</p>
           
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
