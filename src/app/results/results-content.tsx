@@ -399,175 +399,214 @@ export default function ResultsContent() {
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-        {/* Property Header */}
-        <div className={`rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
-          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-            <div>
-              <h1 className="text-xl sm:text-2xl font-semibold">{property.address}</h1>
-              <p className={textSecondary}>
-                {property.city}, {isHouston ? "TX" : `IL ${property.zip}`}
-              </p>
-              <p className={`text-sm ${textMuted} mt-1`}>
-                {isHouston 
-                  ? `Account: ${property.pin} • Harris County`
-                  : `PIN: ${property.pin} • ${property.township} Township`
-                }
-              </p>
-            </div>
-            <div className="md:text-right">
-              <div className={`text-sm ${textSecondary}`}>{isHouston ? "Appraised Value" : "Current Assessment"}</div>
-              <div className="text-2xl sm:text-3xl font-semibold">
-                ${currentAssessment.toLocaleString()}
-              </div>
-              {!isHouston && (
-                <div className={`text-sm ${textMuted}`}>
-                  ~${estimatedMarketValue.toLocaleString()} market value
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Analysis Available - Over Assessed */}
-        {hasAnalysis && estimatedSavings > 0 && (
-          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-100"}`}>
-            <div className={`flex items-center gap-2 font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              {isHouston ? "You\u2019re Over-Appraised" : "You\u2019re Over-Assessed"}
-            </div>
-            <div className="mt-5 sm:mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Property Header + Analysis + CTA — unified hero section */}
+        <div className={`rounded-2xl border ${borderColor} ${bgCard} overflow-hidden ${isDark ? "" : "shadow-sm"}`}>
+          {/* Property info bar */}
+          <div className="p-5 sm:p-6 md:p-8">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
               <div>
-                <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>{isHouston ? "Current Appraised" : "Current"}</div>
-                <div className={`text-lg sm:text-xl font-semibold ${textPrimary}`}>${currentAssessment.toLocaleString()}</div>
-              </div>
-              <div>
-                <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Fair Value</div>
-                <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${fairAssessment.toLocaleString()}</div>
-              </div>
-              <div>
-                <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Reduction</div>
-                <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
-                  ${(currentAssessment - fairAssessment).toLocaleString()}
-                </div>
-              </div>
-              <div>
-                <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Tax Savings</div>
-                <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${estimatedSavings.toLocaleString()}/yr</div>
-              </div>
-            </div>
-            <p className={`mt-4 text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>
-              Based on {compCount} comparable properties in your neighborhood.
-            </p>
-          </div>
-        )}
-
-        {/* Analysis Available - Fairly Assessed */}
-        {hasAnalysis && estimatedSavings === 0 && (
-          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${borderColor} ${bgCard} ${isDark ? "" : "shadow-sm"}`}>
-            <div className="text-center">
-              <div className="text-4xl mb-3">🎉</div>
-              <div className={`flex items-center justify-center gap-2 font-medium text-lg ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
-                Good news — you&apos;re {isHouston ? "fairly appraised" : "fairly assessed"}!
-              </div>
-              <p className={`mt-2 ${textSecondary}`}>
-                Based on comparable properties, your {isHouston ? "appraised value" : "assessment"} is in line with similar homes. No appeal needed!
-              </p>
-              {isHouston && (
-                <p className={`mt-3 text-sm ${textMuted}`}>
-                  Harris County reassesses annually — check back after you receive your 2026 appraisal notice (typically March/April).
+                <h1 className="text-xl sm:text-2xl font-semibold">{property.address}</h1>
+                <p className={textSecondary}>
+                  {property.city}, {isHouston ? "TX" : `IL ${property.zip}`}
                 </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Analysis Not Available Yet */}
-        {!analysisAvailable && (
-          <div className={`mt-4 sm:mt-6 rounded-xl p-5 sm:p-6 md:p-8 border ${isDark ? "bg-purple-500/10 border-purple-500/20" : "bg-gradient-to-r from-purple-100/50 to-pink-100/50 border-purple-200/50"}`}>
-            <div className="text-center">
-              <div className="text-4xl mb-3">⏳</div>
-              <div className={`font-medium text-lg ${isDark ? "text-purple-300" : "text-purple-700"}`}>
-                {uploadInProgress 
-                  ? "We're still processing property data"
-                  : "Analysis not available for this property"
-                }
+                <p className={`text-sm ${textMuted} mt-1`}>
+                  {isHouston 
+                    ? `Account: ${property.pin} • Harris County`
+                    : `PIN: ${property.pin} • ${property.township} Township`
+                  }
+                </p>
               </div>
-              <p className={`mt-2 ${isDark ? "text-purple-300/70" : "text-purple-600/70"}`}>
-                {uploadInProgress
-                  ? "We're crunching numbers for all properties in your area. Your property should be ready within a few hours."
-                  : "This property type may not be supported, or we don't have enough comparable data."
-                }
-              </p>
-              {uploadInProgress && (
-                <>
-                  <div className="mt-4 flex gap-2 max-w-sm mx-auto">
-                    <input 
-                      type="email" 
-                      placeholder="your@email.com"
-                      className={`flex-1 h-11 px-4 rounded-lg text-sm ${isDark ? "bg-black/30 border-purple-500/30 text-white placeholder-purple-300/50" : "bg-white border-purple-200 text-black placeholder-gray-400"} border focus:outline-none focus:ring-2 focus:ring-purple-500/50`}
-                    />
-                    <button className="px-4 h-11 rounded-lg font-medium text-sm bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors">
-                      Notify Me
-                    </button>
+              <div className="md:text-right">
+                <div className={`text-sm ${textSecondary}`}>{isHouston ? "Appraised Value" : "Current Assessment"}</div>
+                <div className="text-2xl sm:text-3xl font-semibold">
+                  ${currentAssessment.toLocaleString()}
+                </div>
+                {!isHouston && (
+                  <div className={`text-sm ${textMuted}`}>
+                    ~${estimatedMarketValue.toLocaleString()} market value
                   </div>
-                  <p className={`mt-3 text-xs ${isDark ? "text-purple-300/50" : "text-purple-600/50"}`}>
-                    We&apos;ll email you when your analysis is ready.
-                  </p>
-                </>
-              )}
+                )}
+              </div>
             </div>
+            
+            {/* Property Details — inline with header */}
+            {property.characteristics && (
+              <div className={`mt-4 pt-4 border-t ${borderColor} grid grid-cols-2 md:grid-cols-4 gap-3`}>
+                {property.characteristics.buildingSqFt && (
+                  <div>
+                    <div className={`text-sm ${textMuted}`}>Sq Ft</div>
+                    <div className="font-semibold">{property.characteristics.buildingSqFt.toLocaleString()}</div>
+                  </div>
+                )}
+                {property.characteristics.bedrooms && (
+                  <div>
+                    <div className={`text-sm ${textMuted}`}>Beds</div>
+                    <div className="font-semibold">{property.characteristics.bedrooms}</div>
+                  </div>
+                )}
+                {property.characteristics.fullBaths && (
+                  <div>
+                    <div className={`text-sm ${textMuted}`}>Baths</div>
+                    <div className="font-semibold">
+                      {property.characteristics.fullBaths}
+                      {property.characteristics.halfBaths ? `.${property.characteristics.halfBaths}` : ""}
+                    </div>
+                  </div>
+                )}
+                {property.characteristics.yearBuilt && (
+                  <div>
+                    <div className={`text-sm ${textMuted}`}>Built</div>
+                    <div className="font-semibold">{property.characteristics.yearBuilt}</div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Property Details */}
-        {property.characteristics && (
-          <div className={`mt-4 sm:mt-6 rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
-            <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Property Details</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-              {property.characteristics.buildingSqFt && (
+          {/* Over-assessed hero + CTA */}
+          {hasAnalysis && estimatedSavings > 0 && (
+            <div className={`p-5 sm:p-6 md:p-8 ${isDark ? "bg-emerald-500/10 border-t border-emerald-500/20" : "bg-emerald-50 border-t border-emerald-100"}`}>
+              <div className={`flex items-center gap-2 font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {isHouston ? "You\u2019re Over-Appraised" : "You\u2019re Over-Assessed"}
+              </div>
+              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
                 <div>
-                  <div className="text-xl sm:text-2xl font-semibold">
-                    {property.characteristics.buildingSqFt.toLocaleString()}
-                  </div>
-                  <div className={`text-sm ${textSecondary}`}>Square Feet</div>
+                  <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>{isHouston ? "Current Appraised" : "Current"}</div>
+                  <div className={`text-lg sm:text-xl font-semibold ${textPrimary}`}>${currentAssessment.toLocaleString()}</div>
                 </div>
-              )}
-              {property.characteristics.bedrooms && (
                 <div>
-                  <div className="text-xl sm:text-2xl font-semibold">
-                    {property.characteristics.bedrooms}
-                  </div>
-                  <div className={`text-sm ${textSecondary}`}>Bedrooms</div>
+                  <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Fair Value</div>
+                  <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${fairAssessment.toLocaleString()}</div>
                 </div>
-              )}
-              {property.characteristics.fullBaths && (
                 <div>
-                  <div className="text-xl sm:text-2xl font-semibold">
-                    {property.characteristics.fullBaths}
-                    {property.characteristics.halfBaths ? `.${property.characteristics.halfBaths}` : ""}
+                  <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Reduction</div>
+                  <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+                    ${(currentAssessment - fairAssessment).toLocaleString()}
                   </div>
-                  <div className={`text-sm ${textSecondary}`}>Bathrooms</div>
                 </div>
-              )}
-              {property.characteristics.yearBuilt && (
                 <div>
-                  <div className="text-xl sm:text-2xl font-semibold">
-                    {property.characteristics.yearBuilt}
-                  </div>
-                  <div className={`text-sm ${textSecondary}`}>Year Built</div>
+                  <div className={`text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>Tax Savings</div>
+                  <div className={`text-lg sm:text-xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${estimatedSavings.toLocaleString()}/yr</div>
                 </div>
-              )}
+              </div>
+              <p className={`mt-3 text-sm ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>
+                Based on {compCount} comparable properties in your neighborhood.
+              </p>
+
+              {/* CTA — right inside the analysis section */}
+              <div className={`mt-5 pt-5 border-t ${isDark ? "border-emerald-500/20" : "border-emerald-200"}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <div className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+                      Get your complete {isHouston ? "protest" : "appeal"} package
+                    </div>
+                    <p className={`text-sm mt-0.5 ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>
+                      Comparable properties, {isHouston ? "hearing script" : "evidence brief"}, and step-by-step filing instructions.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("/api/create-checkout", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            propertyId: property.pin,
+                            jurisdiction: isHouston ? "houston" : "cook_county",
+                          }),
+                        });
+                        const data = await res.json();
+                        if (data.url) {
+                          window.location.href = data.url;
+                        } else {
+                          alert("Failed to start checkout. Please try again.");
+                        }
+                      } catch {
+                        alert("Failed to start checkout. Please try again.");
+                      }
+                    }}
+                    className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-medium transition-colors bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] cursor-pointer whitespace-nowrap flex-shrink-0"
+                  >
+                    {isHouston ? "Get Your Protest Package — $49" : "Get Your Appeal Package — $49"}
+                  </button>
+                </div>
+                <p className={`mt-2 text-xs ${isDark ? "text-emerald-300/50" : "text-emerald-600/60"}`}>
+                  One-time fee • Delivered instantly to your email
+                  {estimatedSavings >= 49 && (
+                    <span> • Pays for itself in {estimatedSavings >= 588 ? "1 month" : estimatedSavings >= 98 ? `${Math.ceil(49 / (estimatedSavings / 12))} months` : "under a year"}</span>
+                  )}
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+
+          {/* Fairly assessed */}
+          {hasAnalysis && estimatedSavings === 0 && (
+            <div className={`p-5 sm:p-6 md:p-8 ${isDark ? "border-t border-white/5" : "border-t border-black/5"}`}>
+              <div className="text-center">
+                <div className="text-4xl mb-3">🎉</div>
+                <div className={`flex items-center justify-center gap-2 font-medium text-lg ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+                  Good news — you&apos;re {isHouston ? "fairly appraised" : "fairly assessed"}!
+                </div>
+                <p className={`mt-2 ${textSecondary}`}>
+                  Based on comparable properties, your {isHouston ? "appraised value" : "assessment"} is in line with similar homes. No appeal needed!
+                </p>
+                {isHouston && (
+                  <p className={`mt-3 text-sm ${textMuted}`}>
+                    Harris County reassesses annually — check back after you receive your 2026 appraisal notice (typically March/April).
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Analysis Not Available Yet */}
+          {!analysisAvailable && (
+            <div className={`p-5 sm:p-6 md:p-8 ${isDark ? "border-t border-purple-500/20 bg-purple-500/10" : "border-t border-purple-200/50 bg-gradient-to-r from-purple-100/50 to-pink-100/50"}`}>
+              <div className="text-center">
+                <div className="text-4xl mb-3">⏳</div>
+                <div className={`font-medium text-lg ${isDark ? "text-purple-300" : "text-purple-700"}`}>
+                  {uploadInProgress 
+                    ? "We're still processing property data"
+                    : "Analysis not available for this property"
+                  }
+                </div>
+                <p className={`mt-2 ${isDark ? "text-purple-300/70" : "text-purple-600/70"}`}>
+                  {uploadInProgress
+                    ? "We're crunching numbers for all properties in your area. Your property should be ready within a few hours."
+                    : "This property type may not be supported, or we don't have enough comparable data."
+                  }
+                </p>
+                {uploadInProgress && (
+                  <>
+                    <div className="mt-4 flex gap-2 max-w-sm mx-auto">
+                      <input 
+                        type="email" 
+                        placeholder="your@email.com"
+                        className={`flex-1 h-11 px-4 rounded-lg text-sm ${isDark ? "bg-black/30 border-purple-500/30 text-white placeholder-purple-300/50" : "bg-white border-purple-200 text-black placeholder-gray-400"} border focus:outline-none focus:ring-2 focus:ring-purple-500/50`}
+                      />
+                      <button className="px-4 h-11 rounded-lg font-medium text-sm bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors">
+                        Notify Me
+                      </button>
+                    </div>
+                    <p className={`mt-3 text-xs ${isDark ? "text-purple-300/50" : "text-purple-600/50"}`}>
+                      We&apos;ll email you when your analysis is ready.
+                    </p>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Assessment History */}
         {property.assessmentHistory && property.assessmentHistory.length > 0 && (
-          <div className={`mt-4 sm:mt-6 rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
-            <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Assessment History</h2>
+          <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
+            <h2 className="text-base sm:text-lg font-semibold mb-4">Assessment History</h2>
             <div className="overflow-x-auto -mx-5 sm:-mx-6 md:-mx-8 px-5 sm:px-6 md:px-8">
               <table className="w-full text-sm">
                 <thead>
@@ -616,14 +655,14 @@ export default function ResultsContent() {
 
         {/* Neighborhood Stats (Houston) */}
         {isHouston && property.neighborhoodStats && (
-          <div className={`mt-4 sm:mt-6 rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
-            <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Your Neighborhood</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+          <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
+            <h2 className="text-base sm:text-lg font-semibold mb-4">Your Neighborhood</h2>
+            <div className="grid grid-cols-3 gap-4 sm:gap-6">
               <div>
                 <div className="text-xl sm:text-2xl font-semibold">
                   {property.neighborhoodStats.totalProperties.toLocaleString()}
                 </div>
-                <div className={`text-sm ${textSecondary}`}>Properties Analyzed</div>
+                <div className={`text-sm ${textSecondary}`}>Properties</div>
               </div>
               <div>
                 <div className={`text-xl sm:text-2xl font-semibold ${isDark ? "text-amber-400" : "text-amber-600"}`}>
@@ -640,54 +679,14 @@ export default function ResultsContent() {
                 </div>
               )}
             </div>
-            <p className={`mt-4 text-sm ${textMuted}`}>
+            <p className={`mt-3 text-sm ${textMuted}`}>
               Based on {property.neighborhoodStats.overAssessedCount.toLocaleString()} over-appraised properties in your neighborhood. Median appraisal: ${property.neighborhoodStats.medianPerSqft}/sqft.
             </p>
           </div>
         )}
 
-        {/* CTA - Over Assessed */}
-        {hasAnalysis && estimatedSavings > 0 && (
-          <div className={`mt-6 sm:mt-8 rounded-xl p-5 sm:p-6 md:p-8 text-center border ${isDark ? "bg-purple-500/10 border-purple-500/20" : "bg-gradient-to-r from-purple-100/50 to-pink-100/50 border-purple-200/50"}`}>
-            <h2 className={`text-lg sm:text-xl font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-              Save <span className={isDark ? "text-purple-400" : "text-purple-600"}>${estimatedSavings.toLocaleString()}/year</span> on your property taxes
-            </h2>
-            <p className={`mt-2 text-sm sm:text-base ${isDark ? "text-purple-300/70" : "text-purple-600/70"} max-w-lg mx-auto`}>
-              Get your complete {isHouston ? "protest" : "appeal"} package with comparable properties, {isHouston ? "hearing script" : "pre-filled forms"}, and step-by-step instructions.
-            </p>
-            <button 
-              onClick={async () => {
-                try {
-                  const res = await fetch("/api/create-checkout", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      propertyId: property.pin,
-                      jurisdiction: isHouston ? "houston" : "cook_county",
-                    }),
-                  });
-                  const data = await res.json();
-                  if (data.url) {
-                    window.location.href = data.url;
-                  } else {
-                    alert("Failed to start checkout. Please try again.");
-                  }
-                } catch {
-                  alert("Failed to start checkout. Please try again.");
-                }
-              }}
-              className="inline-block mt-5 sm:mt-6 w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] cursor-pointer"
-            >
-              {isHouston ? "Get Your Protest Package — $49" : "Get Your Appeal Package — $49"}
-            </button>
-            <p className={`mt-3 text-sm ${isDark ? "text-purple-300/50" : "text-purple-600/50"}`}>
-              One-time fee • Delivered in 48 hours
-            </p>
-          </div>
-        )}
-
         {/* Disclaimer */}
-        <p className={`mt-6 sm:mt-8 text-xs ${textMuted} text-center`}>
+        <p className={`mt-4 text-xs ${textMuted} text-center`}>
           {isHouston 
             ? "Appraisal data from Harris County Appraisal District (HCAD). Savings estimates based on comparable properties and may vary."
             : "Assessment data from Cook County Assessor\u2019s Office. Savings estimates based on comparable properties and may vary."
