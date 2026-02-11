@@ -534,16 +534,45 @@ export default function ResultsContent() {
                 }
               </p>
 
+              {/* Deadline urgency banner */}
+              <div className={`mt-5 rounded-xl p-3.5 flex items-center gap-3 ${isDark ? "bg-amber-500/10 border border-amber-500/20" : "bg-amber-50 border border-amber-200"}`}>
+                <span className="text-lg flex-shrink-0">⏰</span>
+                <div>
+                  <span className={`text-sm font-medium ${isDark ? "text-amber-300" : "text-amber-800"}`}>
+                    {isHouston 
+                      ? "Houston protest deadline: May 15, 2026" 
+                      : "Filing deadlines vary by township — check yours before it closes"
+                    }
+                  </span>
+                  {isHouston && (
+                    <span className={`text-sm ${isDark ? "text-amber-300/60" : "text-amber-700/60"}`}>
+                      {" "}• File early for the best chance at an informal settlement
+                    </span>
+                  )}
+                </div>
+              </div>
+
               {/* CTA */}
               <div className={`mt-5 pt-5 border-t ${isDark ? "border-emerald-500/20" : "border-emerald-200"}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <div className={`font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
-                      Get your complete {isHouston ? "protest" : "appeal"} package
+                    <div className={`font-semibold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>
+                      Lower Your Tax Bill — $49
                     </div>
-                    <p className={`text-sm mt-0.5 ${isDark ? "text-emerald-300/70" : "text-emerald-600/70"}`}>
-                      Comparable properties, {isHouston ? "hearing script" : "evidence brief"}, and step-by-step filing instructions.
-                    </p>
+                    <div className={`text-sm mt-2 space-y-1 ${isDark ? "text-emerald-300/70" : "text-emerald-700/70"}`}>
+                      <div className="flex items-start gap-2">
+                        <span className="flex-shrink-0">✓</span>
+                        <span>Custom {isHouston ? "hearing script" : "evidence brief"} written for <strong>{property.address}</strong></span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="flex-shrink-0">✓</span>
+                        <span>{compCount} comparable properties with detailed analysis</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="flex-shrink-0">✓</span>
+                        <span>Step-by-step {isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                      </div>
+                    </div>
                   </div>
                   <button 
                     onClick={async () => {
@@ -566,13 +595,13 @@ export default function ResultsContent() {
                         alert("Failed to start checkout. Please try again.");
                       }
                     }}
-                    className="w-full sm:w-auto px-6 py-3.5 rounded-xl font-medium transition-colors bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] cursor-pointer whitespace-nowrap flex-shrink-0"
+                    className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap flex-shrink-0"
                   >
-                    {isHouston ? "Get Your Protest Package — $49" : "Get Your Appeal Package — $49"}
+                    Lower My Tax Bill — $49
                   </button>
                 </div>
-                <p className={`mt-2 text-xs ${isDark ? "text-emerald-300/50" : "text-emerald-600/60"}`}>
-                  One-time fee • Delivered instantly to your email
+                <p className={`mt-3 text-xs ${isDark ? "text-emerald-300/50" : "text-emerald-600/60"}`}>
+                  🔒 One-time fee • Delivered instantly to your email
                   {estimatedSavings >= 49 && (
                     <span> • Pays for itself in {estimatedSavings >= 588 ? "1 month" : estimatedSavings >= 98 ? `${Math.ceil(49 / (estimatedSavings / 12))} months` : "under a year"}</span>
                   )}
@@ -719,6 +748,225 @@ export default function ResultsContent() {
             <p className={`mt-3 text-sm ${textMuted}`}>
               Based on {property.neighborhoodStats.overAssessedCount.toLocaleString()} over-appraised properties in your neighborhood. Median appraisal: ${property.neighborhoodStats.medianPerSqft}/sqft.
             </p>
+          </div>
+        )}
+
+        {/* How It Works */}
+        {hasAnalysis && estimatedSavings > 0 && (
+          <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
+            <h2 className="text-base sm:text-lg font-semibold mb-5">How It Works</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
+              <div className="flex sm:flex-col items-start gap-4 sm:gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg font-bold ${isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"}`}>
+                  1
+                </div>
+                <div>
+                  <div className="font-semibold">We Build Your Case</div>
+                  <p className={`text-sm ${textSecondary} mt-1`}>
+                    We analyze your property, find the best comparable properties, and calculate exactly how much you&apos;re overpaying.
+                  </p>
+                </div>
+              </div>
+              <div className="flex sm:flex-col items-start gap-4 sm:gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg font-bold ${isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"}`}>
+                  2
+                </div>
+                <div>
+                  <div className="font-semibold">You Get Your Package</div>
+                  <p className={`text-sm ${textSecondary} mt-1`}>
+                    Delivered instantly to your email: a {isHouston ? "hearing script" : "written brief"}, comparable properties evidence, and a step-by-step filing guide.
+                  </p>
+                </div>
+              </div>
+              <div className="flex sm:flex-col items-start gap-4 sm:gap-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg font-bold ${isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"}`}>
+                  3
+                </div>
+                <div>
+                  <div className="font-semibold">File &amp; Save</div>
+                  <p className={`text-sm ${textSecondary} mt-1`}>
+                    Follow our guide to file {isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Comparison Chart */}
+        {hasAnalysis && estimatedSavings > 0 && (
+          <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
+            <h2 className="text-base sm:text-lg font-semibold mb-5">Your Options</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* DIY */}
+              <div className={`rounded-xl p-4 border ${borderColor} ${isDark ? "" : ""}`}>
+                <div className={`text-sm font-medium ${textMuted} uppercase tracking-wide`}>Do It Yourself</div>
+                <div className={`text-2xl font-bold mt-2 ${textPrimary}`}>Free</div>
+                <div className={`text-sm ${textSecondary} mt-3 space-y-2`}>
+                  <div className="flex items-start gap-2">
+                    <span className={textMuted}>•</span>
+                    <span>Research comparable properties yourself</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className={textMuted}>•</span>
+                    <span>Write your own evidence brief</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className={textMuted}>•</span>
+                    <span>Figure out the filing process</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className={textMuted}>•</span>
+                    <span className={`font-medium ${isDark ? "text-amber-400" : "text-amber-600"}`}>10+ hours of work</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Overtaxed — highlighted */}
+              <div className={`rounded-xl p-4 border-2 ${isDark ? "border-purple-500/40 bg-purple-500/5" : "border-purple-300 bg-purple-50/50"} relative`}>
+                <div className={`absolute -top-3 left-4 px-2 py-0.5 rounded-full text-xs font-medium ${isDark ? "bg-purple-500 text-white" : "bg-purple-600 text-white"}`}>
+                  Best Value
+                </div>
+                <div className={`text-sm font-medium uppercase tracking-wide ${isDark ? "text-purple-400" : "text-purple-600"}`}>Overtaxed</div>
+                <div className={`text-2xl font-bold mt-2 ${textPrimary}`}>$49</div>
+                <div className={`text-sm ${textSecondary} mt-3 space-y-2`}>
+                  <div className="flex items-start gap-2">
+                    <span className={`${isDark ? "text-emerald-400" : "text-emerald-500"}`}>✓</span>
+                    <span>{compCount} comparable properties found for you</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className={`${isDark ? "text-emerald-400" : "text-emerald-500"}`}>✓</span>
+                    <span>Professional {isHouston ? "hearing script" : "evidence brief"}</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className={`${isDark ? "text-emerald-400" : "text-emerald-500"}`}>✓</span>
+                    <span>Step-by-step filing guide</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className={`${isDark ? "text-emerald-400" : "text-emerald-500"}`}>✓</span>
+                    <span className={`font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>Ready in 5 minutes</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Tax Attorney */}
+              <div className={`rounded-xl p-4 border ${borderColor}`}>
+                <div className={`text-sm font-medium ${textMuted} uppercase tracking-wide`}>Tax Attorney</div>
+                <div className={`text-2xl font-bold mt-2 ${textPrimary}`}>$300–$500+</div>
+                <div className={`text-sm ${textSecondary} mt-3 space-y-2`}>
+                  <div className="flex items-start gap-2">
+                    <span className={textMuted}>•</span>
+                    <span>Full representation at hearings</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className={textMuted}>•</span>
+                    <span>Attorney handles everything</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className={textMuted}>•</span>
+                    <span>Often contingency-based</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className={textMuted}>•</span>
+                    <span className={`${isDark ? "text-amber-400" : "text-amber-600"}`}>Same data, higher cost</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* FAQ Section */}
+        {hasAnalysis && estimatedSavings > 0 && (
+          <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
+            <h2 className="text-base sm:text-lg font-semibold mb-5">Common Questions</h2>
+            <div className="space-y-4">
+              <div>
+                <div className="font-medium">Is this legitimate?</div>
+                <p className={`text-sm ${textSecondary} mt-1`}>
+                  {isHouston 
+                    ? "Absolutely. Protesting your property tax appraisal is a formal right under Texas law. Over 400,000 Harris County homeowners protest every year — it's one of the most common things homeowners do."
+                    : "Yes. Appealing your property tax assessment is a formal right in Illinois. The Cook County Assessor's Office and Board of Review process hundreds of thousands of appeals every year."
+                  }
+                </p>
+              </div>
+              <div className={`border-t ${borderColor}`}></div>
+              <div>
+                <div className="font-medium">Can I do this myself for free?</div>
+                <p className={`text-sm ${textSecondary} mt-1`}>
+                  Yes, but it typically takes 10+ hours of research — finding comparable properties, calculating assessment ratios, understanding the filing process, and preparing evidence. We do all that for you in minutes.
+                </p>
+              </div>
+              <div className={`border-t ${borderColor}`}></div>
+              <div>
+                <div className="font-medium">What if my {isHouston ? "protest" : "appeal"} isn&apos;t successful?</div>
+                <p className={`text-sm ${textSecondary} mt-1`}>
+                  {isHouston 
+                    ? "There's no penalty for protesting. If the appraisal review board doesn't lower your value, your taxes stay the same — you don't lose anything. Most homeowners who protest with evidence get some reduction."
+                    : "There's no penalty for appealing. If the Board of Review doesn't reduce your assessment, it stays the same — you never pay more for trying. Most appeals with proper comparable evidence receive some reduction."
+                  }
+                </p>
+              </div>
+              <div className={`border-t ${borderColor}`}></div>
+              <div>
+                <div className="font-medium">When is the deadline?</div>
+                <p className={`text-sm ${textSecondary} mt-1`}>
+                  {isHouston 
+                    ? "The 2026 protest deadline for Harris County is May 15, 2026 (or 30 days after your notice date, whichever is later). Homestead properties have an earlier deadline of April 30. File early — informal settlements before your hearing often get the best results."
+                    : "Deadlines vary by township and filing body. The Assessor accepts appeals during your township's reassessment year. Board of Review appeals typically open after the Assessor's decisions are final. Check your township's current status."
+                  }
+                </p>
+              </div>
+              <div className={`border-t ${borderColor}`}></div>
+              <div>
+                <div className="font-medium">What exactly do I get for $49?</div>
+                <p className={`text-sm ${textSecondary} mt-1`}>
+                  A complete, ready-to-file package: {compCount} comparable properties with detailed analysis (addresses, values, $/sqft), a professional {isHouston ? "hearing script you can read word-for-word at your hearing" : "evidence brief for the Board of Review"}, and step-by-step instructions with screenshots showing exactly where to click. Everything is delivered instantly to your email as a downloadable PDF.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Final CTA */}
+        {hasAnalysis && estimatedSavings > 0 && (
+          <div className={`mt-3 rounded-2xl border ${isDark ? "border-purple-500/20 bg-purple-500/5" : "border-purple-200 bg-purple-50/50"} p-5 sm:p-6 md:p-8`}>
+            <div className="text-center">
+              <div className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+                You could be saving ${estimatedSavings.toLocaleString()}/year
+              </div>
+              <p className={`text-sm ${textSecondary} mt-1`}>
+                That&apos;s ${multiYearSavings.toLocaleString()} over {multiYearLabel}. Your package is ready — file before the deadline.
+              </p>
+              <button 
+                onClick={async () => {
+                  try {
+                    const res = await fetch("/api/create-checkout", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        propertyId: property.pin,
+                        jurisdiction: isHouston ? "houston" : "cook_county",
+                      }),
+                    });
+                    const data = await res.json();
+                    if (data.url) {
+                      window.location.href = data.url;
+                    } else {
+                      alert("Failed to start checkout. Please try again.");
+                    }
+                  } catch {
+                    alert("Failed to start checkout. Please try again.");
+                  }
+                }}
+                className="mt-4 px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+              >
+                Lower My Tax Bill — $49
+              </button>
+              <p className={`mt-3 text-xs ${textMuted}`}>
+                🔒 Secure payment • Instant delivery • One-time fee
+              </p>
+            </div>
           </div>
         )}
 
