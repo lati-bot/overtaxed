@@ -39,6 +39,13 @@ interface PropertyData {
     potentialSavings: number;
     compCount: number;
   };
+  neighborhoodStats?: {
+    totalProperties: number;
+    overAssessedCount: number;
+    overAssessedPct: number;
+    medianPerSqft: number;
+    avgReduction: number;
+  } | null;
 }
 
 interface MultipleResults {
@@ -134,6 +141,7 @@ export default function ResultsContent() {
             potentialSavings: hp.estimatedSavings,
             compCount: (hp.comps || []).length,
           } : undefined,
+          neighborhoodStats: hp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
       } else {
@@ -248,9 +256,9 @@ export default function ResultsContent() {
                   <span className="text-sm">📍</span>
                 </div>
                 <div>
-                  <div className="font-medium">Not in Cook County?</div>
+                  <div className="font-medium">Not in our coverage area?</div>
                   <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    We currently only cover Cook County, Illinois. More markets coming soon!
+                    We currently cover Cook County, IL and Houston, TX (Harris County). More markets coming soon!
                   </p>
                 </div>
               </div>
@@ -460,8 +468,13 @@ export default function ResultsContent() {
                 Good news — you&apos;re fairly assessed!
               </div>
               <p className={`mt-2 ${textSecondary}`}>
-                Based on comparable properties, your assessment is in line with similar homes. No action needed!
+                Based on comparable properties, your {isHouston ? "appraised value" : "assessment"} is in line with similar homes. No appeal needed!
               </p>
+              {isHouston && (
+                <p className={`mt-3 text-sm ${textMuted}`}>
+                  Harris County reassesses annually — check back after you receive your 2026 appraisal notice (typically March/April).
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -593,6 +606,38 @@ export default function ResultsContent() {
                 </tbody>
               </table>
             </div>
+          </div>
+        )}
+
+        {/* Neighborhood Stats (Houston) */}
+        {isHouston && property.neighborhoodStats && (
+          <div className={`mt-4 sm:mt-6 rounded-xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
+            <h2 className="text-base sm:text-lg font-semibold mb-4 sm:mb-6">Your Neighborhood</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+              <div>
+                <div className="text-xl sm:text-2xl font-semibold">
+                  {property.neighborhoodStats.totalProperties.toLocaleString()}
+                </div>
+                <div className={`text-sm ${textSecondary}`}>Properties Analyzed</div>
+              </div>
+              <div>
+                <div className={`text-xl sm:text-2xl font-semibold ${isDark ? "text-amber-400" : "text-amber-600"}`}>
+                  {property.neighborhoodStats.overAssessedPct}%
+                </div>
+                <div className={`text-sm ${textSecondary}`}>Over-Assessed</div>
+              </div>
+              {property.neighborhoodStats.avgReduction > 0 && (
+                <div>
+                  <div className={`text-xl sm:text-2xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+                    ${property.neighborhoodStats.avgReduction.toLocaleString()}
+                  </div>
+                  <div className={`text-sm ${textSecondary}`}>Avg. Reduction</div>
+                </div>
+              )}
+            </div>
+            <p className={`mt-4 text-sm ${textMuted}`}>
+              Based on {property.neighborhoodStats.overAssessedCount.toLocaleString()} over-assessed properties in your neighborhood. Median assessment: ${property.neighborhoodStats.medianPerSqft}/sqft.
+            </p>
           </div>
         )}
 
