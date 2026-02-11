@@ -29,8 +29,14 @@ File with Assessor FIRST → then file again with Board of Review. Two separate 
 - Forgot password flow available
 - Built by Tyler Technologies
 
-### When Can You File?
-- Each township opens during its reassessment cycle
+### SmartFile Form Structure (From Live Portal Exploration)
+- PIN search: "No dashes or spaces" text field + "Parcel Street Address" field + Search button
+- Results grid: columns = [action button] | PIN | Owner Name | Location Address
+- "Start Filing" link in first column → opens the filing form
+- Same Tyler Technologies platform pattern across all filing types
+- Provides both PIN and address search (mirrors our Overtaxed search)
+
+### When Can You File? (Assessor)
 - Townships rotate on a triennial (3-year) schedule
 - Filing windows are typically ~30 days
 - Calendar: `cookcountyassessoril.gov/assessment-calendar-and-deadlines`
@@ -43,14 +49,19 @@ File with Assessor FIRST → then file again with Board of Review. Two separate 
 - Special Circumstances
 
 ### SmartFile Process (After Login)
-1. Click "Residential" → "Begin Filing"
-2. Enter your 14-digit PIN
-3. Verify property information displayed
+**Note: The appeal filing type ONLY appears when your township is open for reassessment.** When no townships are open, SmartFile only shows exemptions, permits, and property characteristics filings. Confirmed by logging in Feb 2026 — no appeal option visible.
+
+When open:
+1. Go to `cookcountyassessor.com/Search/Property-Search.aspx`
+2. Search for your property → click "Appeals"
+3. If township is open, the appeal form appears
 4. Select appeal reason: **"Lack of Uniformity"**
 5. **Key insight**: You do NOT need to provide comps — CCAO analysts will find and analyze comparable properties themselves
 6. However, you CAN attach up to **6 comparable PINs** as supporting evidence
 7. Upload supporting documents (our PDF appeal package)
 8. Submit
+
+Alternative: Via SmartFile portal directly after login → "Available Filings" → appeal filing type (when visible)
 
 ### Attaching Comparable Properties (SmartFile)
 From official CCAO documentation:
@@ -75,6 +86,28 @@ From official CCAO documentation:
 Email: `assessor.onlineappeals@cookcountyil.gov`
 Subject: "Assessment Appeal" + Township Name + PIN
 Attach supporting documents
+
+### Official Appeal Forms (Downloadable PDFs)
+- **Residential Appeal Form**: `prodassets.cookcountyassessoril.gov/s3fs-public/form_documents/resappeal.pdf`
+- **Condo Appeal Form**: `prodassets.cookcountyassessoril.gov/s3fs-public/form_documents/condoappeal.pdf`
+- **Residential Appeal Filing Guidelines**: `prodassets.cookcountyassessoril.gov/s3fs-public/form_documents/ResidentialAppealFiling.pdf`
+- **Condo Filing Guidelines**: `prodassets.cookcountyassessoril.gov/s3fs-public/form_documents/condominiumfiling.pdf`
+- **General Affidavit** (for representative filings): `prodassets.cookcountyassessoril.gov/s3fs-public/form_documents/Generalaff.pdf`
+- **Vacant Land Appeal**: `prodassets.cookcountyassessoril.gov/s3fs-public/form_documents/vaclndappeal.pdf`
+
+### Three Grounds for Assessor Appeal
+1. **Uniformity** — Your assessment per sqft is higher than similar homes (this is what we use)
+2. **Overvaluation** — You believe the estimated property value is too high (submit closing statements, recent sales)
+3. **Property Description Error** — Incorrect sqft, wrong characteristics, etc.
+
+### Key Assessor Policy Points
+- Class 2 = assessed at **10% of estimated property value**
+- Example: $100K value → $10K assessed valuation
+- Assessor does NOT calculate taxes — local governments (municipalities, school districts) do
+- You do NOT need a lawyer, tax rep, or appraiser to file
+- If a representative files, need notarized "Owner/Lessee Verification Form"
+- You get ~30 days after receiving "Notice of Proposed Assessed Valuation"
+- Can also appeal between reassessments (any year)
 
 ---
 
