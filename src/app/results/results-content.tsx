@@ -653,14 +653,31 @@ export default function ResultsContent() {
             <p className={`mt-2 text-sm sm:text-base ${isDark ? "text-purple-300/70" : "text-purple-600/70"} max-w-lg mx-auto`}>
               Get your complete appeal package with comparable properties, pre-filled forms, and step-by-step instructions.
             </p>
-            <a 
-              href={`https://buy.stripe.com/test_7sY28t78c4Rj1ZyaVm57W00?client_reference_id=${isHouston ? `houston:${property.pin}` : property.pin}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-block mt-5 sm:mt-6 w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors bg-[#6b4fbb] text-white hover:bg-[#5a3fa8]"
+            <button 
+              onClick={async () => {
+                try {
+                  const res = await fetch("/api/create-checkout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      propertyId: property.pin,
+                      jurisdiction: isHouston ? "houston" : "cook_county",
+                    }),
+                  });
+                  const data = await res.json();
+                  if (data.url) {
+                    window.location.href = data.url;
+                  } else {
+                    alert("Failed to start checkout. Please try again.");
+                  }
+                } catch {
+                  alert("Failed to start checkout. Please try again.");
+                }
+              }}
+              className="inline-block mt-5 sm:mt-6 w-full sm:w-auto px-8 py-4 rounded-xl font-medium transition-colors bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] cursor-pointer"
             >
               Get Your Appeal Package — $49
-            </a>
+            </button>
             <p className={`mt-3 text-sm ${isDark ? "text-purple-300/50" : "text-purple-600/50"}`}>
               One-time fee • Delivered in 48 hours
             </p>
