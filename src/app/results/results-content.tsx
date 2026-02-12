@@ -19,6 +19,8 @@ interface PropertyData {
     bedrooms: number | null;
     fullBaths: number | null;
     halfBaths: number | null;
+    qualityGrade?: string | null;
+    condition?: string | null;
   } | null;
   assessment: {
     year: string;
@@ -72,13 +74,14 @@ export default function ResultsContent() {
   const pin = searchParams.get("pin");
   const acct = searchParams.get("acct");
   const jurisdiction = searchParams.get("jurisdiction");
-  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin" && jurisdiction !== "collin");
+  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin" && jurisdiction !== "collin" && jurisdiction !== "tarrant");
   const isDallas = jurisdiction === "dallas";
   const isAustin = jurisdiction === "austin";
   const isCollin = jurisdiction === "collin";
-  const isTexas = isHouston || isDallas || isAustin || isCollin;
-  const marketLabel = isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
-  const jurisdictionValue = isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
+  const isTarrant = jurisdiction === "tarrant";
+  const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant;
+  const marketLabel = isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
+  const jurisdictionValue = isTarrant ? "tarrant" : isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
 
   useEffect(() => {
     setMounted(true);
@@ -147,6 +150,56 @@ export default function ResultsContent() {
             compCount: (cp.comps || []).length,
           },
           neighborhoodStats: cp.neighborhoodStats || null,
+        });
+        setAnalysisAvailable(true);
+      } else if (isTarrant) {
+        // Tarrant County flow — use Tarrant lookup API
+        const tarrantAcct = searchPin || acct;
+        if (!tarrantAcct) {
+          setError("Missing account number");
+          return;
+        }
+        const response = await fetch(`/api/tarrant/lookup?acct=${tarrantAcct}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Property not found");
+          return;
+        }
+        
+        const tp = data.property;
+        setProperty({
+          pin: tp.acct,
+          address: tp.address,
+          city: tp.city || "FORT WORTH",
+          zip: tp.zipcode || "",
+          township: "",
+          neighborhood: tp.neighborhoodCode || "",
+          characteristics: {
+            class: tp.bldgClass || "",
+            buildingSqFt: tp.sqft,
+            landSqFt: null,
+            yearBuilt: tp.yearBuilt || null,
+            bedrooms: null,
+            fullBaths: null,
+            halfBaths: null,
+            qualityGrade: tp.qualityGrade || null,
+            condition: tp.condition || null,
+          },
+          assessment: {
+            year: "2025",
+            mailedTotal: tp.currentAssessment,
+            mailedBuilding: tp.improvementVal || 0,
+            mailedLand: tp.landVal || 0,
+            certifiedTotal: null,
+            boardTotal: null,
+          },
+          analysis: {
+            fairAssessment: tp.status === "over" ? tp.fairAssessment : tp.currentAssessment,
+            potentialSavings: tp.status === "over" ? tp.estimatedSavings : 0,
+            compCount: (tp.comps || []).length,
+          },
+          neighborhoodStats: tp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
       } else if (isAustin) {
@@ -408,7 +461,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-medium">Not in our coverage area?</div>
                   <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    We currently cover Cook County, IL, Houston, TX (Harris County), Dallas, TX (Dallas County), Austin, TX (Travis County), and Collin County, TX. More markets coming soon!
+                    We currently cover Cook County, IL, Houston, TX (Harris County), Dallas, TX (Dallas County), Austin, TX (Travis County), Collin County, TX, and Tarrant County, TX. More markets coming soon!
                   </p>
                 </div>
               </div>
@@ -573,7 +626,9 @@ export default function ResultsContent() {
                   {property.city}, {isTexas ? "TX" : `IL ${property.zip}`}
                 </p>
                 <p className={`text-sm ${textMuted} mt-1`}>
-                  {isCollin
+                  {isTarrant
+                    ? `Account: ${property.pin} • Tarrant County`
+                    : isCollin
                     ? `Account: ${property.pin} • Collin County`
                     : isAustin
                     ? `Account: ${property.pin} • Travis County`
@@ -607,19 +662,31 @@ export default function ResultsContent() {
                     <div className="font-semibold">{property.characteristics.buildingSqFt.toLocaleString()}</div>
                   </div>
                 )}
-                {property.characteristics.bedrooms && (
+                {!isTarrant && property.characteristics.bedrooms && (
                   <div>
                     <div className={`text-sm ${textMuted}`}>Beds</div>
                     <div className="font-semibold">{property.characteristics.bedrooms}</div>
                   </div>
                 )}
-                {property.characteristics.fullBaths && (
+                {!isTarrant && property.characteristics.fullBaths && (
                   <div>
                     <div className={`text-sm ${textMuted}`}>Baths</div>
                     <div className="font-semibold">
                       {property.characteristics.fullBaths}
                       {property.characteristics.halfBaths ? `.${property.characteristics.halfBaths}` : ""}
                     </div>
+                  </div>
+                )}
+                {isTarrant && property.characteristics.qualityGrade && (
+                  <div>
+                    <div className={`text-sm ${textMuted}`}>Quality</div>
+                    <div className="font-semibold">{property.characteristics.qualityGrade}</div>
+                  </div>
+                )}
+                {isTarrant && property.characteristics.condition && (
+                  <div>
+                    <div className={`text-sm ${textMuted}`}>Condition</div>
+                    <div className="font-semibold">{property.characteristics.condition}</div>
                   </div>
                 )}
                 {property.characteristics.yearBuilt && (
@@ -726,7 +793,7 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Step-by-step {isCollin ? "CCAD eFile" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                        <span>Step-by-step {isTarrant ? "TAD Online Protest" : isCollin ? "CCAD eFile" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
                       </div>
                     </div>
                   </div>
@@ -941,7 +1008,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-semibold">File &amp; Save</div>
                   <p className={`text-sm ${textSecondary} mt-1`}>
-                    Follow our guide to file {isCollin ? "your protest with CCAD" : isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
+                    Follow our guide to file {isTarrant ? "your protest with TAD" : isCollin ? "your protest with CCAD" : isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
                   </p>
                 </div>
               </div>
@@ -1128,7 +1195,9 @@ export default function ResultsContent() {
 
         {/* Disclaimer */}
         <p className={`mt-4 text-xs ${textMuted} text-center`}>
-          {isCollin
+          {isTarrant
+            ? "Appraisal data from Tarrant Appraisal District (TAD). Tax bill estimates use an average Tarrant County rate of ~2.2% and may vary by taxing jurisdiction."
+            : isCollin
             ? "Appraisal data from Collin Central Appraisal District (CCAD). Tax bill estimates use an average Collin County rate of ~2.2% and may vary by taxing jurisdiction."
             : isAustin
             ? "Appraisal data from Travis Central Appraisal District (TCAD). Tax bill estimates use an average Travis County rate of ~2.2% and may vary by taxing jurisdiction."

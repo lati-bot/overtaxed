@@ -29,15 +29,18 @@ export async function POST(request: NextRequest) {
       clientReferenceId = `austin:${propertyId}`;
     } else if (jurisdiction === "collin") {
       clientReferenceId = `collin:${propertyId}`;
+    } else if (jurisdiction === "tarrant") {
+      clientReferenceId = `tarrant:${propertyId}`;
     } else {
       clientReferenceId = propertyId;
     }
 
-    const isTexas = jurisdiction === "houston" || jurisdiction === "dallas" || jurisdiction === "austin" || jurisdiction === "collin";
+    const isTexas = jurisdiction === "houston" || jurisdiction === "dallas" || jurisdiction === "austin" || jurisdiction === "collin" || jurisdiction === "tarrant";
     const countyName = jurisdiction === "houston" ? "Harris County" 
       : jurisdiction === "dallas" ? "Dallas County" 
       : jurisdiction === "austin" ? "Travis County"
       : jurisdiction === "collin" ? "Collin County"
+      : jurisdiction === "tarrant" ? "Tarrant County"
       : "Cook County";
 
     const origin = request.headers.get("origin") || "https://www.getovertaxed.com";
@@ -51,6 +54,8 @@ export async function POST(request: NextRequest) {
       cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=austin`;
     } else if (jurisdiction === "collin") {
       cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=collin`;
+    } else if (jurisdiction === "tarrant") {
+      cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=tarrant`;
     } else {
       cancelUrl = `${origin}/results?pin=${propertyId}`;
     }
