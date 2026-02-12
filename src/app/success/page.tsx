@@ -39,10 +39,11 @@ function SuccessPage() {
   const [downloading, setDownloading] = useState(false);
   const [isHouston, setIsHouston] = useState(false);
   const [isDallas, setIsDallas] = useState(false);
-  const isTexas = isHouston || isDallas;
+  const [isAustin, setIsAustin] = useState(false);
+  const isTexas = isHouston || isDallas || isAustin;
 
   // Detect jurisdiction from token or session to avoid waterfall requests
-  function detectJurisdiction(accessToken: string | null): "cook" | "houston" | "dallas" | null {
+  function detectJurisdiction(accessToken: string | null): "cook" | "houston" | "dallas" | "austin" | null {
     if (!accessToken) return null;
     try {
       const [encoded] = accessToken.split(".");
@@ -50,17 +51,18 @@ function SuccessPage() {
       const decoded = Buffer.from(encoded, "base64url").toString();
       if (decoded.startsWith("houston:")) return "houston";
       if (decoded.startsWith("dallas:")) return "dallas";
+      if (decoded.startsWith("austin:")) return "austin";
       return "cook";
     } catch {
       return null;
     }
   }
 
-  function mapTexasProperty(p: any, jurisdiction: "houston" | "dallas"): PropertyData {
+  function mapTexasProperty(p: any, jurisdiction: "houston" | "dallas" | "austin"): PropertyData {
     return {
       pin: p.acct,
       address: p.address,
-      city: p.city || (jurisdiction === "dallas" ? "DALLAS" : "HOUSTON"),
+      city: p.city || (jurisdiction === "austin" ? "AUSTIN" : jurisdiction === "dallas" ? "DALLAS" : "HOUSTON"),
       zip: p.zipcode || "",
       township: "",
       sqft: p.sqft || 0,
@@ -113,21 +115,29 @@ function SuccessPage() {
         const detected = detectJurisdiction(accessToken);
 
         // Order endpoints: detected jurisdiction first, then others as fallback
-        const endpoints: { path: string; jurisdiction: "cook" | "houston" | "dallas" }[] = [];
+        const endpoints: { path: string; jurisdiction: "cook" | "houston" | "dallas" | "austin" }[] = [];
         
         if (detected === "houston") {
           endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
           endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
           endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+          endpoints.push({ path: "/api/austin/generate-appeal", jurisdiction: "austin" });
         } else if (detected === "dallas") {
           endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
           endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
           endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
-        } else {
-          // Default: Cook first (original behavior), then Houston, then Dallas
+          endpoints.push({ path: "/api/austin/generate-appeal", jurisdiction: "austin" });
+        } else if (detected === "austin") {
+          endpoints.push({ path: "/api/austin/generate-appeal", jurisdiction: "austin" });
           endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
           endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
           endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+        } else {
+          // Default: Cook first (original behavior), then Houston, then Dallas, then Austin
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+          endpoints.push({ path: "/api/austin/generate-appeal", jurisdiction: "austin" });
         }
 
         let lastError = "Failed to load appeal package";
@@ -141,6 +151,9 @@ function SuccessPage() {
             } else if (ep.jurisdiction === "dallas") {
               setProperty(mapTexasProperty(result.data.property, "dallas"));
               setIsDallas(true);
+            } else if (ep.jurisdiction === "austin") {
+              setProperty(mapTexasProperty(result.data.property, "austin"));
+              setIsAustin(true);
             } else {
               setProperty(result.data.property);
             }
@@ -167,7 +180,7 @@ function SuccessPage() {
     
     setDownloading(true);
     try {
-      const endpoint = isDallas ? "/api/dallas/generate-appeal" : isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
+      const endpoint = isAustin ? "/api/austin/generate-appeal" : isDallas ? "/api/dallas/generate-appeal" : isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -253,7 +266,9 @@ function SuccessPage() {
             {isTexas ? "Your Protest Package is Ready!" : "Your Appeal Package is Ready!"}
           </h1>
           <p className="text-gray-600">
-            {isDallas
+            {isAustin
+              ? "Everything you need to protest your property tax with Travis County"
+              : isDallas
               ? "Everything you need to protest your property tax with Dallas County"
               : isTexas
               ? "Everything you need to protest your property tax with Harris County"
@@ -268,7 +283,9 @@ function SuccessPage() {
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{property.address}</h2>
               <p className="text-gray-500">
-                {isDallas
+                {isAustin
+                  ? `${property.city}, TX · Travis County`
+                  : isDallas
                   ? `${property.city}, TX · Dallas County`
                   : isTexas
                   ? `${property.city}, TX · Harris County`
@@ -389,7 +406,9 @@ function SuccessPage() {
                 <div>
                   <div className="font-medium text-gray-900">Wait for your appraisal notice</div>
                   <p className="text-sm text-gray-600">
-                    {isDallas 
+                    {isAustin
+                      ? "TCAD mails notices in late March/early April. Your protest package is ready to go once you receive it."
+                      : isDallas 
                       ? "DCAD mails notices in late March/early April. Your protest package is ready to go once you receive it."
                       : "HCAD mails notices in late March/early April. Your protest package is ready to go once you receive it."
                     }
@@ -400,21 +419,23 @@ function SuccessPage() {
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">2</div>
                 <div>
                   <div className="font-medium text-gray-900">
-                    {isDallas ? "File your protest via DCAD uFile" : "File your protest via iFile"}
+                    {isAustin ? "File your protest via TCAD Portal" : isDallas ? "File your protest via DCAD uFile" : "File your protest via iFile"}
                   </div>
                   <p className="text-sm text-gray-600">
-                    {isDallas
+                    {isAustin
+                      ? 'Go to traviscad.org/portal, set up your account using your property owner ID and PIN from your appraisal notice, select "Unequal Appraisal", and upload this PDF as evidence.'
+                      : isDallas
                       ? 'Go to dallascad.org and file using "Unequal Appraisal". Upload this PDF as evidence.'
                       : 'Go to hcad.org and file using "Unequal Appraisal". Upload this PDF as evidence.'
                     }
                   </p>
                   <a 
-                    href={isDallas ? "https://www.dallascad.org" : "https://hcad.org/hcad-online-services/ifile-protest/"}
+                    href={isAustin ? "https://www.traviscad.org/portal" : isDallas ? "https://www.dallascad.org" : "https://hcad.org/hcad-online-services/ifile-protest/"}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline mt-1"
                   >
-                    {isDallas ? "DCAD uFile Protest" : "HCAD iFile Protest"}
+                    {isAustin ? "TCAD Portal Protest" : isDallas ? "DCAD uFile Protest" : "HCAD iFile Protest"}
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
@@ -426,7 +447,9 @@ function SuccessPage() {
                 <div>
                   <div className="font-medium text-gray-900">Check for a settlement offer</div>
                   <p className="text-sm text-gray-600">
-                    {isDallas
+                    {isAustin
+                      ? "TCAD may send a settlement offer. If it's fair, accept it. If not, proceed to your ARB hearing."
+                      : isDallas
                       ? "DCAD may send a settlement offer. If it's fair, accept it. If not, proceed to your ARB hearing."
                       : "HCAD may send a settlement offer. If it's fair, accept it. If not, proceed to your ARB hearing."
                     }

@@ -72,11 +72,12 @@ export default function ResultsContent() {
   const pin = searchParams.get("pin");
   const acct = searchParams.get("acct");
   const jurisdiction = searchParams.get("jurisdiction");
-  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas");
+  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin");
   const isDallas = jurisdiction === "dallas";
-  const isTexas = isHouston || isDallas;
-  const marketLabel = isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
-  const jurisdictionValue = isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
+  const isAustin = jurisdiction === "austin";
+  const isTexas = isHouston || isDallas || isAustin;
+  const marketLabel = isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
+  const jurisdictionValue = isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
 
   useEffect(() => {
     setMounted(true);
@@ -99,7 +100,55 @@ export default function ResultsContent() {
     setMultipleResults(null);
 
     try {
-      if (isDallas) {
+      if (isAustin) {
+        // Austin flow — use Austin lookup API
+        const austinAcct = searchPin || acct;
+        if (!austinAcct) {
+          setError("Missing account number");
+          return;
+        }
+        const response = await fetch(`/api/austin/lookup?acct=${austinAcct}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Property not found");
+          return;
+        }
+        
+        const ap = data.property;
+        setProperty({
+          pin: ap.acct,
+          address: ap.address,
+          city: ap.city || "AUSTIN",
+          zip: ap.zipcode || "",
+          township: "",
+          neighborhood: ap.neighborhoodCode || "",
+          characteristics: {
+            class: ap.bldgClass || "",
+            buildingSqFt: ap.sqft,
+            landSqFt: null,
+            yearBuilt: ap.yearBuilt || null,
+            bedrooms: ap.beds || null,
+            fullBaths: ap.fullBaths || null,
+            halfBaths: ap.halfBaths || null,
+          },
+          assessment: {
+            year: "2025",
+            mailedTotal: ap.currentAssessment,
+            mailedBuilding: ap.improvementVal || 0,
+            mailedLand: ap.landVal || 0,
+            certifiedTotal: null,
+            boardTotal: null,
+          },
+          analysis: {
+            fairAssessment: ap.status === "over" ? ap.fairAssessment : ap.currentAssessment,
+            potentialSavings: ap.status === "over" ? ap.estimatedSavings : 0,
+            compCount: (ap.comps || []).length,
+          },
+          neighborhoodStats: ap.neighborhoodStats || null,
+        });
+        setAnalysisAvailable(true);
+      } else if (isDallas) {
         // Dallas flow — use Dallas lookup API
         const dallasAcct = searchPin || acct;
         if (!dallasAcct) {
@@ -310,7 +359,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-medium">Not in our coverage area?</div>
                   <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    We currently cover Cook County, IL, Houston, TX (Harris County), and Dallas, TX (Dallas County). More markets coming soon!
+                    We currently cover Cook County, IL, Houston, TX (Harris County), Dallas, TX (Dallas County), and Austin, TX (Travis County). More markets coming soon!
                   </p>
                 </div>
               </div>
@@ -475,7 +524,9 @@ export default function ResultsContent() {
                   {property.city}, {isTexas ? "TX" : `IL ${property.zip}`}
                 </p>
                 <p className={`text-sm ${textMuted} mt-1`}>
-                  {isDallas
+                  {isAustin
+                    ? `Account: ${property.pin} • Travis County`
+                    : isDallas
                     ? `Account: ${property.pin} • Dallas County`
                     : isHouston
                     ? `Account: ${property.pin} • Harris County`
@@ -624,7 +675,7 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Step-by-step {isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                        <span>Step-by-step {isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
                       </div>
                     </div>
                   </div>
@@ -839,7 +890,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-semibold">File &amp; Save</div>
                   <p className={`text-sm ${textSecondary} mt-1`}>
-                    Follow our guide to file {isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
+                    Follow our guide to file {isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
                   </p>
                 </div>
               </div>
@@ -1026,7 +1077,9 @@ export default function ResultsContent() {
 
         {/* Disclaimer */}
         <p className={`mt-4 text-xs ${textMuted} text-center`}>
-          {isDallas
+          {isAustin
+            ? "Appraisal data from Travis Central Appraisal District (TCAD). Tax bill estimates use an average Travis County rate of ~2.2% and may vary by taxing jurisdiction."
+            : isDallas
             ? "Appraisal data from Dallas Central Appraisal District (DCAD). Tax bill estimates use an average Dallas County rate of ~2.2% and may vary by taxing jurisdiction."
             : isHouston
             ? "Appraisal data from Harris County Appraisal District (HCAD). Tax bill estimates use an average Harris County rate of ~2.2% and may vary by taxing jurisdiction."

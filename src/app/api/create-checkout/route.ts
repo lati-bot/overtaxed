@@ -25,13 +25,16 @@ export async function POST(request: NextRequest) {
       clientReferenceId = `houston:${propertyId}`;
     } else if (jurisdiction === "dallas") {
       clientReferenceId = `dallas:${propertyId}`;
+    } else if (jurisdiction === "austin") {
+      clientReferenceId = `austin:${propertyId}`;
     } else {
       clientReferenceId = propertyId;
     }
 
-    const isTexas = jurisdiction === "houston" || jurisdiction === "dallas";
+    const isTexas = jurisdiction === "houston" || jurisdiction === "dallas" || jurisdiction === "austin";
     const countyName = jurisdiction === "houston" ? "Harris County" 
       : jurisdiction === "dallas" ? "Dallas County" 
+      : jurisdiction === "austin" ? "Travis County"
       : "Cook County";
 
     const origin = request.headers.get("origin") || "https://www.getovertaxed.com";
@@ -41,6 +44,8 @@ export async function POST(request: NextRequest) {
       cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=houston`;
     } else if (jurisdiction === "dallas") {
       cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=dallas`;
+    } else if (jurisdiction === "austin") {
+      cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=austin`;
     } else {
       cancelUrl = `${origin}/results?pin=${propertyId}`;
     }
