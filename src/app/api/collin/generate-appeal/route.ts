@@ -465,7 +465,7 @@ function generateCollinPdfHtml(data: CollinPropertyData): string {
         <div class="step">
           <div class="step-number">2</div>
           <div class="step-content">
-            <div class="step-title">File Online via CCAD eFile</div>
+            <div class="step-title">File Online via CCAD Online Portal</div>
             <div class="step-desc">
               Go to <a href="https://onlineportal.collincad.org" class="step-link">onlineportal.collincad.org</a> → Log in or create an account → File your protest online<br/>
               • Use your <strong>Property ID</strong>: <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${data.acct}</strong><br/>
@@ -648,7 +648,7 @@ async function sendCollinEmail(
         <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px;">
           <li>${data.comps.length} comparable properties with appraised values</li>
           <li>Written "Uniform & Equal" argument citing Texas Tax Code §42.26</li>
-          <li>Step-by-step CCAD eFile and ARB hearing instructions</li>
+          <li>Step-by-step CCAD Online Portal and ARB hearing instructions</li>
           <li>Hearing script — exactly what to say</li>
           <li>Settlement guidance — how to evaluate CCAD's offer</li>
         </ul>

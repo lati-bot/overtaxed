@@ -318,7 +318,7 @@ function AppealPage() {
             {isTarrant
               ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step TAD online protest instructions."
               : isCollin
-              ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step CCAD eFile instructions."
+              ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step CCAD Online Portal instructions."
               : isAustin
               ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step TCAD Portal instructions."
               : isDallas
