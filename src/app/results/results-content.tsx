@@ -72,12 +72,13 @@ export default function ResultsContent() {
   const pin = searchParams.get("pin");
   const acct = searchParams.get("acct");
   const jurisdiction = searchParams.get("jurisdiction");
-  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin");
+  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin" && jurisdiction !== "collin");
   const isDallas = jurisdiction === "dallas";
   const isAustin = jurisdiction === "austin";
-  const isTexas = isHouston || isDallas || isAustin;
-  const marketLabel = isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
-  const jurisdictionValue = isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
+  const isCollin = jurisdiction === "collin";
+  const isTexas = isHouston || isDallas || isAustin || isCollin;
+  const marketLabel = isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
+  const jurisdictionValue = isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
 
   useEffect(() => {
     setMounted(true);
@@ -100,7 +101,55 @@ export default function ResultsContent() {
     setMultipleResults(null);
 
     try {
-      if (isAustin) {
+      if (isCollin) {
+        // Collin County flow — use Collin lookup API
+        const collinAcct = searchPin || acct;
+        if (!collinAcct) {
+          setError("Missing account number");
+          return;
+        }
+        const response = await fetch(`/api/collin/lookup?acct=${collinAcct}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Property not found");
+          return;
+        }
+        
+        const cp = data.property;
+        setProperty({
+          pin: cp.acct,
+          address: cp.address,
+          city: cp.city || "PLANO",
+          zip: cp.zipcode || "",
+          township: "",
+          neighborhood: cp.neighborhoodCode || "",
+          characteristics: {
+            class: cp.bldgClass || "",
+            buildingSqFt: cp.sqft,
+            landSqFt: null,
+            yearBuilt: cp.yearBuilt || null,
+            bedrooms: cp.beds || null,
+            fullBaths: cp.fullBaths || null,
+            halfBaths: cp.halfBaths || null,
+          },
+          assessment: {
+            year: "2025",
+            mailedTotal: cp.currentAssessment,
+            mailedBuilding: cp.improvementVal || 0,
+            mailedLand: cp.landVal || 0,
+            certifiedTotal: null,
+            boardTotal: null,
+          },
+          analysis: {
+            fairAssessment: cp.status === "over" ? cp.fairAssessment : cp.currentAssessment,
+            potentialSavings: cp.status === "over" ? cp.estimatedSavings : 0,
+            compCount: (cp.comps || []).length,
+          },
+          neighborhoodStats: cp.neighborhoodStats || null,
+        });
+        setAnalysisAvailable(true);
+      } else if (isAustin) {
         // Austin flow — use Austin lookup API
         const austinAcct = searchPin || acct;
         if (!austinAcct) {
@@ -359,7 +408,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-medium">Not in our coverage area?</div>
                   <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    We currently cover Cook County, IL, Houston, TX (Harris County), Dallas, TX (Dallas County), and Austin, TX (Travis County). More markets coming soon!
+                    We currently cover Cook County, IL, Houston, TX (Harris County), Dallas, TX (Dallas County), Austin, TX (Travis County), and Collin County, TX. More markets coming soon!
                   </p>
                 </div>
               </div>
@@ -524,7 +573,9 @@ export default function ResultsContent() {
                   {property.city}, {isTexas ? "TX" : `IL ${property.zip}`}
                 </p>
                 <p className={`text-sm ${textMuted} mt-1`}>
-                  {isAustin
+                  {isCollin
+                    ? `Account: ${property.pin} • Collin County`
+                    : isAustin
                     ? `Account: ${property.pin} • Travis County`
                     : isDallas
                     ? `Account: ${property.pin} • Dallas County`
@@ -675,7 +726,7 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Step-by-step {isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                        <span>Step-by-step {isCollin ? "CCAD eFile" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
                       </div>
                     </div>
                   </div>
@@ -890,7 +941,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-semibold">File &amp; Save</div>
                   <p className={`text-sm ${textSecondary} mt-1`}>
-                    Follow our guide to file {isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
+                    Follow our guide to file {isCollin ? "your protest with CCAD" : isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
                   </p>
                 </div>
               </div>
@@ -1077,7 +1128,9 @@ export default function ResultsContent() {
 
         {/* Disclaimer */}
         <p className={`mt-4 text-xs ${textMuted} text-center`}>
-          {isAustin
+          {isCollin
+            ? "Appraisal data from Collin Central Appraisal District (CCAD). Tax bill estimates use an average Collin County rate of ~2.2% and may vary by taxing jurisdiction."
+            : isAustin
             ? "Appraisal data from Travis Central Appraisal District (TCAD). Tax bill estimates use an average Travis County rate of ~2.2% and may vary by taxing jurisdiction."
             : isDallas
             ? "Appraisal data from Dallas Central Appraisal District (DCAD). Tax bill estimates use an average Dallas County rate of ~2.2% and may vary by taxing jurisdiction."
