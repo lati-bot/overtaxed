@@ -13,7 +13,7 @@ interface AutocompleteResult {
   township?: string;
   neighborhood?: string;
   display?: string;
-  jurisdiction: "cook_county_il" | "harris_county_tx" | "dallas_county_tx";
+  jurisdiction: "cook_county_il" | "harris_county_tx" | "dallas_county_tx" | "travis_county_tx";
 }
 
 export default function Home() {
@@ -48,11 +48,12 @@ export default function Home() {
     }
     const timer = setTimeout(async () => {
       try {
-        // Search Cook County, Houston, and Dallas in parallel
-        const [cookRes, houstonRes, dallasRes] = await Promise.all([
+        // Search Cook County, Houston, Dallas, and Austin in parallel
+        const [cookRes, houstonRes, dallasRes, austinRes] = await Promise.all([
           fetch(`/api/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/houston/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/dallas/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/austin/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
         ]);
         
         const cookResults = (cookRes.results || []).map((r: any) => ({
@@ -73,7 +74,13 @@ export default function Home() {
           display: r.address,
         }));
         
-        const combined = [...cookResults, ...houstonResults, ...dallasResults].slice(0, 8);
+        const austinResults = (austinRes.results || []).map((r: any) => ({
+          ...r,
+          jurisdiction: "travis_county_tx" as const,
+          display: r.address,
+        }));
+        
+        const combined = [...cookResults, ...houstonResults, ...dallasResults, ...austinResults].slice(0, 8);
         setSuggestions(combined);
         setShowSuggestions(true);
       } catch {
@@ -128,6 +135,9 @@ export default function Home() {
       } else if (bestPin && bestJurisdiction === "dallas_county_tx") {
         router.push(`/results?acct=${bestPin}&jurisdiction=dallas`);
         return;
+      } else if (bestPin && bestJurisdiction === "travis_county_tx") {
+        router.push(`/results?acct=${bestPin}&jurisdiction=austin`);
+        return;
       } else if (bestPin) {
         router.push(`/results?pin=${bestPin}`);
         return;
@@ -141,16 +151,21 @@ export default function Home() {
         // Strip city/state/zip for cleaner matching
         const cleanedAddress = address.trim().replace(/,?\s*(IL|TX|ILLINOIS|TEXAS)\s*\d{0,5}\s*$/i, "").replace(/,?\s*$/, "").trim();
         const q = encodeURIComponent(cleanedAddress);
-        const [cookRes, houstonRes, dallasRes] = await Promise.all([
+        const [cookRes, houstonRes, dallasRes, austinRes] = await Promise.all([
           fetch(`/api/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/houston/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/dallas/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/austin/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
         ]);
         const firstCook = (cookRes.results || [])[0];
         const firstHouston = (houstonRes.results || [])[0];
         const firstDallas = (dallasRes.results || [])[0];
+        const firstAustin = (austinRes.results || [])[0];
 
-        if (firstDallas?.acct) {
+        if (firstAustin?.acct) {
+          router.push(`/results?acct=${firstAustin.acct}&jurisdiction=austin`);
+          return;
+        } else if (firstDallas?.acct) {
           router.push(`/results?acct=${firstDallas.acct}&jurisdiction=dallas`);
           return;
         } else if (firstHouston?.acct) {
@@ -169,6 +184,8 @@ export default function Home() {
       router.push(`/results?acct=${selectedPin}&jurisdiction=houston`);
     } else if (selectedPin && selectedJurisdiction === "dallas_county_tx") {
       router.push(`/results?acct=${selectedPin}&jurisdiction=dallas`);
+    } else if (selectedPin && selectedJurisdiction === "travis_county_tx") {
+      router.push(`/results?acct=${selectedPin}&jurisdiction=austin`);
     } else if (selectedPin) {
       router.push(`/results?pin=${selectedPin}`);
     } else {
@@ -247,7 +264,7 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
             </span>
-            <span>Serving Cook County, IL · Houston, TX · Dallas, TX</span>
+            <span>Serving Cook County, IL · Houston, TX · Dallas, TX · Austin, TX</span>
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.1]">
@@ -303,10 +320,13 @@ export default function Home() {
                               ? "bg-blue-100 text-blue-700"
                               : suggestion.jurisdiction === "dallas_county_tx"
                               ? "bg-orange-100 text-orange-700"
+                              : suggestion.jurisdiction === "travis_county_tx"
+                              ? "bg-teal-100 text-teal-700"
                               : "bg-purple-100 text-purple-700"
                           }`}>
                             {suggestion.jurisdiction === "harris_county_tx" ? "Houston, TX" 
                               : suggestion.jurisdiction === "dallas_county_tx" ? "Dallas, TX"
+                              : suggestion.jurisdiction === "travis_county_tx" ? "Austin, TX"
                               : "Cook County, IL"}
                           </span>
                         </div>
@@ -363,7 +383,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
             {[
-              { num: 1, title: "Enter your address", desc: "We pull your property data from public records automatically. Works for Cook County, IL, Houston, TX, and Dallas, TX." },
+              { num: 1, title: "Enter your address", desc: "We pull your property data from public records automatically. Works for Cook County, IL, Houston, TX, Dallas, TX, and Austin, TX." },
               { num: 2, title: "We find your comps", desc: "Our system identifies similar properties that sold for less or are assessed lower than yours." },
               { num: 3, title: "File your appeal", desc: "Download your complete appeal package and file it yourself — we show you exactly how." },
             ].map((step) => (
@@ -439,9 +459,9 @@ export default function Home() {
             {[
               { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves (called \"pro se\") at both the Assessor's Office and Board of Review. We give you everything you need." },
               { q: "What if my appeal doesn't work?", a: "Appeals have a high success rate when you have good comparable properties. If your assessment isn't reduced, you've lost nothing but the filing time — there's no penalty for appealing." },
-              { q: "When can I file an appeal?", a: "In Cook County, appeals open by township on a rotating schedule. In Houston/Harris County and Dallas/Dallas County, you can protest after receiving your appraisal notice (usually late March). We currently have 2025 data — 2026 protest season opens soon. We'll tell you when your filing window is open." },
+              { q: "When can I file an appeal?", a: "In Cook County, appeals open by township on a rotating schedule. In Houston/Harris County, Dallas/Dallas County, and Austin/Travis County, you can protest after receiving your appraisal notice (usually late March). We currently have 2025 data — 2026 protest season opens soon. We'll tell you when your filing window is open." },
               { q: "Why is this so much cheaper than attorneys?", a: "Attorneys charge a percentage of savings because they can. We use technology to automate the research that used to take hours. You get the same comparable property analysis at a fraction of the cost." },
-              { q: "What properties do you support?", a: "We support single-family homes and small multi-family buildings in Cook County, IL, Houston/Harris County, TX, and Dallas/Dallas County, TX. More markets coming soon." },
+              { q: "What properties do you support?", a: "We support single-family homes and small multi-family buildings in Cook County, IL, Houston/Harris County, TX, Dallas/Dallas County, TX, and Austin/Travis County, TX. More markets coming soon." },
             ].map((item, i) => (
               <div key={i}>
                 <h3 className="text-lg font-semibold mb-2">{item.q}</h3>
