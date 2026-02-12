@@ -138,10 +138,13 @@ export default function Home() {
     // do a quick autocomplete search and use the top result
     if (!selectedPin) {
       try {
+        // Strip city/state/zip for cleaner matching
+        const cleanedAddress = address.trim().replace(/,?\s*(IL|TX|ILLINOIS|TEXAS)\s*\d{0,5}\s*$/i, "").replace(/,?\s*$/, "").trim();
+        const q = encodeURIComponent(cleanedAddress);
         const [cookRes, houstonRes, dallasRes] = await Promise.all([
-          fetch(`/api/autocomplete?q=${encodeURIComponent(address.trim())}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/houston/autocomplete?q=${encodeURIComponent(address.trim())}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/dallas/autocomplete?q=${encodeURIComponent(address.trim())}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/houston/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/dallas/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
         ]);
         const firstCook = (cookRes.results || [])[0];
         const firstHouston = (houstonRes.results || [])[0];

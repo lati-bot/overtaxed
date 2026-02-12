@@ -24,7 +24,12 @@ export async function GET(request: NextRequest) {
     }
 
     const container = client.database("overtaxed").container("houston-properties");
-    const cleaned = query.trim().toUpperCase();
+    
+    // Strip city, state, zip — our DB stores just street addresses
+    let cleaned = query.trim().toUpperCase();
+    // Remove common suffixes like ", HOUSTON, TX 77001" or ", TX"
+    cleaned = cleaned.replace(/,?\s*(HOUSTON|KATY|SUGAR LAND|PASADENA|PEARLAND|LEAGUE CITY|BAYTOWN|MISSOURI CITY|CYPRESS|SPRING|HUMBLE|TOMBALL|BELLAIRE|FRIENDSWOOD|DEER PARK|LA PORTE|SEABROOK|WEBSTER|CLEAR LAKE|STAFFORD|RICHMOND)\b.*$/i, "");
+    cleaned = cleaned.replace(/,?\s*TX\s*\d{0,5}\s*$/i, "").trim();
 
     // Search by address using STARTSWITH for fast prefix matching
     const { resources } = await container.items.query({

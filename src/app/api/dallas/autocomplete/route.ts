@@ -24,7 +24,12 @@ export async function GET(request: NextRequest) {
     }
 
     const container = client.database("overtaxed").container("dallas-properties");
-    const cleaned = query.trim().toUpperCase();
+    
+    // Strip city, state, zip — our DB stores just street addresses
+    let cleaned = query.trim().toUpperCase();
+    // Remove common suffixes like ", DALLAS, TX 75220" or ", DALLAS TX" or ", TX"
+    cleaned = cleaned.replace(/,?\s*(DALLAS|GARLAND|IRVING|MESQUITE|GRAND PRAIRIE|RICHARDSON|PLANO|ARLINGTON|CARROLLTON|FARMERS BRANCH|DESOTO|DUNCANVILLE|LANCASTER|CEDAR HILL|ROWLETT|SACHSE|BALCH SPRINGS|HUTCHINS|WILMER|SEAGOVILLE|SUNNYVALE|COMBINE|COPPELL|ADDISON|COCKRELL HILL|HIGHLAND PARK|UNIVERSITY PARK)\b.*$/i, "");
+    cleaned = cleaned.replace(/,?\s*TX\s*\d{0,5}\s*$/i, "").trim();
 
     // Search by address using STARTSWITH for fast prefix matching
     const { resources } = await container.items.query({
