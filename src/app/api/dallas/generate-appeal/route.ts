@@ -736,14 +736,20 @@ export async function GET(request: NextRequest) {
       }
       const token = generateAccessToken(sessionId, acct);
       // Send email
+      console.log(`[Dallas] Email: ${email || "NONE"}, Acct: ${acct}, Session: ${sessionId}`);
       if (email) {
         try {
+          console.log("[Dallas] Generating PDF...");
           const pdfBuffer = await generatePdf(generateDallasPdfHtml(propertyData));
+          console.log(`[Dallas] PDF generated: ${pdfBuffer.length} bytes`);
           await sendDallasEmail(email, acct, pdfBuffer, propertyData, token);
+          console.log("[Dallas] Email sent successfully");
         } catch (emailErr) {
-          console.error("Email send error:", emailErr);
+          console.error("[Dallas] Email send error:", emailErr);
           // Don't fail the response — email is best-effort
         }
+      } else {
+        console.warn("[Dallas] No email from Stripe session — skipping email send");
       }
       return NextResponse.json({ success: true, property: propertyData, token, email: email || null, jurisdiction: "dallas" });
     } catch (error) {
