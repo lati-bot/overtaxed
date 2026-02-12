@@ -540,13 +540,13 @@ export default function ResultsContent() {
                 <div>
                   <span className={`text-sm font-medium ${isDark ? "text-amber-300" : "text-amber-800"}`}>
                     {isHouston 
-                      ? "Houston protest deadline: May 15, 2026" 
+                      ? "2026 protest season opens soon — get your analysis ready now" 
                       : "Filing deadlines vary by township — check yours before it closes"
                     }
                   </span>
                   {isHouston && (
                     <span className={`text-sm ${isDark ? "text-amber-300/60" : "text-amber-700/60"}`}>
-                      {" "}• File early for the best chance at an informal settlement
+                      {" "}• Notices arrive late March — filing early gets the best results
                     </span>
                   )}
                 </div>
@@ -557,7 +557,7 @@ export default function ResultsContent() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <div className={`font-semibold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>
-                      Lower Your Tax Bill — $49
+                      Start Your {isHouston ? "Protest" : "Appeal"} — $49
                     </div>
                     <div className={`text-sm mt-2 space-y-1 ${isDark ? "text-emerald-300/70" : "text-emerald-700/70"}`}>
                       <div className="flex items-start gap-2">
@@ -597,11 +597,11 @@ export default function ResultsContent() {
                     }}
                     className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap flex-shrink-0"
                   >
-                    Lower My Tax Bill — $49
+                    File My {isHouston ? "Protest" : "Appeal"} — $49
                   </button>
                 </div>
                 <p className={`mt-3 text-xs ${isDark ? "text-emerald-300/50" : "text-emerald-600/60"}`}>
-                  🔒 One-time fee • Delivered instantly to your email
+                  🔒 One-time filing fee • Delivered instantly to your email
                   {estimatedSavings >= 49 && (
                     <span> • Pays for itself in {estimatedSavings >= 588 ? "1 month" : estimatedSavings >= 98 ? `${Math.ceil(49 / (estimatedSavings / 12))} months` : "under a year"}</span>
                   )}
@@ -912,14 +912,14 @@ export default function ResultsContent() {
                 <div className="font-medium">When is the deadline?</div>
                 <p className={`text-sm ${textSecondary} mt-1`}>
                   {isHouston 
-                    ? "The 2026 protest deadline for Harris County is May 15, 2026 (or 30 days after your notice date, whichever is later). Homestead properties have an earlier deadline of April 30. File early — informal settlements before your hearing often get the best results."
+                    ? "Harris County protest season typically opens in late March when appraisal notices are mailed. The deadline is usually May 15 (or 30 days after your notice date, whichever is later). We'll update with exact 2026 dates once HCAD announces them. Filing early gives you the best shot at an informal settlement."
                     : "Deadlines vary by township and filing body. The Assessor accepts appeals during your township's reassessment year. Board of Review appeals typically open after the Assessor's decisions are final. Check your township's current status."
                   }
                 </p>
               </div>
               <div className={`border-t ${borderColor}`}></div>
               <div>
-                <div className="font-medium">What exactly do I get for $49?</div>
+                <div className="font-medium">What&apos;s included in the $49 filing package?</div>
                 <p className={`text-sm ${textSecondary} mt-1`}>
                   A complete, ready-to-file package: {compCount} comparable properties with detailed analysis (addresses, values, $/sqft), a professional {isHouston ? "hearing script you can read word-for-word at your hearing" : "evidence brief for the Board of Review"}, and step-by-step instructions with screenshots showing exactly where to click. Everything is delivered instantly to your email as a downloadable PDF.
                 </p>
@@ -936,7 +936,7 @@ export default function ResultsContent() {
                 You could be saving ${estimatedSavings.toLocaleString()}/year
               </div>
               <p className={`text-sm ${textSecondary} mt-1`}>
-                That&apos;s ${multiYearSavings.toLocaleString()} over {multiYearLabel}. Your package is ready — file before the deadline.
+                That&apos;s ${multiYearSavings.toLocaleString()} over {multiYearLabel}. Your filing package is ready — don&apos;t miss your window.
               </p>
               <button 
                 onClick={async () => {
@@ -961,10 +961,10 @@ export default function ResultsContent() {
                 }}
                 className="mt-4 px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
               >
-                Lower My Tax Bill — $49
+                File My {isHouston ? "Protest" : "Appeal"} — $49
               </button>
               <p className={`mt-3 text-xs ${textMuted}`}>
-                🔒 Secure payment • Instant delivery • One-time fee
+                🔒 Secure payment • Instant delivery • One-time filing fee
               </p>
             </div>
           </div>
