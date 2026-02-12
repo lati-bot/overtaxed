@@ -389,27 +389,39 @@ function SuccessPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">What&apos;s Next</h3>
           
-          {isHouston ? (
+          {isTexas ? (
             <div className="space-y-4">
               <div className="flex gap-4">
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">1</div>
                 <div>
                   <div className="font-medium text-gray-900">Wait for your appraisal notice</div>
-                  <p className="text-sm text-gray-600">HCAD mails notices in late March/early April. Your protest package is ready to go once you receive it.</p>
+                  <p className="text-sm text-gray-600">
+                    {isDallas 
+                      ? "DCAD mails notices in late March/early April. Your protest package is ready to go once you receive it."
+                      : "HCAD mails notices in late March/early April. Your protest package is ready to go once you receive it."
+                    }
+                  </p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">2</div>
                 <div>
-                  <div className="font-medium text-gray-900">File your protest via iFile</div>
-                  <p className="text-sm text-gray-600">Go to hcad.org and file using &quot;Unequal Appraisal&quot;. Upload this PDF as evidence.</p>
+                  <div className="font-medium text-gray-900">
+                    {isDallas ? "File your protest via DCAD uFile" : "File your protest via iFile"}
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {isDallas
+                      ? 'Go to dallascad.org and file using "Unequal Appraisal". Upload this PDF as evidence.'
+                      : 'Go to hcad.org and file using "Unequal Appraisal". Upload this PDF as evidence.'
+                    }
+                  </p>
                   <a 
-                    href="https://hcad.org/hcad-online-services/ifile-protest/"
+                    href={isDallas ? "https://www.dallascad.org" : "https://hcad.org/hcad-online-services/ifile-protest/"}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline mt-1"
                   >
-                    HCAD iFile Protest
+                    {isDallas ? "DCAD uFile Protest" : "HCAD iFile Protest"}
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
@@ -419,8 +431,13 @@ function SuccessPage() {
               <div className="flex gap-4">
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">3</div>
                 <div>
-                  <div className="font-medium text-gray-900">Check for an iSettle offer</div>
-                  <p className="text-sm text-gray-600">HCAD may send a settlement offer. If it&apos;s fair, accept it. If not, proceed to your ARB hearing.</p>
+                  <div className="font-medium text-gray-900">Check for a settlement offer</div>
+                  <p className="text-sm text-gray-600">
+                    {isDallas
+                      ? "DCAD may send a settlement offer. If it's fair, accept it. If not, proceed to your ARB hearing."
+                      : "HCAD may send a settlement offer. If it's fair, accept it. If not, proceed to your ARB hearing."
+                    }
+                  </p>
                 </div>
               </div>
               <div className="flex gap-4">

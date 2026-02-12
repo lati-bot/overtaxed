@@ -465,9 +465,9 @@ function generateDallasPdfHtml(data: DallasPropertyData): string {
         <div class="step">
           <div class="step-number">2</div>
           <div class="step-content">
-            <div class="step-title">File Online via DCAD eFile</div>
+            <div class="step-title">File Online via DCAD uFile</div>
             <div class="step-desc">
-              Go to <a href="https://www.dallascad.org" class="step-link">dallascad.org</a> → click <strong>"Protest"</strong> or <strong>"eFile a Protest"</strong><br/>
+              Go to <a href="https://www.dallascad.org" class="step-link">dallascad.org</a> → click <strong>"Protest"</strong> or <strong>"uFile a Protest"</strong><br/>
               • Enter your <strong>Account Number</strong>: <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${data.acct}</strong><br/>
               • Select <strong>"Unequal Appraisal"</strong> as your reason for protest<br/>
               • You can also check <strong>"Value is Over Market Value"</strong> as an additional reason<br/>
@@ -644,7 +644,7 @@ async function sendDallasEmail(
         <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px;">
           <li>${data.comps.length} comparable properties with appraised values</li>
           <li>Written "Uniform & Equal" argument citing Texas Tax Code §42.26</li>
-          <li>Step-by-step DCAD eFile and ARB hearing instructions</li>
+          <li>Step-by-step DCAD uFile and ARB hearing instructions</li>
           <li>Hearing script — exactly what to say</li>
           <li>Settlement guidance — how to evaluate DCAD's offer</li>
         </ul>

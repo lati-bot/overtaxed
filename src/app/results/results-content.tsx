@@ -243,7 +243,7 @@ export default function ResultsContent() {
 
     fetchProperty();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, pin]);
+  }, [address, pin, acct]);
 
   // Shared styles
   const bgMain = isDark ? "bg-[#0a0a0a]" : "bg-[#f5f3f7]";
@@ -624,7 +624,7 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Step-by-step {isDallas ? "DCAD eFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                        <span>Step-by-step {isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
                       </div>
                     </div>
                   </div>
