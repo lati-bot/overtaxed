@@ -116,6 +116,52 @@ export default function Home() {
     e.preventDefault();
     if (!address.trim()) return;
     setLoading(true);
+
+    // If user typed but didn't select a suggestion, auto-select the best match
+    if (!selectedPin && suggestions.length > 0) {
+      const best = suggestions[0];
+      const bestPin = best.pin || best.acct || null;
+      const bestJurisdiction = best.jurisdiction;
+      if (bestPin && bestJurisdiction === "harris_county_tx") {
+        router.push(`/results?acct=${bestPin}&jurisdiction=houston`);
+        return;
+      } else if (bestPin && bestJurisdiction === "dallas_county_tx") {
+        router.push(`/results?acct=${bestPin}&jurisdiction=dallas`);
+        return;
+      } else if (bestPin) {
+        router.push(`/results?pin=${bestPin}`);
+        return;
+      }
+    }
+
+    // If user typed but suggestions haven't loaded yet or are empty,
+    // do a quick autocomplete search and use the top result
+    if (!selectedPin) {
+      try {
+        const [cookRes, houstonRes, dallasRes] = await Promise.all([
+          fetch(`/api/autocomplete?q=${encodeURIComponent(address.trim())}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/houston/autocomplete?q=${encodeURIComponent(address.trim())}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/dallas/autocomplete?q=${encodeURIComponent(address.trim())}`).then(r => r.json()).catch(() => ({ results: [] })),
+        ]);
+        const firstCook = (cookRes.results || [])[0];
+        const firstHouston = (houstonRes.results || [])[0];
+        const firstDallas = (dallasRes.results || [])[0];
+
+        if (firstDallas?.acct) {
+          router.push(`/results?acct=${firstDallas.acct}&jurisdiction=dallas`);
+          return;
+        } else if (firstHouston?.acct) {
+          router.push(`/results?acct=${firstHouston.acct}&jurisdiction=houston`);
+          return;
+        } else if (firstCook?.pin) {
+          router.push(`/results?pin=${firstCook.pin}`);
+          return;
+        }
+      } catch {
+        // Fall through to address-based search
+      }
+    }
+
     if (selectedPin && selectedJurisdiction === "harris_county_tx") {
       router.push(`/results?acct=${selectedPin}&jurisdiction=houston`);
     } else if (selectedPin && selectedJurisdiction === "dallas_county_tx") {
