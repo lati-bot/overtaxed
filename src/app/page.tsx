@@ -333,20 +333,20 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
               <div>
                 <div className="text-5xl sm:text-6xl font-bold">$49</div>
-                <div className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>One-time payment</div>
+                <div className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>One-time filing fee</div>
               </div>
               <button 
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
                 className="h-14 px-8 rounded-xl font-medium text-base transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-purple-500/25"
               >
-                Get Your Appeal Package
+                Start Your Filing
               </button>
             </div>
             
             <div className={`border-t pt-8 ${isDark ? "border-white/10" : "border-gray-200"}`}>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
-                  "Complete package with 5+ comparable properties",
+                  "Complete filing package with 5+ comparable properties",
                   "Professional evidence brief ready to submit",
                   "Step-by-step filing instructions",
                   "Delivered to your email instantly",
@@ -377,7 +377,7 @@ export default function Home() {
             {[
               { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves (called \"pro se\") at both the Assessor's Office and Board of Review. We give you everything you need." },
               { q: "What if my appeal doesn't work?", a: "Appeals have a high success rate when you have good comparable properties. If your assessment isn't reduced, you've lost nothing but the filing time — there's no penalty for appealing." },
-              { q: "When can I file an appeal?", a: "In Cook County, appeals open by township on a rotating schedule. In Houston/Harris County, you can protest after receiving your appraisal notice (usually late March), with a deadline of May 15. We'll tell you when your filing window is open." },
+              { q: "When can I file an appeal?", a: "In Cook County, appeals open by township on a rotating schedule. In Houston/Harris County, you can protest after receiving your appraisal notice (usually late March). We only have 2025 data right now — 2026 protest season opens soon. We'll tell you when your filing window is open." },
               { q: "Why is this so much cheaper than attorneys?", a: "Attorneys charge a percentage of savings because they can. We use technology to automate the research that used to take hours. You get the same comparable property analysis at a fraction of the cost." },
               { q: "What properties do you support?", a: "We support single-family homes and small multi-family buildings in Cook County, IL and Houston/Harris County, TX. More markets coming soon." },
             ].map((item, i) => (

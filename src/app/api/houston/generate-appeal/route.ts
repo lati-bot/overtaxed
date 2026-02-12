@@ -406,7 +406,7 @@ function generateHoustonPdfHtml(data: HoustonPropertyData): string {
       <p style="font-size: 10px; color: #555; margin-bottom: 14px; line-height: 1.6;">Texas law gives every property owner the right to protest their appraised value. Harris County makes this easy — you can do it entirely online. <strong>No attorney or agent needed.</strong></p>
       
       <div class="info-box warning">
-        <p style="margin: 0;"><strong>⏰ Deadline:</strong> You must file your protest by <strong>May 15, ${new Date().getFullYear()}</strong> (or 30 days after your appraisal notice was mailed, whichever is later). Homestead properties may have an earlier deadline of April 30. <strong>Don't wait — file as soon as you receive your notice.</strong></p>
+        <p style="margin: 0;"><strong>⏰ Deadline:</strong> Harris County protest season typically opens in late March when appraisal notices are mailed. The deadline is usually May 15 (or 30 days after your notice date, whichever is later). Homestead properties may have an earlier deadline of April 30. <strong>File as soon as you receive your notice for the best results.</strong></p>
       </div>
       
       <div class="steps">
@@ -583,7 +583,7 @@ async function sendHoustonEmail(
         </div>
         
         <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;">
-          <p style="margin: 0; font-size: 13px; color: #92400e;"><strong>⏰ Deadline:</strong> File your protest by <strong>May 15</strong> (or 30 days after your notice, whichever is later). Don't wait!</p>
+          <p style="margin: 0; font-size: 13px; color: #92400e;"><strong>⏰ Deadline:</strong> File your protest once you receive your appraisal notice (usually by May 15 or 30 days after your notice, whichever is later). Don't wait!</p>
         </div>
         
         <p style="font-size: 14px; margin-bottom: 8px;"><strong>Your protest package includes:</strong></p>
