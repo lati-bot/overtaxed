@@ -20,11 +20,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Build client_reference_id based on jurisdiction
-    const clientReferenceId = jurisdiction === "houston" 
-      ? `houston:${propertyId}` 
-      : propertyId;
+    let clientReferenceId: string;
+    if (jurisdiction === "houston") {
+      clientReferenceId = `houston:${propertyId}`;
+    } else if (jurisdiction === "dallas") {
+      clientReferenceId = `dallas:${propertyId}`;
+    } else {
+      clientReferenceId = propertyId;
+    }
+
+    const isTexas = jurisdiction === "houston" || jurisdiction === "dallas";
+    const countyName = jurisdiction === "houston" ? "Harris County" 
+      : jurisdiction === "dallas" ? "Dallas County" 
+      : "Cook County";
 
     const origin = request.headers.get("origin") || "https://www.getovertaxed.com";
+
+    let cancelUrl: string;
+    if (jurisdiction === "houston") {
+      cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=houston`;
+    } else if (jurisdiction === "dallas") {
+      cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=dallas`;
+    } else {
+      cancelUrl = `${origin}/results?pin=${propertyId}`;
+    }
 
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
@@ -33,12 +52,12 @@ export async function POST(request: NextRequest) {
           price_data: {
             currency: "usd",
             product_data: {
-              name: jurisdiction === "houston" 
+              name: isTexas
                 ? "Property Tax Protest Package" 
                 : "Property Tax Appeal Package",
-              description: jurisdiction === "houston"
-                ? "Complete protest package with comparable properties, appraisal analysis, hearing script, and step-by-step filing instructions for Harris County."
-                : "Complete appeal package with comparable properties, assessment analysis, and step-by-step filing instructions for Cook County.",
+              description: isTexas
+                ? `Complete protest package with comparable properties, appraisal analysis, hearing script, and step-by-step filing instructions for ${countyName}.`
+                : `Complete appeal package with comparable properties, assessment analysis, and step-by-step filing instructions for ${countyName}.`,
             },
             unit_amount: 4900, // $49.00
           },
@@ -47,7 +66,7 @@ export async function POST(request: NextRequest) {
       ],
       client_reference_id: clientReferenceId,
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/results?${jurisdiction === "houston" ? `acct=${propertyId}&jurisdiction=houston` : `pin=${propertyId}`}`,
+      cancel_url: cancelUrl,
     });
 
     return NextResponse.json({ url: session.url });

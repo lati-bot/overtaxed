@@ -38,6 +38,64 @@ function SuccessPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [isHouston, setIsHouston] = useState(false);
+  const [isDallas, setIsDallas] = useState(false);
+  const isTexas = isHouston || isDallas;
+
+  // Detect jurisdiction from token or session to avoid waterfall requests
+  function detectJurisdiction(accessToken: string | null): "cook" | "houston" | "dallas" | null {
+    if (!accessToken) return null;
+    try {
+      const [encoded] = accessToken.split(".");
+      if (!encoded) return null;
+      const decoded = Buffer.from(encoded, "base64url").toString();
+      if (decoded.startsWith("houston:")) return "houston";
+      if (decoded.startsWith("dallas:")) return "dallas";
+      return "cook";
+    } catch {
+      return null;
+    }
+  }
+
+  function mapTexasProperty(p: any, jurisdiction: "houston" | "dallas"): PropertyData {
+    return {
+      pin: p.acct,
+      address: p.address,
+      city: p.city || (jurisdiction === "dallas" ? "DALLAS" : "HOUSTON"),
+      zip: p.zipcode || "",
+      township: "",
+      sqft: p.sqft || 0,
+      beds: p.beds || 0,
+      yearBuilt: p.yearBuilt || 0,
+      currentAssessment: p.currentAssessment,
+      fairAssessment: p.fairAssessment,
+      reduction: p.potentialReduction || 0,
+      savings: p.estimatedSavings || 0,
+      perSqft: p.perSqft || 0,
+      fairPerSqft: p.fairPerSqft || 0,
+      comps: (p.comps || []).map((c: any) => ({
+        pin: c.acct || "",
+        address: c.address || "",
+        sqft: c.sqft || 0,
+        beds: c.beds || 0,
+        year: c.yearBuilt || 0,
+        perSqft: c.perSqft || (c.assessedVal && c.sqft ? Math.round((c.assessedVal / c.sqft) * 100) / 100 : 0),
+      })),
+    };
+  }
+
+  async function tryEndpoint(endpoint: string, sessionId: string | null, accessToken: string | null): Promise<{ ok: boolean; data?: any; error?: string }> {
+    const url = sessionId
+      ? `${endpoint}?session_id=${sessionId}`
+      : `${endpoint}?token=${accessToken}`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (res.ok) return { ok: true, data };
+      return { ok: false, error: data.error || "Lookup failed" };
+    } catch {
+      return { ok: false, error: "Request failed" };
+    }
+  }
 
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
@@ -51,72 +109,50 @@ function SuccessPage() {
 
     const fetchData = async () => {
       try {
-        // Try Cook County endpoint first
-        const url = sessionId 
-          ? `/api/generate-appeal?session_id=${sessionId}`
-          : `/api/generate-appeal?token=${accessToken}`;
+        // Detect jurisdiction from token to route directly (avoid waterfall)
+        const detected = detectJurisdiction(accessToken);
+
+        // Order endpoints: detected jurisdiction first, then others as fallback
+        const endpoints: { path: string; jurisdiction: "cook" | "houston" | "dallas" }[] = [];
         
-        const res = await fetch(url);
-        let cookError = "Unknown error";
-        try {
-          const data = await res.json();
-          if (res.ok) {
-            setProperty(data.property);
-            setToken(data.token);
-            setEmail(data.email || null);
-            return;
-          }
-          cookError = data.error || "Cook County lookup failed";
-        } catch {
-          cookError = "Cook County lookup failed";
+        if (detected === "houston") {
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+        } else if (detected === "dallas") {
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+        } else {
+          // Default: Cook first (original behavior), then Houston, then Dallas
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
         }
 
-        // If Cook County failed, try Houston endpoint
-        const houstonUrl = sessionId
-          ? `/api/houston/generate-appeal?session_id=${sessionId}`
-          : `/api/houston/generate-appeal?token=${accessToken}`;
-        
-        const houstonRes = await fetch(houstonUrl);
-        try {
-          const houstonData = await houstonRes.json();
-          if (houstonRes.ok) {
-            // Map Houston property shape to our PropertyData interface
-            const hp = houstonData.property;
-            setProperty({
-              pin: hp.acct,
-              address: hp.address,
-              city: hp.city || "HOUSTON",
-              zip: "",
-              township: "",
-              sqft: hp.sqft || 0,
-              beds: 0,
-              yearBuilt: hp.yearBuilt || 0,
-              currentAssessment: hp.currentAssessment,
-              fairAssessment: hp.fairAssessment,
-              reduction: hp.potentialReduction || 0,
-              savings: hp.estimatedSavings || 0,
-              perSqft: hp.perSqft || 0,
-              fairPerSqft: hp.fairPerSqft || 0,
-              comps: (hp.comps || []).map((c: any) => ({
-                pin: c.acct || "",
-                address: c.address || "",
-                sqft: c.sqft || 0,
-                beds: 0,
-                year: c.yearBuilt || 0,
-                perSqft: c.perSqft || c.assessedVal && c.sqft ? Math.round((c.assessedVal / c.sqft) * 100) / 100 : 0,
-              })),
-            });
-            setToken(houstonData.token);
-            setEmail(houstonData.email || null);
-            setIsHouston(true);
+        let lastError = "Failed to load appeal package";
+
+        for (const ep of endpoints) {
+          const result = await tryEndpoint(ep.path, sessionId, accessToken);
+          if (result.ok && result.data) {
+            if (ep.jurisdiction === "houston") {
+              setProperty(mapTexasProperty(result.data.property, "houston"));
+              setIsHouston(true);
+            } else if (ep.jurisdiction === "dallas") {
+              setProperty(mapTexasProperty(result.data.property, "dallas"));
+              setIsDallas(true);
+            } else {
+              setProperty(result.data.property);
+            }
+            setToken(result.data.token);
+            setEmail(result.data.email || null);
             return;
           }
-          // Both failed — show Houston error (more likely to be relevant)
-          setError(houstonData.error || cookError || "Failed to load appeal package");
-        } catch {
-          setError(cookError || "Failed to load appeal package");
+          if (result.error) lastError = result.error;
         }
-      } catch (err) {
+
+        setError(lastError);
+      } catch {
         setError("Failed to load appeal package. Please try again.");
       } finally {
         setLoading(false);
@@ -131,7 +167,7 @@ function SuccessPage() {
     
     setDownloading(true);
     try {
-      const endpoint = isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
+      const endpoint = isDallas ? "/api/dallas/generate-appeal" : isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -144,7 +180,7 @@ function SuccessPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = isHouston 
+      a.download = isTexas
         ? `protest-package-${property?.pin}.pdf`
         : `appeal-package-${property?.pin}.pdf`;
       document.body.appendChild(a);
@@ -214,10 +250,12 @@ function SuccessPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {isHouston ? "Your Protest Package is Ready!" : "Your Appeal Package is Ready!"}
+            {isTexas ? "Your Protest Package is Ready!" : "Your Appeal Package is Ready!"}
           </h1>
           <p className="text-gray-600">
-            {isHouston 
+            {isDallas
+              ? "Everything you need to protest your property tax with Dallas County"
+              : isTexas
               ? "Everything you need to protest your property tax with Harris County"
               : "Everything you need to appeal your property tax assessment"
             }
@@ -230,13 +268,15 @@ function SuccessPage() {
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{property.address}</h2>
               <p className="text-gray-500">
-                {isHouston 
+                {isDallas
+                  ? `${property.city}, TX · Dallas County`
+                  : isTexas
                   ? `${property.city}, TX · Harris County`
                   : `${property.city}, IL ${property.zip} · ${property.township} Township`
                 }
               </p>
               <p className="text-sm text-gray-400 font-mono">
-                {isHouston ? `Account: ${property.pin}` : `PIN: ${property.pin}`}
+                {isTexas ? `Account: ${property.pin}` : `PIN: ${property.pin}`}
               </p>
             </div>
             <div className="text-right">
@@ -247,15 +287,15 @@ function SuccessPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
             <div>
-              <div className="text-sm text-gray-500">{isHouston ? "Current Appraised" : "Current Assessment"}</div>
+              <div className="text-sm text-gray-500">{isTexas ? "Current Appraised" : "Current Assessment"}</div>
               <div className="text-lg font-semibold text-red-600">${property.currentAssessment.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">{isHouston ? "Fair Value" : "Fair Assessment"}</div>
+              <div className="text-sm text-gray-500">{isTexas ? "Fair Value" : "Fair Assessment"}</div>
               <div className="text-lg font-semibold text-green-600">${property.fairAssessment.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">{isHouston ? "Over-Appraised By" : "Over-Assessed By"}</div>
+              <div className="text-sm text-gray-500">{isTexas ? "Over-Appraised By" : "Over-Assessed By"}</div>
               <div className="text-lg font-semibold text-amber-600">{overAssessedPct}%</div>
             </div>
           </div>
@@ -264,10 +304,10 @@ function SuccessPage() {
         {/* Download Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {isHouston ? "Download Your Protest Package" : "Download Your Appeal Package"}
+            {isTexas ? "Download Your Protest Package" : "Download Your Appeal Package"}
           </h3>
           <p className="text-gray-600 mb-4">
-            {isHouston 
+            {isTexas 
               ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step filing instructions."
               : "Your complete appeal package includes comparable properties, assessment analysis, and step-by-step filing instructions."
             }
@@ -308,7 +348,7 @@ function SuccessPage() {
         {/* Comparable Properties Preview */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Comparable Properties</h3>
-          <p className="text-gray-600 mb-4">These similar properties are {isHouston ? "appraised" : "assessed"} at lower values than yours:</p>
+          <p className="text-gray-600 mb-4">These similar properties are {isTexas ? "appraised" : "assessed"} at lower values than yours:</p>
           
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -325,7 +365,7 @@ function SuccessPage() {
                     <td className="py-3 px-2">
                       <div className="font-medium text-gray-900">{comp.address}</div>
                       <div className="text-xs text-gray-400 font-mono">
-                        {isHouston ? `Acct: ${comp.pin || (comp as any).acct}` : comp.pin}
+                        {isTexas ? `Acct: ${comp.pin || (comp as any).acct}` : comp.pin}
                       </div>
                     </td>
                     <td className="text-right py-3 px-2 text-gray-600">{comp.sqft.toLocaleString()}</td>
@@ -342,27 +382,39 @@ function SuccessPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">What&apos;s Next</h3>
           
-          {isHouston ? (
+          {isTexas ? (
             <div className="space-y-4">
               <div className="flex gap-4">
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">1</div>
                 <div>
                   <div className="font-medium text-gray-900">Wait for your appraisal notice</div>
-                  <p className="text-sm text-gray-600">HCAD mails notices in late March/early April. Your protest package is ready to go once you receive it.</p>
+                  <p className="text-sm text-gray-600">
+                    {isDallas 
+                      ? "DCAD mails notices in late March/early April. Your protest package is ready to go once you receive it."
+                      : "HCAD mails notices in late March/early April. Your protest package is ready to go once you receive it."
+                    }
+                  </p>
                 </div>
               </div>
               <div className="flex gap-4">
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">2</div>
                 <div>
-                  <div className="font-medium text-gray-900">File your protest via iFile</div>
-                  <p className="text-sm text-gray-600">Go to hcad.org and file using &quot;Unequal Appraisal&quot;. Upload this PDF as evidence.</p>
+                  <div className="font-medium text-gray-900">
+                    {isDallas ? "File your protest via DCAD uFile" : "File your protest via iFile"}
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {isDallas
+                      ? 'Go to dallascad.org and file using "Unequal Appraisal". Upload this PDF as evidence.'
+                      : 'Go to hcad.org and file using "Unequal Appraisal". Upload this PDF as evidence.'
+                    }
+                  </p>
                   <a 
-                    href="https://hcad.org/hcad-online-services/ifile-protest/"
+                    href={isDallas ? "https://www.dallascad.org" : "https://hcad.org/hcad-online-services/ifile-protest/"}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline mt-1"
                   >
-                    HCAD iFile Protest
+                    {isDallas ? "DCAD uFile Protest" : "HCAD iFile Protest"}
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
@@ -372,8 +424,13 @@ function SuccessPage() {
               <div className="flex gap-4">
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">3</div>
                 <div>
-                  <div className="font-medium text-gray-900">Check for an iSettle offer</div>
-                  <p className="text-sm text-gray-600">HCAD may send a settlement offer. If it&apos;s fair, accept it. If not, proceed to your ARB hearing.</p>
+                  <div className="font-medium text-gray-900">Check for a settlement offer</div>
+                  <p className="text-sm text-gray-600">
+                    {isDallas
+                      ? "DCAD may send a settlement offer. If it's fair, accept it. If not, proceed to your ARB hearing."
+                      : "HCAD may send a settlement offer. If it's fair, accept it. If not, proceed to your ARB hearing."
+                    }
+                  </p>
                 </div>
               </div>
               <div className="flex gap-4">

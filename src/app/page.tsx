@@ -13,7 +13,7 @@ interface AutocompleteResult {
   township?: string;
   neighborhood?: string;
   display?: string;
-  jurisdiction: "cook_county_il" | "harris_county_tx";
+  jurisdiction: "cook_county_il" | "harris_county_tx" | "dallas_county_tx";
 }
 
 export default function Home() {
@@ -48,10 +48,11 @@ export default function Home() {
     }
     const timer = setTimeout(async () => {
       try {
-        // Search both Cook County and Houston in parallel
-        const [cookRes, houstonRes] = await Promise.all([
+        // Search Cook County, Houston, and Dallas in parallel
+        const [cookRes, houstonRes, dallasRes] = await Promise.all([
           fetch(`/api/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/houston/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/dallas/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
         ]);
         
         const cookResults = (cookRes.results || []).map((r: any) => ({
@@ -66,7 +67,13 @@ export default function Home() {
           display: r.address,
         }));
         
-        const combined = [...cookResults, ...houstonResults].slice(0, 8);
+        const dallasResults = (dallasRes.results || []).map((r: any) => ({
+          ...r,
+          jurisdiction: "dallas_county_tx" as const,
+          display: r.address,
+        }));
+        
+        const combined = [...cookResults, ...houstonResults, ...dallasResults].slice(0, 8);
         setSuggestions(combined);
         setShowSuggestions(true);
       } catch {
@@ -109,8 +116,59 @@ export default function Home() {
     e.preventDefault();
     if (!address.trim()) return;
     setLoading(true);
+
+    // If user typed but didn't select a suggestion, auto-select the best match
+    if (!selectedPin && suggestions.length > 0) {
+      const best = suggestions[0];
+      const bestPin = best.pin || best.acct || null;
+      const bestJurisdiction = best.jurisdiction;
+      if (bestPin && bestJurisdiction === "harris_county_tx") {
+        router.push(`/results?acct=${bestPin}&jurisdiction=houston`);
+        return;
+      } else if (bestPin && bestJurisdiction === "dallas_county_tx") {
+        router.push(`/results?acct=${bestPin}&jurisdiction=dallas`);
+        return;
+      } else if (bestPin) {
+        router.push(`/results?pin=${bestPin}`);
+        return;
+      }
+    }
+
+    // If user typed but suggestions haven't loaded yet or are empty,
+    // do a quick autocomplete search and use the top result
+    if (!selectedPin) {
+      try {
+        // Strip city/state/zip for cleaner matching
+        const cleanedAddress = address.trim().replace(/,?\s*(IL|TX|ILLINOIS|TEXAS)\s*\d{0,5}\s*$/i, "").replace(/,?\s*$/, "").trim();
+        const q = encodeURIComponent(cleanedAddress);
+        const [cookRes, houstonRes, dallasRes] = await Promise.all([
+          fetch(`/api/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/houston/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/dallas/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
+        ]);
+        const firstCook = (cookRes.results || [])[0];
+        const firstHouston = (houstonRes.results || [])[0];
+        const firstDallas = (dallasRes.results || [])[0];
+
+        if (firstDallas?.acct) {
+          router.push(`/results?acct=${firstDallas.acct}&jurisdiction=dallas`);
+          return;
+        } else if (firstHouston?.acct) {
+          router.push(`/results?acct=${firstHouston.acct}&jurisdiction=houston`);
+          return;
+        } else if (firstCook?.pin) {
+          router.push(`/results?pin=${firstCook.pin}`);
+          return;
+        }
+      } catch {
+        // Fall through to address-based search
+      }
+    }
+
     if (selectedPin && selectedJurisdiction === "harris_county_tx") {
       router.push(`/results?acct=${selectedPin}&jurisdiction=houston`);
+    } else if (selectedPin && selectedJurisdiction === "dallas_county_tx") {
+      router.push(`/results?acct=${selectedPin}&jurisdiction=dallas`);
     } else if (selectedPin) {
       router.push(`/results?pin=${selectedPin}`);
     } else {
@@ -189,7 +247,7 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
             </span>
-            <span>Serving Cook County, IL & Houston, TX</span>
+            <span>Serving Cook County, IL · Houston, TX · Dallas, TX</span>
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.1]">
@@ -243,13 +301,17 @@ export default function Home() {
                           <span className={`text-xs px-2 py-0.5 rounded-full ${
                             suggestion.jurisdiction === "harris_county_tx"
                               ? "bg-blue-100 text-blue-700"
+                              : suggestion.jurisdiction === "dallas_county_tx"
+                              ? "bg-orange-100 text-orange-700"
                               : "bg-purple-100 text-purple-700"
                           }`}>
-                            {suggestion.jurisdiction === "harris_county_tx" ? "Houston, TX" : "Cook County, IL"}
+                            {suggestion.jurisdiction === "harris_county_tx" ? "Houston, TX" 
+                              : suggestion.jurisdiction === "dallas_county_tx" ? "Dallas, TX"
+                              : "Cook County, IL"}
                           </span>
                         </div>
                         <div className={`text-sm mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                          {suggestion.city}, {suggestion.jurisdiction === "harris_county_tx" ? "TX" : `IL ${(suggestion.zip || "").split('-')[0]}`}
+                          {suggestion.city}, {suggestion.jurisdiction === "cook_county_il" ? `IL ${(suggestion.zip || "").split('-')[0]}` : "TX"}
                         </div>
                       </button>
                     ))}
@@ -301,7 +363,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
             {[
-              { num: 1, title: "Enter your address", desc: "We pull your property data from public records automatically. Works for Cook County, IL and Houston, TX." },
+              { num: 1, title: "Enter your address", desc: "We pull your property data from public records automatically. Works for Cook County, IL, Houston, TX, and Dallas, TX." },
               { num: 2, title: "We find your comps", desc: "Our system identifies similar properties that sold for less or are assessed lower than yours." },
               { num: 3, title: "File your appeal", desc: "Download your complete appeal package and file it yourself — we show you exactly how." },
             ].map((step) => (
@@ -377,9 +439,9 @@ export default function Home() {
             {[
               { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves (called \"pro se\") at both the Assessor's Office and Board of Review. We give you everything you need." },
               { q: "What if my appeal doesn't work?", a: "Appeals have a high success rate when you have good comparable properties. If your assessment isn't reduced, you've lost nothing but the filing time — there's no penalty for appealing." },
-              { q: "When can I file an appeal?", a: "In Cook County, appeals open by township on a rotating schedule. In Houston/Harris County, you can protest after receiving your appraisal notice (usually late March). We only have 2025 data right now — 2026 protest season opens soon. We'll tell you when your filing window is open." },
+              { q: "When can I file an appeal?", a: "In Cook County, appeals open by township on a rotating schedule. In Houston/Harris County and Dallas/Dallas County, you can protest after receiving your appraisal notice (usually late March). We currently have 2025 data — 2026 protest season opens soon. We'll tell you when your filing window is open." },
               { q: "Why is this so much cheaper than attorneys?", a: "Attorneys charge a percentage of savings because they can. We use technology to automate the research that used to take hours. You get the same comparable property analysis at a fraction of the cost." },
-              { q: "What properties do you support?", a: "We support single-family homes and small multi-family buildings in Cook County, IL and Houston/Harris County, TX. More markets coming soon." },
+              { q: "What properties do you support?", a: "We support single-family homes and small multi-family buildings in Cook County, IL, Houston/Harris County, TX, and Dallas/Dallas County, TX. More markets coming soon." },
             ].map((item, i) => (
               <div key={i}>
                 <h3 className="text-lg font-semibold mb-2">{item.q}</h3>
