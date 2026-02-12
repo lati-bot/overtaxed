@@ -251,6 +251,54 @@ export default function ResultsContent() {
           neighborhoodStats: wp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+      } else if (isFortBend) {
+        // Fort Bend County flow — use Fort Bend lookup API
+        const fortbendAcct = searchPin || acct;
+        if (!fortbendAcct) {
+          setError("Missing account number");
+          return;
+        }
+        const response = await fetch(`/api/fortbend/lookup?acct=${fortbendAcct}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Property not found");
+          return;
+        }
+        
+        const fp = data.property;
+        setProperty({
+          pin: fp.acct,
+          address: fp.address,
+          city: fp.city || "SUGAR LAND",
+          zip: fp.zipcode || "",
+          township: "",
+          neighborhood: fp.neighborhoodCode || "",
+          characteristics: {
+            class: "",
+            buildingSqFt: fp.sqft,
+            landSqFt: null,
+            yearBuilt: fp.yearBuilt && fp.yearBuilt > 0 ? fp.yearBuilt : null,
+            bedrooms: fp.beds || null,
+            fullBaths: fp.fullBaths || null,
+            halfBaths: fp.halfBaths || null,
+          },
+          assessment: {
+            year: "2025",
+            mailedTotal: fp.currentAssessment,
+            mailedBuilding: fp.improvementVal || 0,
+            mailedLand: fp.landVal || 0,
+            certifiedTotal: null,
+            boardTotal: null,
+          },
+          analysis: {
+            fairAssessment: fp.status === "over" ? fp.fairAssessment : fp.currentAssessment,
+            potentialSavings: fp.status === "over" ? fp.estimatedSavings : 0,
+            compCount: (fp.comps || []).length,
+          },
+          neighborhoodStats: fp.neighborhoodStats || null,
+        });
+        setAnalysisAvailable(true);
       } else if (isTarrant) {
         // Tarrant County flow — use Tarrant lookup API
         const tarrantAcct = searchPin || acct;
@@ -725,7 +773,9 @@ export default function ResultsContent() {
                   {property.city}, {isTexas ? "TX" : `IL ${property.zip}`}
                 </p>
                 <p className={`text-sm ${textMuted} mt-1`}>
-                  {isWilliamson
+                  {isFortBend
+                    ? `Account: ${property.pin} • Fort Bend County`
+                    : isWilliamson
                     ? `Account: ${property.pin} • Williamson County`
                     : isDenton
                     ? `Account: ${property.pin} • Denton County`
@@ -896,7 +946,7 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Step-by-step {isWilliamson ? "WCAD Online Protest" : isDenton ? "DCAD E-File" : isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                        <span>Step-by-step {isFortBend ? "FBCAD Online Protest" : isWilliamson ? "WCAD Online Protest" : isDenton ? "DCAD E-File" : isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
                       </div>
                     </div>
                   </div>
@@ -1111,7 +1161,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-semibold">File &amp; Save</div>
                   <p className={`text-sm ${textSecondary} mt-1`}>
-                    Follow our guide to file {isWilliamson ? "your protest with WCAD" : isDenton ? "your protest with DCAD" : isTarrant ? "your protest with TAD" : isCollin ? "your protest with CCAD" : isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
+                    Follow our guide to file {isFortBend ? "your protest with FBCAD" : isWilliamson ? "your protest with WCAD" : isDenton ? "your protest with DCAD" : isTarrant ? "your protest with TAD" : isCollin ? "your protest with CCAD" : isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
                   </p>
                 </div>
               </div>
@@ -1298,7 +1348,9 @@ export default function ResultsContent() {
 
         {/* Disclaimer */}
         <p className={`mt-4 text-xs ${textMuted} text-center`}>
-          {isWilliamson
+          {isFortBend
+            ? "Appraisal data from Fort Bend Central Appraisal District (FBCAD). Tax bill estimates use an average Fort Bend County rate of ~2.2% and may vary by taxing jurisdiction."
+            : isWilliamson
             ? "Appraisal data from Williamson Central Appraisal District (WCAD). Tax bill estimates use an average Williamson County rate of ~2.1% and may vary by taxing jurisdiction."
             : isDenton
             ? "Appraisal data from Denton Central Appraisal District (DCAD). Tax bill estimates use an average Denton County rate of ~2.2% and may vary by taxing jurisdiction."
