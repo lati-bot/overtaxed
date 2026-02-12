@@ -448,7 +448,7 @@ function generateCollinPdfHtml(data: CollinPropertyData): string {
     <!-- FILING INSTRUCTIONS -->
     <div class="section page-break">
       <div class="section-title">📋 How to Protest — Collin County Step by Step</div>
-      <p style="font-size: 10px; color: #555; margin-bottom: 14px; line-height: 1.6;">Texas law gives every property owner the right to protest their appraised value. Collin Central Appraisal District (CCAD) makes this easy — you can file online through their eFile portal. <strong>No attorney or agent needed.</strong></p>
+      <p style="font-size: 10px; color: #555; margin-bottom: 14px; line-height: 1.6;">Texas law gives every property owner the right to protest their appraised value. Collin Central Appraisal District (CCAD) makes this easy — you can file online through their Online Portal. <strong>No attorney or agent needed.</strong></p>
       
       <div class="info-box warning">
         <p style="margin: 0;"><strong>⏰ Deadline:</strong> CCAD protest season typically opens when appraisal notices are mailed (usually mid-April). The deadline is typically May 15 or 30 days after your notice date, whichever is later. <strong>File as soon as you receive your notice for the best results.</strong> Verify your exact deadline at <a href="https://www.collincad.org" class="step-link">collincad.org</a>.</p>
@@ -467,7 +467,7 @@ function generateCollinPdfHtml(data: CollinPropertyData): string {
           <div class="step-content">
             <div class="step-title">File Online via CCAD eFile</div>
             <div class="step-desc">
-              Go to <a href="https://eprotest.collincad.org" class="step-link">eprotest.collincad.org</a> → Log in or create an account → File your protest online<br/>
+              Go to <a href="https://onlineportal.collincad.org" class="step-link">onlineportal.collincad.org</a> → Log in or create an account → File your protest online<br/>
               • Use your <strong>Property ID</strong>: <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${data.acct}</strong><br/>
               • Select <strong>"Unequal Appraisal"</strong> as your reason for protest<br/>
               • You can also check <strong>"Value is Over Market Value"</strong> as an additional reason<br/>

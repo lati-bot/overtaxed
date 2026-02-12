@@ -793,7 +793,7 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Step-by-step {isTarrant ? "TAD Online Protest" : isCollin ? "CCAD eFile" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                        <span>Step-by-step {isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
                       </div>
                     </div>
                   </div>
