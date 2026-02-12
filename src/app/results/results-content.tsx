@@ -74,14 +74,17 @@ export default function ResultsContent() {
   const pin = searchParams.get("pin");
   const acct = searchParams.get("acct");
   const jurisdiction = searchParams.get("jurisdiction");
-  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin" && jurisdiction !== "collin" && jurisdiction !== "tarrant");
+  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin" && jurisdiction !== "collin" && jurisdiction !== "tarrant" && jurisdiction !== "denton" && jurisdiction !== "williamson" && jurisdiction !== "fortbend");
   const isDallas = jurisdiction === "dallas";
   const isAustin = jurisdiction === "austin";
   const isCollin = jurisdiction === "collin";
   const isTarrant = jurisdiction === "tarrant";
-  const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant;
-  const marketLabel = isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
-  const jurisdictionValue = isTarrant ? "tarrant" : isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
+  const isDenton = jurisdiction === "denton";
+  const isWilliamson = jurisdiction === "williamson";
+  const isFortBend = jurisdiction === "fortbend";
+  const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend;
+  const marketLabel = isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "DCAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
+  const jurisdictionValue = isFortBend ? "fortbend" : isWilliamson ? "williamson" : isDenton ? "denton" : isTarrant ? "tarrant" : isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
 
   useEffect(() => {
     setMounted(true);
@@ -150,6 +153,102 @@ export default function ResultsContent() {
             compCount: (cp.comps || []).length,
           },
           neighborhoodStats: cp.neighborhoodStats || null,
+        });
+        setAnalysisAvailable(true);
+      } else if (isDenton) {
+        // Denton County flow — use Denton lookup API
+        const dentonAcct = searchPin || acct;
+        if (!dentonAcct) {
+          setError("Missing account number");
+          return;
+        }
+        const response = await fetch(`/api/denton/lookup?acct=${dentonAcct}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Property not found");
+          return;
+        }
+        
+        const dp = data.property;
+        setProperty({
+          pin: dp.acct,
+          address: dp.address,
+          city: dp.city || "DENTON",
+          zip: dp.zipcode || "",
+          township: "",
+          neighborhood: dp.neighborhoodCode || "",
+          characteristics: {
+            class: "",
+            buildingSqFt: dp.sqft,
+            landSqFt: null,
+            yearBuilt: dp.yearBuilt || null,
+            bedrooms: null,
+            fullBaths: null,
+            halfBaths: null,
+          },
+          assessment: {
+            year: "2025",
+            mailedTotal: dp.currentAssessment,
+            mailedBuilding: dp.improvementVal || 0,
+            mailedLand: dp.landVal || 0,
+            certifiedTotal: null,
+            boardTotal: null,
+          },
+          analysis: {
+            fairAssessment: dp.status === "over" ? dp.fairAssessment : dp.currentAssessment,
+            potentialSavings: dp.status === "over" ? dp.estimatedSavings : 0,
+            compCount: (dp.comps || []).length,
+          },
+          neighborhoodStats: dp.neighborhoodStats || null,
+        });
+        setAnalysisAvailable(true);
+      } else if (isWilliamson) {
+        // Williamson County flow — use Williamson lookup API
+        const williamsonAcct = searchPin || acct;
+        if (!williamsonAcct) {
+          setError("Missing account number");
+          return;
+        }
+        const response = await fetch(`/api/williamson/lookup?acct=${williamsonAcct}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Property not found");
+          return;
+        }
+        
+        const wp = data.property;
+        setProperty({
+          pin: wp.acct,
+          address: wp.address,
+          city: wp.city || "GEORGETOWN",
+          zip: wp.zipcode || "",
+          township: "",
+          neighborhood: wp.neighborhoodCode || "",
+          characteristics: {
+            class: "",
+            buildingSqFt: wp.sqft,
+            landSqFt: null,
+            yearBuilt: wp.yearBuilt && wp.yearBuilt > 0 ? wp.yearBuilt : null,
+            bedrooms: null,
+            fullBaths: null,
+            halfBaths: null,
+          },
+          assessment: {
+            year: "2025",
+            mailedTotal: wp.currentAssessment,
+            mailedBuilding: 0,
+            mailedLand: 0,
+            certifiedTotal: null,
+            boardTotal: null,
+          },
+          analysis: {
+            fairAssessment: wp.status === "over" ? wp.fairAssessment : wp.currentAssessment,
+            potentialSavings: wp.status === "over" ? wp.estimatedSavings : 0,
+            compCount: (wp.comps || []).length,
+          },
+          neighborhoodStats: wp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
       } else if (isTarrant) {
@@ -461,7 +560,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-medium">Not in our coverage area?</div>
                   <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    We currently cover Cook County, IL, Houston, TX (Harris County), Dallas, TX (Dallas County), Austin, TX (Travis County), Collin County, TX, and Tarrant County, TX. More markets coming soon!
+                    We currently cover Cook County, IL, Houston, TX (Harris County), Dallas, TX (Dallas County), Austin, TX (Travis County), Collin County, TX, Tarrant County, TX, Denton County, TX, and Williamson County, TX. More markets coming soon!
                   </p>
                 </div>
               </div>
@@ -626,7 +725,11 @@ export default function ResultsContent() {
                   {property.city}, {isTexas ? "TX" : `IL ${property.zip}`}
                 </p>
                 <p className={`text-sm ${textMuted} mt-1`}>
-                  {isTarrant
+                  {isWilliamson
+                    ? `Account: ${property.pin} • Williamson County`
+                    : isDenton
+                    ? `Account: ${property.pin} • Denton County`
+                    : isTarrant
                     ? `Account: ${property.pin} • Tarrant County`
                     : isCollin
                     ? `Account: ${property.pin} • Collin County`
@@ -662,13 +765,13 @@ export default function ResultsContent() {
                     <div className="font-semibold">{property.characteristics.buildingSqFt.toLocaleString()}</div>
                   </div>
                 )}
-                {!isTarrant && property.characteristics.bedrooms && (
+                {!isTarrant && !isDenton && !isWilliamson && property.characteristics.bedrooms && (
                   <div>
                     <div className={`text-sm ${textMuted}`}>Beds</div>
                     <div className="font-semibold">{property.characteristics.bedrooms}</div>
                   </div>
                 )}
-                {!isTarrant && property.characteristics.fullBaths && (
+                {!isTarrant && !isDenton && !isWilliamson && property.characteristics.fullBaths && (
                   <div>
                     <div className={`text-sm ${textMuted}`}>Baths</div>
                     <div className="font-semibold">
@@ -793,7 +896,7 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Step-by-step {isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                        <span>Step-by-step {isWilliamson ? "WCAD Online Protest" : isDenton ? "DCAD E-File" : isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
                       </div>
                     </div>
                   </div>
@@ -1008,7 +1111,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-semibold">File &amp; Save</div>
                   <p className={`text-sm ${textSecondary} mt-1`}>
-                    Follow our guide to file {isTarrant ? "your protest with TAD" : isCollin ? "your protest with CCAD" : isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
+                    Follow our guide to file {isWilliamson ? "your protest with WCAD" : isDenton ? "your protest with DCAD" : isTarrant ? "your protest with TAD" : isCollin ? "your protest with CCAD" : isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
                   </p>
                 </div>
               </div>
@@ -1195,7 +1298,11 @@ export default function ResultsContent() {
 
         {/* Disclaimer */}
         <p className={`mt-4 text-xs ${textMuted} text-center`}>
-          {isTarrant
+          {isWilliamson
+            ? "Appraisal data from Williamson Central Appraisal District (WCAD). Tax bill estimates use an average Williamson County rate of ~2.1% and may vary by taxing jurisdiction."
+            : isDenton
+            ? "Appraisal data from Denton Central Appraisal District (DCAD). Tax bill estimates use an average Denton County rate of ~2.2% and may vary by taxing jurisdiction."
+            : isTarrant
             ? "Appraisal data from Tarrant Appraisal District (TAD). Tax bill estimates use an average Tarrant County rate of ~2.2% and may vary by taxing jurisdiction."
             : isCollin
             ? "Appraisal data from Collin Central Appraisal District (CCAD). Tax bill estimates use an average Collin County rate of ~2.2% and may vary by taxing jurisdiction."

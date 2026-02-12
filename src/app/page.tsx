@@ -13,7 +13,7 @@ interface AutocompleteResult {
   township?: string;
   neighborhood?: string;
   display?: string;
-  jurisdiction: "cook_county_il" | "harris_county_tx" | "dallas_county_tx" | "travis_county_tx" | "collin_county_tx" | "tarrant_county_tx";
+  jurisdiction: "cook_county_il" | "harris_county_tx" | "dallas_county_tx" | "travis_county_tx" | "collin_county_tx" | "tarrant_county_tx" | "denton_county_tx" | "williamson_county_tx" | "fortbend_county_tx";
 }
 
 export default function Home() {
@@ -48,14 +48,17 @@ export default function Home() {
     }
     const timer = setTimeout(async () => {
       try {
-        // Search Cook County, Houston, Dallas, Austin, Collin, and Tarrant in parallel
-        const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes] = await Promise.all([
+        // Search all markets in parallel
+        const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes, dentonRes, williamsonRes, fortbendRes] = await Promise.all([
           fetch(`/api/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/houston/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/dallas/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/austin/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/collin/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/tarrant/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/denton/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/williamson/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/fortbend/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
         ]);
         
         const cookResults = (cookRes.results || []).map((r: any) => ({
@@ -94,7 +97,25 @@ export default function Home() {
           display: r.address,
         }));
         
-        const combined = [...cookResults, ...houstonResults, ...dallasResults, ...austinResults, ...collinResults, ...tarrantResults].slice(0, 8);
+        const dentonResults = (dentonRes.results || []).map((r: any) => ({
+          ...r,
+          jurisdiction: "denton_county_tx" as const,
+          display: r.address,
+        }));
+        
+        const williamsonResults = (williamsonRes.results || []).map((r: any) => ({
+          ...r,
+          jurisdiction: "williamson_county_tx" as const,
+          display: r.address,
+        }));
+        
+        const fortbendResults = (fortbendRes.results || []).map((r: any) => ({
+          ...r,
+          jurisdiction: "fortbend_county_tx" as const,
+          display: r.address,
+        }));
+        
+        const combined = [...cookResults, ...houstonResults, ...dallasResults, ...austinResults, ...collinResults, ...tarrantResults, ...dentonResults, ...williamsonResults, ...fortbendResults].slice(0, 8);
         setSuggestions(combined);
         setShowSuggestions(true);
       } catch {
@@ -158,6 +179,15 @@ export default function Home() {
       } else if (bestPin && bestJurisdiction === "tarrant_county_tx") {
         router.push(`/results?acct=${bestPin}&jurisdiction=tarrant`);
         return;
+      } else if (bestPin && bestJurisdiction === "denton_county_tx") {
+        router.push(`/results?acct=${bestPin}&jurisdiction=denton`);
+        return;
+      } else if (bestPin && bestJurisdiction === "williamson_county_tx") {
+        router.push(`/results?acct=${bestPin}&jurisdiction=williamson`);
+        return;
+      } else if (bestPin && bestJurisdiction === "fortbend_county_tx") {
+        router.push(`/results?acct=${bestPin}&jurisdiction=fortbend`);
+        return;
       } else if (bestPin) {
         router.push(`/results?pin=${bestPin}`);
         return;
@@ -171,13 +201,16 @@ export default function Home() {
         // Strip city/state/zip for cleaner matching
         const cleanedAddress = address.trim().replace(/,?\s*(IL|TX|ILLINOIS|TEXAS)\s*\d{0,5}\s*$/i, "").replace(/,?\s*$/, "").trim();
         const q = encodeURIComponent(cleanedAddress);
-        const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes] = await Promise.all([
+        const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes, dentonRes, williamsonRes, fortbendRes] = await Promise.all([
           fetch(`/api/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/houston/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/dallas/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/austin/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/collin/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/tarrant/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/denton/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/williamson/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/fortbend/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
         ]);
         const firstCook = (cookRes.results || [])[0];
         const firstHouston = (houstonRes.results || [])[0];
@@ -185,8 +218,20 @@ export default function Home() {
         const firstAustin = (austinRes.results || [])[0];
         const firstCollin = (collinRes.results || [])[0];
         const firstTarrant = (tarrantRes.results || [])[0];
+        const firstDenton = (dentonRes.results || [])[0];
+        const firstWilliamson = (williamsonRes.results || [])[0];
+        const firstFortBend = (fortbendRes.results || [])[0];
 
-        if (firstTarrant?.acct) {
+        if (firstFortBend?.acct) {
+          router.push(`/results?acct=${firstFortBend.acct}&jurisdiction=fortbend`);
+          return;
+        } else if (firstDenton?.acct) {
+          router.push(`/results?acct=${firstDenton.acct}&jurisdiction=denton`);
+          return;
+        } else if (firstWilliamson?.acct) {
+          router.push(`/results?acct=${firstWilliamson.acct}&jurisdiction=williamson`);
+          return;
+        } else if (firstTarrant?.acct) {
           router.push(`/results?acct=${firstTarrant.acct}&jurisdiction=tarrant`);
           return;
         } else if (firstCollin?.acct) {
@@ -220,6 +265,12 @@ export default function Home() {
       router.push(`/results?acct=${selectedPin}&jurisdiction=collin`);
     } else if (selectedPin && selectedJurisdiction === "tarrant_county_tx") {
       router.push(`/results?acct=${selectedPin}&jurisdiction=tarrant`);
+    } else if (selectedPin && selectedJurisdiction === "denton_county_tx") {
+      router.push(`/results?acct=${selectedPin}&jurisdiction=denton`);
+    } else if (selectedPin && selectedJurisdiction === "williamson_county_tx") {
+      router.push(`/results?acct=${selectedPin}&jurisdiction=williamson`);
+    } else if (selectedPin && selectedJurisdiction === "fortbend_county_tx") {
+      router.push(`/results?acct=${selectedPin}&jurisdiction=fortbend`);
     } else if (selectedPin) {
       router.push(`/results?pin=${selectedPin}`);
     } else {
@@ -298,7 +349,7 @@ export default function Home() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
             </span>
-            <span>Serving Cook County, IL · Houston, TX · Dallas, TX · Austin, TX · Collin County, TX · Tarrant County, TX</span>
+            <span>Serving Cook County, IL · Houston, TX · Dallas, TX · Austin, TX · Collin County, TX · Tarrant County, TX · Denton County, TX · Williamson County, TX · Fort Bend County, TX</span>
           </div>
           
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.1]">
@@ -360,6 +411,12 @@ export default function Home() {
                               ? "bg-cyan-100 text-cyan-700"
                               : suggestion.jurisdiction === "tarrant_county_tx"
                               ? "bg-rose-100 text-rose-700"
+                              : suggestion.jurisdiction === "denton_county_tx"
+                              ? "bg-amber-100 text-amber-700"
+                              : suggestion.jurisdiction === "williamson_county_tx"
+                              ? "bg-lime-100 text-lime-700"
+                              : suggestion.jurisdiction === "fortbend_county_tx"
+                              ? "bg-emerald-100 text-emerald-700"
                               : "bg-purple-100 text-purple-700"
                           }`}>
                             {suggestion.jurisdiction === "harris_county_tx" ? "Houston, TX" 
@@ -367,6 +424,9 @@ export default function Home() {
                               : suggestion.jurisdiction === "travis_county_tx" ? "Austin, TX"
                               : suggestion.jurisdiction === "collin_county_tx" ? "Collin County, TX"
                               : suggestion.jurisdiction === "tarrant_county_tx" ? "Tarrant County, TX"
+                              : suggestion.jurisdiction === "denton_county_tx" ? "Denton County, TX"
+                              : suggestion.jurisdiction === "williamson_county_tx" ? "Williamson County, TX"
+                              : suggestion.jurisdiction === "fortbend_county_tx" ? "Fort Bend County, TX"
                               : "Cook County, IL"}
                           </span>
                         </div>
@@ -423,7 +483,7 @@ export default function Home() {
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
             {[
-              { num: 1, title: "Enter your address", desc: "We pull your property data from public records automatically. Works for Cook County, IL, Houston, TX, Dallas, TX, Austin, TX, Collin County, TX, and Tarrant County, TX." },
+              { num: 1, title: "Enter your address", desc: "We pull your property data from public records automatically. Works for Cook County, IL, Houston, TX, Dallas, TX, Austin, TX, Collin County, TX, Tarrant County, TX, Denton County, TX, and Williamson County, TX." },
               { num: 2, title: "We find your comps", desc: "Our system identifies similar properties that sold for less or are assessed lower than yours." },
               { num: 3, title: "File your appeal", desc: "Download your complete appeal package and file it yourself — we show you exactly how." },
             ].map((step) => (
@@ -499,9 +559,9 @@ export default function Home() {
             {[
               { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves (called \"pro se\") at both the Assessor's Office and Board of Review. We give you everything you need." },
               { q: "What if my appeal doesn't work?", a: "Appeals have a high success rate when you have good comparable properties. If your assessment isn't reduced, you've lost nothing but the filing time — there's no penalty for appealing." },
-              { q: "When can I file an appeal?", a: "In Cook County, appeals open by township on a rotating schedule. In Houston/Harris County, Dallas/Dallas County, Austin/Travis County, Collin County, and Tarrant County, you can protest after receiving your appraisal notice (usually late March). We currently have 2025 data — 2026 protest season opens soon. We'll tell you when your filing window is open." },
+              { q: "When can I file an appeal?", a: "In Cook County, appeals open by township on a rotating schedule. In Houston/Harris County, Dallas/Dallas County, Austin/Travis County, Collin County, Tarrant County, Denton County, and Williamson County, you can protest after receiving your appraisal notice (usually late March). We currently have 2025 data — 2026 protest season opens soon. We'll tell you when your filing window is open." },
               { q: "Why is this so much cheaper than attorneys?", a: "Attorneys charge a percentage of savings because they can. We use technology to automate the research that used to take hours. You get the same comparable property analysis at a fraction of the cost." },
-              { q: "What properties do you support?", a: "We support single-family homes and small multi-family buildings in Cook County, IL, Houston/Harris County, TX, Dallas/Dallas County, TX, Austin/Travis County, TX, Collin County, TX, and Tarrant County, TX. More markets coming soon." },
+              { q: "What properties do you support?", a: "We support single-family homes and small multi-family buildings in Cook County, IL, Houston/Harris County, TX, Dallas/Dallas County, TX, Austin/Travis County, TX, Collin County, TX, Tarrant County, TX, Denton County, TX, and Williamson County, TX. More markets coming soon." },
             ].map((item, i) => (
               <div key={i}>
                 <h3 className="text-lg font-semibold mb-2">{item.q}</h3>
