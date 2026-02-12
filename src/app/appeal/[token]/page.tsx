@@ -46,6 +46,20 @@ function AppealPage() {
   const [isDallas, setIsDallas] = useState(false);
   const isTexas = isHouston || isDallas;
 
+  // Detect jurisdiction from token to route directly (avoid waterfall)
+  function detectJurisdiction(tok: string): "cook" | "houston" | "dallas" | null {
+    try {
+      const [encoded] = tok.split(".");
+      if (!encoded) return null;
+      const decoded = atob(encoded.replace(/-/g, "+").replace(/_/g, "/"));
+      if (decoded.startsWith("houston:")) return "houston";
+      if (decoded.startsWith("dallas:")) return "dallas";
+      return "cook";
+    } catch {
+      return null;
+    }
+  }
+
   useEffect(() => {
     if (!token) {
       setError("Invalid access link");
@@ -55,37 +69,45 @@ function AppealPage() {
 
     const fetchData = async () => {
       try {
-        // Try Cook County first
-        const res = await fetch(`/api/generate-appeal?token=${token}`);
-        const data = await res.json();
+        const detected = detectJurisdiction(token);
 
-        if (res.ok) {
-          setProperty(data.property);
-          return;
+        // Order endpoints: detected jurisdiction first, then others as fallback
+        const endpoints: { path: string; jurisdiction: "cook" | "houston" | "dallas" }[] = [];
+        
+        if (detected === "houston") {
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+        } else if (detected === "dallas") {
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+        } else {
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
         }
 
-        // Try Houston endpoint
-        const houstonRes = await fetch(`/api/houston/generate-appeal?token=${token}`);
-        const houstonData = await houstonRes.json();
+        let lastError = "Failed to load appeal package";
 
-        if (houstonRes.ok) {
-          setProperty(houstonData.property);
-          setIsHouston(true);
-          return;
+        for (const ep of endpoints) {
+          try {
+            const res = await fetch(`${ep.path}?token=${token}`);
+            const data = await res.json();
+            if (res.ok) {
+              setProperty(data.property);
+              if (ep.jurisdiction === "houston") setIsHouston(true);
+              if (ep.jurisdiction === "dallas") setIsDallas(true);
+              return;
+            }
+            if (data.error) lastError = data.error;
+          } catch {
+            // try next endpoint
+          }
         }
 
-        // Try Dallas endpoint
-        const dallasRes = await fetch(`/api/dallas/generate-appeal?token=${token}`);
-        const dallasData = await dallasRes.json();
-
-        if (dallasRes.ok) {
-          setProperty(dallasData.property);
-          setIsDallas(true);
-          return;
-        }
-
-        setError(data.error || houstonData.error || dallasData.error || "Failed to load appeal package");
-      } catch (err) {
+        setError(lastError);
+      } catch {
         setError("Failed to load appeal package. This link may have expired.");
       } finally {
         setLoading(false);

@@ -14,7 +14,7 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "Overtaxed — Lower Your Property Tax",
-  description: "Get a professional property tax appeal package for Cook County. Fair assessment, guaranteed.",
+  description: "Find out if you're overpaying property tax. Professional appeal packages for Cook County IL, Houston TX, and Dallas TX. $49 flat fee.",
   icons: {
     icon: "/favicon.svg",
   },

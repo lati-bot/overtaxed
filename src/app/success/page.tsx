@@ -41,6 +41,62 @@ function SuccessPage() {
   const [isDallas, setIsDallas] = useState(false);
   const isTexas = isHouston || isDallas;
 
+  // Detect jurisdiction from token or session to avoid waterfall requests
+  function detectJurisdiction(accessToken: string | null): "cook" | "houston" | "dallas" | null {
+    if (!accessToken) return null;
+    try {
+      const [encoded] = accessToken.split(".");
+      if (!encoded) return null;
+      const decoded = Buffer.from(encoded, "base64url").toString();
+      if (decoded.startsWith("houston:")) return "houston";
+      if (decoded.startsWith("dallas:")) return "dallas";
+      return "cook";
+    } catch {
+      return null;
+    }
+  }
+
+  function mapTexasProperty(p: any, jurisdiction: "houston" | "dallas"): PropertyData {
+    return {
+      pin: p.acct,
+      address: p.address,
+      city: p.city || (jurisdiction === "dallas" ? "DALLAS" : "HOUSTON"),
+      zip: p.zipcode || "",
+      township: "",
+      sqft: p.sqft || 0,
+      beds: p.beds || 0,
+      yearBuilt: p.yearBuilt || 0,
+      currentAssessment: p.currentAssessment,
+      fairAssessment: p.fairAssessment,
+      reduction: p.potentialReduction || 0,
+      savings: p.estimatedSavings || 0,
+      perSqft: p.perSqft || 0,
+      fairPerSqft: p.fairPerSqft || 0,
+      comps: (p.comps || []).map((c: any) => ({
+        pin: c.acct || "",
+        address: c.address || "",
+        sqft: c.sqft || 0,
+        beds: c.beds || 0,
+        year: c.yearBuilt || 0,
+        perSqft: c.perSqft || (c.assessedVal && c.sqft ? Math.round((c.assessedVal / c.sqft) * 100) / 100 : 0),
+      })),
+    };
+  }
+
+  async function tryEndpoint(endpoint: string, sessionId: string | null, accessToken: string | null): Promise<{ ok: boolean; data?: any; error?: string }> {
+    const url = sessionId
+      ? `${endpoint}?session_id=${sessionId}`
+      : `${endpoint}?token=${accessToken}`;
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (res.ok) return { ok: true, data };
+      return { ok: false, error: data.error || "Lookup failed" };
+    } catch {
+      return { ok: false, error: "Request failed" };
+    }
+  }
+
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
     const accessToken = searchParams.get("token");
@@ -53,113 +109,50 @@ function SuccessPage() {
 
     const fetchData = async () => {
       try {
-        // Try Cook County endpoint first
-        const url = sessionId 
-          ? `/api/generate-appeal?session_id=${sessionId}`
-          : `/api/generate-appeal?token=${accessToken}`;
+        // Detect jurisdiction from token to route directly (avoid waterfall)
+        const detected = detectJurisdiction(accessToken);
+
+        // Order endpoints: detected jurisdiction first, then others as fallback
+        const endpoints: { path: string; jurisdiction: "cook" | "houston" | "dallas" }[] = [];
         
-        const res = await fetch(url);
-        let cookError = "Unknown error";
-        try {
-          const data = await res.json();
-          if (res.ok) {
-            setProperty(data.property);
-            setToken(data.token);
-            setEmail(data.email || null);
-            return;
-          }
-          cookError = data.error || "Cook County lookup failed";
-        } catch {
-          cookError = "Cook County lookup failed";
+        if (detected === "houston") {
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+        } else if (detected === "dallas") {
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+        } else {
+          // Default: Cook first (original behavior), then Houston, then Dallas
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
         }
 
-        // If Cook County failed, try Houston endpoint
-        const houstonUrl = sessionId
-          ? `/api/houston/generate-appeal?session_id=${sessionId}`
-          : `/api/houston/generate-appeal?token=${accessToken}`;
-        
-        const houstonRes = await fetch(houstonUrl);
-        try {
-          const houstonData = await houstonRes.json();
-          if (houstonRes.ok) {
-            const hp = houstonData.property;
-            setProperty({
-              pin: hp.acct,
-              address: hp.address,
-              city: hp.city || "HOUSTON",
-              zip: "",
-              township: "",
-              sqft: hp.sqft || 0,
-              beds: 0,
-              yearBuilt: hp.yearBuilt || 0,
-              currentAssessment: hp.currentAssessment,
-              fairAssessment: hp.fairAssessment,
-              reduction: hp.potentialReduction || 0,
-              savings: hp.estimatedSavings || 0,
-              perSqft: hp.perSqft || 0,
-              fairPerSqft: hp.fairPerSqft || 0,
-              comps: (hp.comps || []).map((c: any) => ({
-                pin: c.acct || "",
-                address: c.address || "",
-                sqft: c.sqft || 0,
-                beds: 0,
-                year: c.yearBuilt || 0,
-                perSqft: c.perSqft || c.assessedVal && c.sqft ? Math.round((c.assessedVal / c.sqft) * 100) / 100 : 0,
-              })),
-            });
-            setToken(houstonData.token);
-            setEmail(houstonData.email || null);
-            setIsHouston(true);
+        let lastError = "Failed to load appeal package";
+
+        for (const ep of endpoints) {
+          const result = await tryEndpoint(ep.path, sessionId, accessToken);
+          if (result.ok && result.data) {
+            if (ep.jurisdiction === "houston") {
+              setProperty(mapTexasProperty(result.data.property, "houston"));
+              setIsHouston(true);
+            } else if (ep.jurisdiction === "dallas") {
+              setProperty(mapTexasProperty(result.data.property, "dallas"));
+              setIsDallas(true);
+            } else {
+              setProperty(result.data.property);
+            }
+            setToken(result.data.token);
+            setEmail(result.data.email || null);
             return;
           }
-        } catch {
-          // Houston also failed
+          if (result.error) lastError = result.error;
         }
 
-        // If Houston failed too, try Dallas endpoint
-        const dallasUrl = sessionId
-          ? `/api/dallas/generate-appeal?session_id=${sessionId}`
-          : `/api/dallas/generate-appeal?token=${accessToken}`;
-        
-        const dallasRes = await fetch(dallasUrl);
-        try {
-          const dallasData = await dallasRes.json();
-          if (dallasRes.ok) {
-            const dp = dallasData.property;
-            setProperty({
-              pin: dp.acct,
-              address: dp.address,
-              city: dp.city || "DALLAS",
-              zip: dp.zipcode || "",
-              township: "",
-              sqft: dp.sqft || 0,
-              beds: dp.beds || 0,
-              yearBuilt: dp.yearBuilt || 0,
-              currentAssessment: dp.currentAssessment,
-              fairAssessment: dp.fairAssessment,
-              reduction: dp.potentialReduction || 0,
-              savings: dp.estimatedSavings || 0,
-              perSqft: dp.perSqft || 0,
-              fairPerSqft: dp.fairPerSqft || 0,
-              comps: (dp.comps || []).map((c: any) => ({
-                pin: c.acct || "",
-                address: c.address || "",
-                sqft: c.sqft || 0,
-                beds: c.beds || 0,
-                year: c.yearBuilt || 0,
-                perSqft: c.perSqft || c.assessedVal && c.sqft ? Math.round((c.assessedVal / c.sqft) * 100) / 100 : 0,
-              })),
-            });
-            setToken(dallasData.token);
-            setEmail(dallasData.email || null);
-            setIsDallas(true);
-            return;
-          }
-          setError(cookError || "Failed to load appeal package");
-        } catch {
-          setError(cookError || "Failed to load appeal package");
-        }
-      } catch (err) {
+        setError(lastError);
+      } catch {
         setError("Failed to load appeal package. Please try again.");
       } finally {
         setLoading(false);

@@ -451,7 +451,7 @@ function generateDallasPdfHtml(data: DallasPropertyData): string {
       <p style="font-size: 10px; color: #555; margin-bottom: 14px; line-height: 1.6;">Texas law gives every property owner the right to protest their appraised value. Dallas Central Appraisal District (DCAD) makes this easy — you can file online. <strong>No attorney or agent needed.</strong></p>
       
       <div class="info-box warning">
-        <p style="margin: 0;"><strong>⏰ Deadline:</strong> DCAD protest season typically opens when appraisal notices are mailed (late March/early April). The deadline is usually <strong>May 15</strong> (or 30 days after your notice date, whichever is later). <strong>File as soon as you receive your notice for the best results.</strong></p>
+        <p style="margin: 0;"><strong>⏰ Deadline:</strong> DCAD protest season typically opens when appraisal notices are mailed (usually late March/early April). The deadline is typically May 15 or 30 days after your notice date, whichever is later. <strong>File as soon as you receive your notice for the best results.</strong> Verify your exact deadline at <a href="https://www.dallascad.org" class="step-link">dallascad.org</a>.</p>
       </div>
       
       <div class="steps">
@@ -467,8 +467,8 @@ function generateDallasPdfHtml(data: DallasPropertyData): string {
           <div class="step-content">
             <div class="step-title">File Online via DCAD uFile</div>
             <div class="step-desc">
-              Go to <a href="https://www.dallascad.org" class="step-link">dallascad.org</a> → click <strong>"Protest"</strong> or <strong>"uFile a Protest"</strong><br/>
-              • Enter your <strong>Account Number</strong>: <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${data.acct}</strong><br/>
+              Go to <a href="https://www.dallascad.org/SearchAddr.aspx" class="step-link">dallascad.org</a> → Search for your property → Click <strong>"Protest Online"</strong> (available starting April 15)<br/>
+              • Search using your <strong>Account Number</strong>: <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${data.acct}</strong><br/>
               • Select <strong>"Unequal Appraisal"</strong> as your reason for protest<br/>
               • You can also check <strong>"Value is Over Market Value"</strong> as an additional reason<br/>
               • Enter your opinion of value: <strong>$${data.fairAssessment.toLocaleString()}</strong><br/>
