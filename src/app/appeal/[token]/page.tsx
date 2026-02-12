@@ -45,10 +45,12 @@ function AppealPage() {
   const [isHouston, setIsHouston] = useState(false);
   const [isDallas, setIsDallas] = useState(false);
   const [isAustin, setIsAustin] = useState(false);
-  const isTexas = isHouston || isDallas || isAustin;
+  const [isCollin, setIsCollin] = useState(false);
+  const [isTarrant, setIsTarrant] = useState(false);
+  const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant;
 
   // Detect jurisdiction from token to route directly (avoid waterfall)
-  function detectJurisdiction(tok: string): "cook" | "houston" | "dallas" | "austin" | null {
+  function detectJurisdiction(tok: string): "cook" | "houston" | "dallas" | "austin" | "collin" | "tarrant" | null {
     try {
       const [encoded] = tok.split(".");
       if (!encoded) return null;
@@ -56,6 +58,8 @@ function AppealPage() {
       if (decoded.startsWith("houston:")) return "houston";
       if (decoded.startsWith("dallas:")) return "dallas";
       if (decoded.startsWith("austin:")) return "austin";
+      if (decoded.startsWith("collin:")) return "collin";
+      if (decoded.startsWith("tarrant:")) return "tarrant";
       return "cook";
     } catch {
       return null;
@@ -74,28 +78,50 @@ function AppealPage() {
         const detected = detectJurisdiction(token);
 
         // Order endpoints: detected jurisdiction first, then others as fallback
-        const endpoints: { path: string; jurisdiction: "cook" | "houston" | "dallas" | "austin" }[] = [];
+        const endpoints: { path: string; jurisdiction: "cook" | "houston" | "dallas" | "austin" | "collin" | "tarrant" }[] = [];
         
         if (detected === "houston") {
           endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
           endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
           endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
           endpoints.push({ path: "/api/austin/generate-appeal", jurisdiction: "austin" });
+          endpoints.push({ path: "/api/collin/generate-appeal", jurisdiction: "collin" });
+          endpoints.push({ path: "/api/tarrant/generate-appeal", jurisdiction: "tarrant" });
         } else if (detected === "dallas") {
           endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
           endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
           endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
           endpoints.push({ path: "/api/austin/generate-appeal", jurisdiction: "austin" });
+          endpoints.push({ path: "/api/collin/generate-appeal", jurisdiction: "collin" });
+          endpoints.push({ path: "/api/tarrant/generate-appeal", jurisdiction: "tarrant" });
         } else if (detected === "austin") {
           endpoints.push({ path: "/api/austin/generate-appeal", jurisdiction: "austin" });
           endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
           endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
           endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+          endpoints.push({ path: "/api/collin/generate-appeal", jurisdiction: "collin" });
+          endpoints.push({ path: "/api/tarrant/generate-appeal", jurisdiction: "tarrant" });
+        } else if (detected === "collin") {
+          endpoints.push({ path: "/api/collin/generate-appeal", jurisdiction: "collin" });
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+          endpoints.push({ path: "/api/austin/generate-appeal", jurisdiction: "austin" });
+          endpoints.push({ path: "/api/tarrant/generate-appeal", jurisdiction: "tarrant" });
+        } else if (detected === "tarrant") {
+          endpoints.push({ path: "/api/tarrant/generate-appeal", jurisdiction: "tarrant" });
+          endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
+          endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
+          endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
+          endpoints.push({ path: "/api/austin/generate-appeal", jurisdiction: "austin" });
+          endpoints.push({ path: "/api/collin/generate-appeal", jurisdiction: "collin" });
         } else {
           endpoints.push({ path: "/api/generate-appeal", jurisdiction: "cook" });
           endpoints.push({ path: "/api/houston/generate-appeal", jurisdiction: "houston" });
           endpoints.push({ path: "/api/dallas/generate-appeal", jurisdiction: "dallas" });
           endpoints.push({ path: "/api/austin/generate-appeal", jurisdiction: "austin" });
+          endpoints.push({ path: "/api/collin/generate-appeal", jurisdiction: "collin" });
+          endpoints.push({ path: "/api/tarrant/generate-appeal", jurisdiction: "tarrant" });
         }
 
         let lastError = "Failed to load appeal package";
@@ -109,6 +135,8 @@ function AppealPage() {
               if (ep.jurisdiction === "houston") setIsHouston(true);
               if (ep.jurisdiction === "dallas") setIsDallas(true);
               if (ep.jurisdiction === "austin") setIsAustin(true);
+              if (ep.jurisdiction === "collin") setIsCollin(true);
+              if (ep.jurisdiction === "tarrant") setIsTarrant(true);
               return;
             }
             if (data.error) lastError = data.error;
@@ -133,7 +161,7 @@ function AppealPage() {
     
     setDownloading(true);
     try {
-      const endpoint = isAustin ? "/api/austin/generate-appeal" : isDallas ? "/api/dallas/generate-appeal" : isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
+      const endpoint = isTarrant ? "/api/tarrant/generate-appeal" : isCollin ? "/api/collin/generate-appeal" : isAustin ? "/api/austin/generate-appeal" : isDallas ? "/api/dallas/generate-appeal" : isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -236,7 +264,11 @@ function AppealPage() {
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{property.address}</h2>
               <p className="text-gray-500">
-                {isAustin
+                {isTarrant
+                  ? `${property.city}, TX · Tarrant County`
+                  : isCollin
+                  ? `${property.city}, TX · Collin County`
+                  : isAustin
                   ? `${property.city}, TX · Travis County`
                   : isDallas 
                   ? `${property.city}, TX · Dallas County`
@@ -283,7 +315,11 @@ function AppealPage() {
             {isTexas ? "Download Your Protest Package" : "Download Your Appeal Package"}
           </h3>
           <p className="text-gray-600 mb-4">
-            {isAustin
+            {isTarrant
+              ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step TAD online protest instructions."
+              : isCollin
+              ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step CCAD Online Portal instructions."
+              : isAustin
               ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step TCAD Portal instructions."
               : isDallas
               ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step DCAD uFile instructions."
@@ -372,7 +408,11 @@ function AppealPage() {
                 <div>
                   <div className="font-medium text-gray-900">File your protest online</div>
                   <p className="text-sm text-gray-600">
-                    {isAustin
+                    {isTarrant
+                      ? 'Go to tad.org, log in or create an account, file your protest online, select "Unequal Appraisal", and upload this PDF as evidence.'
+                      : isCollin
+                      ? 'Go to onlineportal.collincad.org, log in or create an account, select "Unequal Appraisal", and upload this PDF as evidence.'
+                      : isAustin
                       ? 'Go to traviscad.org/portal, set up your account using your property owner ID and PIN from your appraisal notice, select "Unequal Appraisal", and upload this PDF as evidence.'
                       : isDallas
                       ? 'Go to dallascad.org, select "Unequal Appraisal", and upload this PDF as evidence.'
@@ -380,12 +420,12 @@ function AppealPage() {
                     }
                   </p>
                   <a 
-                    href={isAustin ? "https://www.traviscad.org/portal" : isDallas ? "https://www.dallascad.org" : "https://hcad.org/hcad-online-services/ifile-protest/"} 
+                    href={isTarrant ? "https://www.tad.org/login" : isCollin ? "https://onlineportal.collincad.org" : isAustin ? "https://www.traviscad.org/portal" : isDallas ? "https://www.dallascad.org" : "https://hcad.org/hcad-online-services/ifile-protest/"} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline mt-1"
                   >
-                    {isAustin ? "TCAD Portal Protest" : isDallas ? "DCAD uFile Protest" : "HCAD iFile Protest"}
+                    {isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal Protest" : isDallas ? "DCAD uFile Protest" : "HCAD iFile Protest"}
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
@@ -397,7 +437,11 @@ function AppealPage() {
                 <div>
                   <div className="font-medium text-gray-900">Check for a settlement offer</div>
                   <p className="text-sm text-gray-600">
-                    {isAustin
+                    {isTarrant
+                      ? "TAD may offer to settle through their online value negotiation tool. If the offer is fair, accept it!"
+                      : isCollin
+                      ? "CCAD may offer to settle without a hearing. If the offer is fair, accept it!"
+                      : isAustin
                       ? "TCAD may offer to settle without a hearing. If the offer is fair, accept it!"
                       : isDallas
                       ? "DCAD may offer to settle without a hearing. If the offer is fair, accept it!"
