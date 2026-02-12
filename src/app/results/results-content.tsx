@@ -72,7 +72,11 @@ export default function ResultsContent() {
   const pin = searchParams.get("pin");
   const acct = searchParams.get("acct");
   const jurisdiction = searchParams.get("jurisdiction");
-  const isHouston = jurisdiction === "houston" || !!acct;
+  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas");
+  const isDallas = jurisdiction === "dallas";
+  const isTexas = isHouston || isDallas;
+  const marketLabel = isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
+  const jurisdictionValue = isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
 
   useEffect(() => {
     setMounted(true);
@@ -95,7 +99,55 @@ export default function ResultsContent() {
     setMultipleResults(null);
 
     try {
-      if (isHouston) {
+      if (isDallas) {
+        // Dallas flow — use Dallas lookup API
+        const dallasAcct = searchPin || acct;
+        if (!dallasAcct) {
+          setError("Missing account number");
+          return;
+        }
+        const response = await fetch(`/api/dallas/lookup?acct=${dallasAcct}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Property not found");
+          return;
+        }
+        
+        const dp = data.property;
+        setProperty({
+          pin: dp.acct,
+          address: dp.address,
+          city: dp.city || "DALLAS",
+          zip: dp.zipcode || "",
+          township: "",
+          neighborhood: dp.neighborhoodCode || "",
+          characteristics: {
+            class: dp.bldgClass || "",
+            buildingSqFt: dp.sqft,
+            landSqFt: null,
+            yearBuilt: dp.yearBuilt || null,
+            bedrooms: dp.beds || null,
+            fullBaths: dp.fullBaths || null,
+            halfBaths: dp.halfBaths || null,
+          },
+          assessment: {
+            year: "2025",
+            mailedTotal: dp.currentAssessment,
+            mailedBuilding: dp.improvementVal || 0,
+            mailedLand: dp.landVal || 0,
+            certifiedTotal: null,
+            boardTotal: null,
+          },
+          analysis: {
+            fairAssessment: dp.status === "over" ? dp.fairAssessment : dp.currentAssessment,
+            potentialSavings: dp.status === "over" ? dp.estimatedSavings : 0,
+            compCount: (dp.comps || []).length,
+          },
+          neighborhoodStats: dp.neighborhoodStats || null,
+        });
+        setAnalysisAvailable(true);
+      } else if (isHouston) {
         // Houston flow — use Houston lookup API
         const houstonAcct = searchPin || acct;
         if (!houstonAcct) {
@@ -258,7 +310,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-medium">Not in our coverage area?</div>
                   <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    We currently cover Cook County, IL and Houston, TX (Harris County). More markets coming soon!
+                    We currently cover Cook County, IL, Houston, TX (Harris County), and Dallas, TX (Dallas County). More markets coming soon!
                   </p>
                 </div>
               </div>
@@ -363,14 +415,14 @@ export default function ResultsContent() {
                            property.assessment?.certifiedTotal || 
                            property.assessment?.mailedTotal || 0;
   
-  const estimatedMarketValue = isHouston ? currentAssessment : currentAssessment * 10;
+  const estimatedMarketValue = isTexas ? currentAssessment : currentAssessment * 10;
   
   const hasAnalysis = analysisAvailable && property.analysis;
   const fairAssessment = hasAnalysis ? property.analysis!.fairAssessment : currentAssessment;
   const reduction = currentAssessment - fairAssessment;
   // Houston uses ~2.2% tax rate; Cook County uses assessment reduction × 20%
   const rawSavings = reduction > 0 
-    ? (isHouston ? Math.round(reduction * 0.022) : Math.round(reduction * 0.20))
+    ? (isTexas ? Math.round(reduction * 0.022) : Math.round(reduction * 0.20))
     : 0;
   // Minimum threshold: don't show as over-assessed if savings are trivial
   const MIN_SAVINGS_THRESHOLD = 250;
@@ -378,16 +430,16 @@ export default function ResultsContent() {
   const compCount = hasAnalysis ? property.analysis!.compCount : 0;
 
   // Tax bill calculations
-  const estimatedTaxBill = isHouston 
+  const estimatedTaxBill = isTexas 
     ? Math.round(currentAssessment * 0.022)
     : Math.round(currentAssessment * 0.20); // Cook County: ~2% of market value ≈ assessed × 0.20
   const estimatedTaxBillAfter = estimatedTaxBill - estimatedSavings;
   const taxBillReductionPct = estimatedTaxBill > 0 ? Math.round((estimatedSavings / estimatedTaxBill) * 100) : 0;
 
   // Multi-year impact
-  const multiYearMultiplier = isHouston ? 5 : 3;
+  const multiYearMultiplier = isTexas ? 5 : 3;
   const multiYearSavings = estimatedSavings * multiYearMultiplier;
-  const multiYearLabel = isHouston ? "5 years" : "3 years";
+  const multiYearLabel = isTexas ? "5 years" : "3 years";
 
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
@@ -420,21 +472,23 @@ export default function ResultsContent() {
               <div>
                 <h1 className="text-xl sm:text-2xl font-semibold">{property.address}</h1>
                 <p className={textSecondary}>
-                  {property.city}, {isHouston ? "TX" : `IL ${property.zip}`}
+                  {property.city}, {isTexas ? "TX" : `IL ${property.zip}`}
                 </p>
                 <p className={`text-sm ${textMuted} mt-1`}>
-                  {isHouston 
+                  {isDallas
+                    ? `Account: ${property.pin} • Dallas County`
+                    : isHouston
                     ? `Account: ${property.pin} • Harris County`
                     : `PIN: ${property.pin} • ${property.township} Township`
                   }
                 </p>
               </div>
               <div className="md:text-right">
-                <div className={`text-sm ${textSecondary}`}>{isHouston ? "Appraised Value" : "Current Assessment"}</div>
+                <div className={`text-sm ${textSecondary}`}>{isTexas ? "Appraised Value" : "Current Assessment"}</div>
                 <div className="text-2xl sm:text-3xl font-semibold">
                   ${currentAssessment.toLocaleString()}
                 </div>
-                {!isHouston && (
+                {!isTexas && (
                   <div className={`text-sm ${textMuted}`}>
                     ~${estimatedMarketValue.toLocaleString()} market value
                   </div>
@@ -483,7 +537,7 @@ export default function ResultsContent() {
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                {isHouston ? "You\u2019re Over-Appraised" : "You\u2019re Over-Assessed"}
+                {isTexas ? "You\u2019re Over-Appraised" : "You\u2019re Over-Assessed"}
               </div>
 
               {/* Tax bill comparison — the hero moment */}
@@ -503,7 +557,7 @@ export default function ResultsContent() {
                   </svg>
                 </div>
                 <div className={`flex-1 w-full rounded-xl p-4 ${isDark ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-emerald-100/80 border border-emerald-200"}`}>
-                  <div className={`text-xs font-medium uppercase tracking-wide ${isDark ? "text-emerald-400/70" : "text-emerald-600/70"}`}>After {isHouston ? "Protest" : "Appeal"}</div>
+                  <div className={`text-xs font-medium uppercase tracking-wide ${isDark ? "text-emerald-400/70" : "text-emerald-600/70"}`}>After {isTexas ? "Protest" : "Appeal"}</div>
                   <div className={`text-2xl sm:text-3xl font-bold mt-1 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${estimatedTaxBillAfter.toLocaleString()}</div>
                 </div>
               </div>
@@ -528,7 +582,7 @@ export default function ResultsContent() {
 
               <p className={`mt-3 text-sm ${isDark ? "text-emerald-300/60" : "text-emerald-600/60"}`}>
                 Based on {compCount} comparable properties in your neighborhood.
-                {isHouston 
+                {isTexas 
                   ? " A successful protest this year establishes a lower baseline for future years."
                   : " Cook County reassesses every 3 years — a reduction now saves you each year until the next reassessment."
                 }
@@ -539,12 +593,12 @@ export default function ResultsContent() {
                 <span className="text-lg flex-shrink-0">⏰</span>
                 <div>
                   <span className={`text-sm font-medium ${isDark ? "text-amber-300" : "text-amber-800"}`}>
-                    {isHouston 
+                    {isTexas 
                       ? "2026 protest season opens soon — get your analysis ready now" 
                       : "Filing deadlines vary by township — check yours before it closes"
                     }
                   </span>
-                  {isHouston && (
+                  {isTexas && (
                     <span className={`text-sm ${isDark ? "text-amber-300/60" : "text-amber-700/60"}`}>
                       {" "}• Notices arrive late March — filing early gets the best results
                     </span>
@@ -557,12 +611,12 @@ export default function ResultsContent() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <div className={`font-semibold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>
-                      Start Your {isHouston ? "Protest" : "Appeal"} — $49
+                      Start Your {isTexas ? "Protest" : "Appeal"} — $49
                     </div>
                     <div className={`text-sm mt-2 space-y-1 ${isDark ? "text-emerald-300/70" : "text-emerald-700/70"}`}>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Custom {isHouston ? "hearing script" : "evidence brief"} written for <strong>{property.address}</strong></span>
+                        <span>Custom {isTexas ? "hearing script" : "evidence brief"} written for <strong>{property.address}</strong></span>
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
@@ -570,7 +624,7 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Step-by-step {isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                        <span>Step-by-step {isDallas ? "DCAD eFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
                       </div>
                     </div>
                   </div>
@@ -582,7 +636,7 @@ export default function ResultsContent() {
                           headers: { "Content-Type": "application/json" },
                           body: JSON.stringify({
                             propertyId: property.pin,
-                            jurisdiction: isHouston ? "houston" : "cook_county",
+                            jurisdiction: jurisdictionValue,
                           }),
                         });
                         const data = await res.json();
@@ -597,7 +651,7 @@ export default function ResultsContent() {
                     }}
                     className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap flex-shrink-0"
                   >
-                    File My {isHouston ? "Protest" : "Appeal"} — $49
+                    File My {isTexas ? "Protest" : "Appeal"} — $49
                   </button>
                 </div>
                 <p className={`mt-3 text-xs ${isDark ? "text-emerald-300/50" : "text-emerald-600/60"}`}>
@@ -616,14 +670,14 @@ export default function ResultsContent() {
               <div className="text-center">
                 <div className="text-4xl mb-3">🎉</div>
                 <div className={`flex items-center justify-center gap-2 font-medium text-lg ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
-                  Good news — you&apos;re {isHouston ? "fairly appraised" : "fairly assessed"}!
+                  Good news — you&apos;re {isTexas ? "fairly appraised" : "fairly assessed"}!
                 </div>
                 <p className={`mt-2 ${textSecondary}`}>
-                  Based on comparable properties, your {isHouston ? "appraised value" : "assessment"} is in line with similar homes. No appeal needed!
+                  Based on comparable properties, your {isTexas ? "appraised value" : "assessment"} is in line with similar homes. No appeal needed!
                 </p>
-                {isHouston && (
+                {isTexas && (
                   <p className={`mt-3 text-sm ${textMuted}`}>
-                    Harris County reassesses annually — check back after you receive your 2026 appraisal notice (typically March/April).
+                    Texas reassesses annually — check back after you receive your 2026 appraisal notice (typically March/April).
                   </p>
                 )}
               </div>
@@ -720,7 +774,7 @@ export default function ResultsContent() {
         )}
 
         {/* Neighborhood Stats (Houston) */}
-        {isHouston && property.neighborhoodStats && (
+        {isTexas && property.neighborhoodStats && (
           <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
             <h2 className="text-base sm:text-lg font-semibold mb-4">Your Neighborhood</h2>
             <div className="grid grid-cols-3 gap-4 sm:gap-6">
@@ -774,7 +828,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-semibold">You Get Your Package</div>
                   <p className={`text-sm ${textSecondary} mt-1`}>
-                    Delivered instantly to your email: a {isHouston ? "hearing script" : "written brief"}, comparable properties evidence, and a step-by-step filing guide.
+                    Delivered instantly to your email: a {isTexas ? "hearing script" : "written brief"}, comparable properties evidence, and a step-by-step filing guide.
                   </p>
                 </div>
               </div>
@@ -785,7 +839,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-semibold">File &amp; Save</div>
                   <p className={`text-sm ${textSecondary} mt-1`}>
-                    Follow our guide to file {isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
+                    Follow our guide to file {isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
                   </p>
                 </div>
               </div>
@@ -836,7 +890,7 @@ export default function ResultsContent() {
                   </div>
                   <div className="flex items-start gap-2">
                     <span className={`${isDark ? "text-emerald-400" : "text-emerald-500"}`}>✓</span>
-                    <span>Professional {isHouston ? "hearing script" : "evidence brief"}</span>
+                    <span>Professional {isTexas ? "hearing script" : "evidence brief"}</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className={`${isDark ? "text-emerald-400" : "text-emerald-500"}`}>✓</span>
@@ -884,8 +938,8 @@ export default function ResultsContent() {
               <div>
                 <div className="font-medium">Is this legitimate?</div>
                 <p className={`text-sm ${textSecondary} mt-1`}>
-                  {isHouston 
-                    ? "Absolutely. Protesting your property tax appraisal is a formal right under Texas law. Over 400,000 Harris County homeowners protest every year — it's one of the most common things homeowners do."
+                  {isTexas 
+                    ? "Absolutely. Protesting your property tax appraisal is a formal right under Texas law. Hundreds of thousands of Texas homeowners protest every year — it's one of the most common things homeowners do."
                     : "Yes. Appealing your property tax assessment is a formal right in Illinois. The Cook County Assessor's Office and Board of Review process hundreds of thousands of appeals every year."
                   }
                 </p>
@@ -899,9 +953,9 @@ export default function ResultsContent() {
               </div>
               <div className={`border-t ${borderColor}`}></div>
               <div>
-                <div className="font-medium">What if my {isHouston ? "protest" : "appeal"} isn&apos;t successful?</div>
+                <div className="font-medium">What if my {isTexas ? "protest" : "appeal"} isn&apos;t successful?</div>
                 <p className={`text-sm ${textSecondary} mt-1`}>
-                  {isHouston 
+                  {isTexas 
                     ? "There's no penalty for protesting. If the appraisal review board doesn't lower your value, your taxes stay the same — you don't lose anything. Most homeowners who protest with evidence get some reduction."
                     : "There's no penalty for appealing. If the Board of Review doesn't reduce your assessment, it stays the same — you never pay more for trying. Most appeals with proper comparable evidence receive some reduction."
                   }
@@ -911,8 +965,8 @@ export default function ResultsContent() {
               <div>
                 <div className="font-medium">When is the deadline?</div>
                 <p className={`text-sm ${textSecondary} mt-1`}>
-                  {isHouston 
-                    ? "Harris County protest season typically opens in late March when appraisal notices are mailed. The deadline is usually May 15 (or 30 days after your notice date, whichever is later). We'll update with exact 2026 dates once HCAD announces them. Filing early gives you the best shot at an informal settlement."
+                  {isTexas 
+                    ? "Texas protest season typically opens in late March when appraisal notices are mailed. The deadline is usually May 15 (or 30 days after your notice date, whichever is later). Filing early gives you the best shot at an informal settlement."
                     : "Deadlines vary by township and filing body. The Assessor accepts appeals during your township's reassessment year. Board of Review appeals typically open after the Assessor's decisions are final. Check your township's current status."
                   }
                 </p>
@@ -921,7 +975,7 @@ export default function ResultsContent() {
               <div>
                 <div className="font-medium">What&apos;s included in the $49 filing package?</div>
                 <p className={`text-sm ${textSecondary} mt-1`}>
-                  A complete, ready-to-file package: {compCount} comparable properties with detailed analysis (addresses, values, $/sqft), a professional {isHouston ? "hearing script you can read word-for-word at your hearing" : "evidence brief for the Board of Review"}, and step-by-step instructions with screenshots showing exactly where to click. Everything is delivered instantly to your email as a downloadable PDF.
+                  A complete, ready-to-file package: {compCount} comparable properties with detailed analysis (addresses, values, $/sqft), a professional {isTexas ? "hearing script you can read word-for-word at your hearing" : "evidence brief for the Board of Review"}, and step-by-step instructions with screenshots showing exactly where to click. Everything is delivered instantly to your email as a downloadable PDF.
                 </p>
               </div>
             </div>
@@ -946,7 +1000,7 @@ export default function ResultsContent() {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
                         propertyId: property.pin,
-                        jurisdiction: isHouston ? "houston" : "cook_county",
+                        jurisdiction: jurisdictionValue,
                       }),
                     });
                     const data = await res.json();
@@ -961,7 +1015,7 @@ export default function ResultsContent() {
                 }}
                 className="mt-4 px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
               >
-                File My {isHouston ? "Protest" : "Appeal"} — $49
+                File My {isTexas ? "Protest" : "Appeal"} — $49
               </button>
               <p className={`mt-3 text-xs ${textMuted}`}>
                 🔒 Secure payment • Instant delivery • One-time filing fee
@@ -972,12 +1026,14 @@ export default function ResultsContent() {
 
         {/* Disclaimer */}
         <p className={`mt-4 text-xs ${textMuted} text-center`}>
-          {isHouston 
+          {isDallas
+            ? "Appraisal data from Dallas Central Appraisal District (DCAD). Tax bill estimates use an average Dallas County rate of ~2.2% and may vary by taxing jurisdiction."
+            : isHouston
             ? "Appraisal data from Harris County Appraisal District (HCAD). Tax bill estimates use an average Harris County rate of ~2.2% and may vary by taxing jurisdiction."
             : "Assessment data from Cook County Assessor\u2019s Office. Tax bill estimates are approximate and vary by municipality and taxing district."
           } Savings estimates based on comparable properties. Past results do not guarantee future outcomes.
-          {!isHouston && " Cook County reassesses every 3 years; multi-year savings assume the reduction holds through the current cycle."}
-          {isHouston && " Multi-year projections assume similar assessment levels; Texas reassesses annually."}
+          {!isTexas && " Cook County reassesses every 3 years; multi-year savings assume the reduction holds through the current cycle."}
+          {isTexas && " Multi-year projections assume similar assessment levels; Texas reassesses annually."}
         </p>
       </div>
     </div>

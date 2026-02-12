@@ -43,6 +43,8 @@ function AppealPage() {
   const [property, setProperty] = useState<PropertyData | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [isHouston, setIsHouston] = useState(false);
+  const [isDallas, setIsDallas] = useState(false);
+  const isTexas = isHouston || isDallas;
 
   useEffect(() => {
     if (!token) {
@@ -72,7 +74,17 @@ function AppealPage() {
           return;
         }
 
-        setError(data.error || houstonData.error || "Failed to load appeal package");
+        // Try Dallas endpoint
+        const dallasRes = await fetch(`/api/dallas/generate-appeal?token=${token}`);
+        const dallasData = await dallasRes.json();
+
+        if (dallasRes.ok) {
+          setProperty(dallasData.property);
+          setIsDallas(true);
+          return;
+        }
+
+        setError(data.error || houstonData.error || dallasData.error || "Failed to load appeal package");
       } catch (err) {
         setError("Failed to load appeal package. This link may have expired.");
       } finally {
@@ -88,7 +100,7 @@ function AppealPage() {
     
     setDownloading(true);
     try {
-      const endpoint = isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
+      const endpoint = isDallas ? "/api/dallas/generate-appeal" : isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -101,8 +113,8 @@ function AppealPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const id = isHouston ? property?.acct : property?.pin;
-      a.download = isHouston 
+      const id = isTexas ? property?.acct : property?.pin;
+      a.download = isTexas 
         ? `protest-package-${id}.pdf`
         : `appeal-package-${id}.pdf`;
       document.body.appendChild(a);
@@ -153,7 +165,7 @@ function AppealPage() {
   const savings = property.savings || property.estimatedSavings || 0;
   const overAssessedPct = property.overAssessedPct || 
     (property.currentAssessment > 0 ? Math.round((reduction / property.currentAssessment) * 100) : 0);
-  const propertyId = isHouston ? property.acct : property.pin;
+  const propertyId = isTexas ? property.acct : property.pin;
 
   return (
     <div className="min-h-screen bg-[#faf9f7]">
@@ -175,10 +187,10 @@ function AppealPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {isHouston ? "Your Protest Package" : "Your Appeal Package"}
+            {isTexas ? "Your Protest Package" : "Your Appeal Package"}
           </h1>
           <p className="text-gray-600">
-            {isHouston 
+            {isTexas 
               ? "Access your property tax protest evidence and filing instructions"
               : "Access your property tax appeal evidence and filing instructions"
             }
@@ -191,13 +203,15 @@ function AppealPage() {
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{property.address}</h2>
               <p className="text-gray-500">
-                {isHouston 
+                {isDallas 
+                  ? `${property.city}, TX · Dallas County`
+                  : isHouston 
                   ? `${property.city}, TX · Harris County`
                   : `${property.city}, IL ${property.zip || ""} · ${property.township || ""} Township`
                 }
               </p>
               <p className="text-sm text-gray-400 font-mono">
-                {isHouston ? `Account: ${propertyId}` : `PIN: ${propertyId}`}
+                {isTexas ? `Account: ${propertyId}` : `PIN: ${propertyId}`}
               </p>
             </div>
             <div className="text-right">
@@ -209,19 +223,19 @@ function AppealPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
             <div>
               <div className="text-sm text-gray-500">
-                {isHouston ? "Current Appraised" : "Current Assessment"}
+                {isTexas ? "Current Appraised" : "Current Assessment"}
               </div>
               <div className="text-lg font-semibold text-red-600">${property.currentAssessment.toLocaleString()}</div>
             </div>
             <div>
               <div className="text-sm text-gray-500">
-                {isHouston ? "Fair Value" : "Fair Assessment"}
+                {isTexas ? "Fair Value" : "Fair Assessment"}
               </div>
               <div className="text-lg font-semibold text-green-600">${property.fairAssessment.toLocaleString()}</div>
             </div>
             <div>
               <div className="text-sm text-gray-500">
-                {isHouston ? "Over-Appraised By" : "Over-Assessed By"}
+                {isTexas ? "Over-Appraised By" : "Over-Assessed By"}
               </div>
               <div className="text-lg font-semibold text-amber-600">{overAssessedPct}%</div>
             </div>
@@ -231,10 +245,12 @@ function AppealPage() {
         {/* Download Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {isHouston ? "Download Your Protest Package" : "Download Your Appeal Package"}
+            {isTexas ? "Download Your Protest Package" : "Download Your Appeal Package"}
           </h3>
           <p className="text-gray-600 mb-4">
-            {isHouston
+            {isDallas
+              ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step DCAD eFile instructions."
+              : isTexas
               ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step iFile instructions."
               : "Your complete appeal package includes comparable properties, assessment analysis, and step-by-step Board of Review filing instructions."
             }
@@ -265,7 +281,7 @@ function AppealPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Comparable Properties</h3>
           <p className="text-gray-600 mb-4">
-            {isHouston 
+            {isTexas 
               ? "These similar properties are appraised at lower values than yours:"
               : "These similar properties are assessed at lower values than yours:"
             }
@@ -286,7 +302,7 @@ function AppealPage() {
                     <td className="py-3 px-2">
                       <div className="font-medium text-gray-900">{comp.address}</div>
                       <div className="text-xs text-gray-400 font-mono">
-                        {isHouston ? `Acct: ${comp.acct || comp.pin}` : comp.pin}
+                        {isTexas ? `Acct: ${comp.acct || comp.pin}` : comp.pin}
                       </div>
                     </td>
                     <td className="text-right py-3 px-2 text-gray-600">{comp.sqft.toLocaleString()}</td>
@@ -305,7 +321,7 @@ function AppealPage() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">How to File</h3>
           
-          {isHouston ? (
+          {isTexas ? (
             <div className="space-y-4">
               <div className="flex gap-4">
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">1</div>
@@ -317,15 +333,20 @@ function AppealPage() {
               <div className="flex gap-4">
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">2</div>
                 <div>
-                  <div className="font-medium text-gray-900">File your protest via iFile</div>
-                  <p className="text-sm text-gray-600">Go to hcad.org, select &quot;Unequal Appraisal&quot;, and upload this PDF as evidence.</p>
+                  <div className="font-medium text-gray-900">File your protest online</div>
+                  <p className="text-sm text-gray-600">
+                    {isDallas
+                      ? 'Go to dallascad.org, select "Unequal Appraisal", and upload this PDF as evidence.'
+                      : 'Go to hcad.org, select "Unequal Appraisal", and upload this PDF as evidence.'
+                    }
+                  </p>
                   <a 
-                    href="https://hcad.org/hcad-online-services/ifile-protest/" 
+                    href={isDallas ? "https://www.dallascad.org/eFile.aspx" : "https://hcad.org/hcad-online-services/ifile-protest/"} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline mt-1"
                   >
-                    HCAD iFile Protest
+                    {isDallas ? "DCAD eFile Protest" : "HCAD iFile Protest"}
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
@@ -335,8 +356,13 @@ function AppealPage() {
               <div className="flex gap-4">
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">3</div>
                 <div>
-                  <div className="font-medium text-gray-900">Check for an iSettle offer</div>
-                  <p className="text-sm text-gray-600">HCAD may offer to settle without a hearing. If the offer is fair, accept it!</p>
+                  <div className="font-medium text-gray-900">Check for a settlement offer</div>
+                  <p className="text-sm text-gray-600">
+                    {isDallas
+                      ? "DCAD may offer to settle without a hearing. If the offer is fair, accept it!"
+                      : "HCAD may offer to settle without a hearing. If the offer is fair, accept it!"
+                    }
+                  </p>
                 </div>
               </div>
               <div className="flex gap-4">

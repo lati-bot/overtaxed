@@ -38,6 +38,8 @@ function SuccessPage() {
   const [email, setEmail] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
   const [isHouston, setIsHouston] = useState(false);
+  const [isDallas, setIsDallas] = useState(false);
+  const isTexas = isHouston || isDallas;
 
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
@@ -80,7 +82,6 @@ function SuccessPage() {
         try {
           const houstonData = await houstonRes.json();
           if (houstonRes.ok) {
-            // Map Houston property shape to our PropertyData interface
             const hp = houstonData.property;
             setProperty({
               pin: hp.acct,
@@ -111,8 +112,50 @@ function SuccessPage() {
             setIsHouston(true);
             return;
           }
-          // Both failed — show Houston error (more likely to be relevant)
-          setError(houstonData.error || cookError || "Failed to load appeal package");
+        } catch {
+          // Houston also failed
+        }
+
+        // If Houston failed too, try Dallas endpoint
+        const dallasUrl = sessionId
+          ? `/api/dallas/generate-appeal?session_id=${sessionId}`
+          : `/api/dallas/generate-appeal?token=${accessToken}`;
+        
+        const dallasRes = await fetch(dallasUrl);
+        try {
+          const dallasData = await dallasRes.json();
+          if (dallasRes.ok) {
+            const dp = dallasData.property;
+            setProperty({
+              pin: dp.acct,
+              address: dp.address,
+              city: dp.city || "DALLAS",
+              zip: dp.zipcode || "",
+              township: "",
+              sqft: dp.sqft || 0,
+              beds: dp.beds || 0,
+              yearBuilt: dp.yearBuilt || 0,
+              currentAssessment: dp.currentAssessment,
+              fairAssessment: dp.fairAssessment,
+              reduction: dp.potentialReduction || 0,
+              savings: dp.estimatedSavings || 0,
+              perSqft: dp.perSqft || 0,
+              fairPerSqft: dp.fairPerSqft || 0,
+              comps: (dp.comps || []).map((c: any) => ({
+                pin: c.acct || "",
+                address: c.address || "",
+                sqft: c.sqft || 0,
+                beds: c.beds || 0,
+                year: c.yearBuilt || 0,
+                perSqft: c.perSqft || c.assessedVal && c.sqft ? Math.round((c.assessedVal / c.sqft) * 100) / 100 : 0,
+              })),
+            });
+            setToken(dallasData.token);
+            setEmail(dallasData.email || null);
+            setIsDallas(true);
+            return;
+          }
+          setError(cookError || "Failed to load appeal package");
         } catch {
           setError(cookError || "Failed to load appeal package");
         }
@@ -131,7 +174,7 @@ function SuccessPage() {
     
     setDownloading(true);
     try {
-      const endpoint = isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
+      const endpoint = isDallas ? "/api/dallas/generate-appeal" : isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -144,7 +187,7 @@ function SuccessPage() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = isHouston 
+      a.download = isTexas
         ? `protest-package-${property?.pin}.pdf`
         : `appeal-package-${property?.pin}.pdf`;
       document.body.appendChild(a);
@@ -214,10 +257,12 @@ function SuccessPage() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {isHouston ? "Your Protest Package is Ready!" : "Your Appeal Package is Ready!"}
+            {isTexas ? "Your Protest Package is Ready!" : "Your Appeal Package is Ready!"}
           </h1>
           <p className="text-gray-600">
-            {isHouston 
+            {isDallas
+              ? "Everything you need to protest your property tax with Dallas County"
+              : isTexas
               ? "Everything you need to protest your property tax with Harris County"
               : "Everything you need to appeal your property tax assessment"
             }
@@ -230,13 +275,15 @@ function SuccessPage() {
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{property.address}</h2>
               <p className="text-gray-500">
-                {isHouston 
+                {isDallas
+                  ? `${property.city}, TX · Dallas County`
+                  : isTexas
                   ? `${property.city}, TX · Harris County`
                   : `${property.city}, IL ${property.zip} · ${property.township} Township`
                 }
               </p>
               <p className="text-sm text-gray-400 font-mono">
-                {isHouston ? `Account: ${property.pin}` : `PIN: ${property.pin}`}
+                {isTexas ? `Account: ${property.pin}` : `PIN: ${property.pin}`}
               </p>
             </div>
             <div className="text-right">
@@ -247,15 +294,15 @@ function SuccessPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-xl">
             <div>
-              <div className="text-sm text-gray-500">{isHouston ? "Current Appraised" : "Current Assessment"}</div>
+              <div className="text-sm text-gray-500">{isTexas ? "Current Appraised" : "Current Assessment"}</div>
               <div className="text-lg font-semibold text-red-600">${property.currentAssessment.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">{isHouston ? "Fair Value" : "Fair Assessment"}</div>
+              <div className="text-sm text-gray-500">{isTexas ? "Fair Value" : "Fair Assessment"}</div>
               <div className="text-lg font-semibold text-green-600">${property.fairAssessment.toLocaleString()}</div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">{isHouston ? "Over-Appraised By" : "Over-Assessed By"}</div>
+              <div className="text-sm text-gray-500">{isTexas ? "Over-Appraised By" : "Over-Assessed By"}</div>
               <div className="text-lg font-semibold text-amber-600">{overAssessedPct}%</div>
             </div>
           </div>
@@ -264,10 +311,10 @@ function SuccessPage() {
         {/* Download Section */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {isHouston ? "Download Your Protest Package" : "Download Your Appeal Package"}
+            {isTexas ? "Download Your Protest Package" : "Download Your Appeal Package"}
           </h3>
           <p className="text-gray-600 mb-4">
-            {isHouston 
+            {isTexas 
               ? "Your complete protest package includes comparable properties, appraisal analysis, hearing script, and step-by-step filing instructions."
               : "Your complete appeal package includes comparable properties, assessment analysis, and step-by-step filing instructions."
             }
@@ -308,7 +355,7 @@ function SuccessPage() {
         {/* Comparable Properties Preview */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Comparable Properties</h3>
-          <p className="text-gray-600 mb-4">These similar properties are {isHouston ? "appraised" : "assessed"} at lower values than yours:</p>
+          <p className="text-gray-600 mb-4">These similar properties are {isTexas ? "appraised" : "assessed"} at lower values than yours:</p>
           
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -325,7 +372,7 @@ function SuccessPage() {
                     <td className="py-3 px-2">
                       <div className="font-medium text-gray-900">{comp.address}</div>
                       <div className="text-xs text-gray-400 font-mono">
-                        {isHouston ? `Acct: ${comp.pin || (comp as any).acct}` : comp.pin}
+                        {isTexas ? `Acct: ${comp.pin || (comp as any).acct}` : comp.pin}
                       </div>
                     </td>
                     <td className="text-right py-3 px-2 text-gray-600">{comp.sqft.toLocaleString()}</td>

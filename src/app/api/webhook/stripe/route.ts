@@ -456,24 +456,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing data" }, { status: 400 });
     }
 
-    console.log(`Processing order: PIN=${pin}, Email=${email}`);
+    console.log(`Processing order: client_reference_id=${pin}, Email=${email}`);
 
     try {
-      // Get property data
-      const propertyData = await getPropertyData(pin);
-      if (!propertyData) {
-        console.error("Property not found:", pin);
-        return NextResponse.json({ error: "Property not found" }, { status: 404 });
+      // Determine jurisdiction from client_reference_id prefix
+      const baseUrl = process.env.VERCEL_ENV === "production" 
+        ? "https://www.getovertaxed.com" 
+        : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+      let endpoint: string;
+      if (pin.startsWith("houston:")) {
+        endpoint = `${baseUrl}/api/houston/generate-appeal`;
+      } else if (pin.startsWith("dallas:")) {
+        endpoint = `${baseUrl}/api/dallas/generate-appeal`;
+      } else {
+        endpoint = `${baseUrl}/api/generate-appeal`;
       }
 
-      // Generate PDF
-      const html = generatePdfHtml(propertyData);
-      const pdfBuffer = await generatePdf(html);
+      // The generate-appeal endpoint handles lookup, PDF, and email
+      const generateRes = await fetch(`${endpoint}?session_id=${session.id}`, {
+        method: "GET",
+      });
 
-      // Send email
-      await sendEmail(email, pin, pdfBuffer, propertyData.address);
-
-      console.log(`Successfully sent appeal package to ${email} for PIN ${pin}`);
+      if (!generateRes.ok) {
+        const errData = await generateRes.json().catch(() => ({}));
+        console.error("Generate appeal failed:", errData);
+        // Don't fail the webhook — the user can still access via success page
+      } else {
+        console.log(`Successfully triggered appeal generation for ${email}`);
+      }
     } catch (error) {
       console.error("Error processing order:", error);
       return NextResponse.json({ error: "Processing failed" }, { status: 500 });
