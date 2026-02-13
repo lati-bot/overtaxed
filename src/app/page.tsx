@@ -52,6 +52,96 @@ const JURISDICTION_ROUTES: Record<string, { param: string; field: string }> = {
   cook_county_il: { param: "", field: "pin" },
 };
 
+// Shared search component used in hero and final CTA
+function SearchBar({
+  address, setAddress, loading, suggestions, showSuggestions, setShowSuggestions,
+  inputRef, suggestionsRef, handleInputChange, handleSelectSuggestion, handleSearch,
+  noMatch, notifyEmail, setNotifyEmail, notifySubmitted, notifyLoading, handleNotifySubmit,
+  id,
+}: any) {
+  return (
+    <div className="w-full max-w-xl mx-auto">
+      <form onSubmit={handleSearch}>
+        <div className="rounded-2xl bg-white p-4 sm:p-5 shadow-md border border-black/[0.06]">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Enter your home address..."
+                className="w-full h-14 px-5 rounded-xl text-base bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#6b4fbb]/30 focus:outline-none focus:ring-2 focus:ring-[#6b4fbb]/10 transition-all"
+                value={address}
+                onChange={handleInputChange}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                disabled={loading}
+                autoComplete="off"
+                id={id}
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div
+                  ref={suggestionsRef}
+                  className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-2xl z-50 overflow-hidden bg-white border border-black/[0.08]"
+                >
+                  {suggestions.map((suggestion: AutocompleteResult, index: number) => (
+                    <button
+                      key={suggestion.pin || suggestion.acct || index}
+                      type="button"
+                      className={`w-full px-5 py-4 text-left transition-colors hover:bg-[#f7f6f3] ${index !== suggestions.length - 1 ? "border-b border-black/[0.04]" : ""}`}
+                      onClick={() => handleSelectSuggestion(suggestion)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium text-[#1a1a1a]">{suggestion.address}</div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${JURISDICTION_COLORS[suggestion.jurisdiction] || "bg-gray-100 text-gray-700"}`}>
+                          {JURISDICTION_LABELS[suggestion.jurisdiction] || suggestion.jurisdiction}
+                        </span>
+                      </div>
+                      <div className="text-sm mt-0.5 text-[#999]">
+                        {suggestion.city}, {suggestion.jurisdiction === "cook_county_il" ? `IL ${(suggestion.zip || "").split('-')[0]}` : "TX"}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={loading || !address.trim()}
+              className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-40 bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 whitespace-nowrap"
+            >
+              {loading ? "..." : "See My Savings"}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      {/* No-match email capture */}
+      {noMatch && (
+        <div className="mt-4 rounded-2xl p-6 bg-white border border-black/[0.08] text-left">
+          {notifySubmitted ? (
+            <div className="text-center py-2">
+              <p className="font-medium text-[#1a1a1a]">You&apos;re on the list</p>
+              <p className="text-sm mt-1 text-[#999]">We&apos;ll email you as soon as your area is covered.</p>
+            </div>
+          ) : (
+            <>
+              <p className="font-medium mb-1 text-[#1a1a1a]">We don&apos;t cover that area yet</p>
+              <p className="text-sm mb-4 text-[#999]">We&apos;re expanding fast. Leave your email and we&apos;ll notify you when we launch in your area.</p>
+              <form onSubmit={handleNotifySubmit} className="flex gap-2">
+                <input type="email" placeholder="you@email.com" value={notifyEmail} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotifyEmail(e.target.value)} required
+                  className="flex-1 h-11 px-4 rounded-xl text-sm bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:outline-none focus:ring-2 focus:ring-[#6b4fbb]/10"
+                />
+                <button type="submit" disabled={notifyLoading} className="h-11 px-5 rounded-xl text-sm font-medium bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors disabled:opacity-50">
+                  {notifyLoading ? "..." : "Notify Me"}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
@@ -212,6 +302,12 @@ export default function Home() {
 
   const scrollToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
 
+  const searchBarProps = {
+    address, setAddress, loading, suggestions, showSuggestions, setShowSuggestions,
+    inputRef, suggestionsRef, handleInputChange, handleSelectSuggestion, handleSearch,
+    noMatch, notifyEmail, setNotifyEmail, notifySubmitted, notifyLoading, handleNotifySubmit,
+  };
+
   if (!mounted) return <div className="min-h-screen bg-[#f7f6f3]" />;
 
   return (
@@ -220,7 +316,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-[#f7f6f3]/90 backdrop-blur-xl border-b border-black/[0.04]">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-xl tracking-[-0.03em] font-light text-[#1a1a1a]">
+          <div className="text-xl tracking-[-0.02em] font-medium text-[#1a1a1a]">
             overtaxed
           </div>
           <div className="flex items-center gap-8">
@@ -230,146 +326,79 @@ export default function Home() {
               <button onClick={() => scrollToSection("faq")} className="hover:text-[#1a1a1a] transition-colors">FAQ</button>
             </div>
             <button 
-              onClick={() => scrollToSection("pricing")}
-              className="hidden sm:block px-5 py-2.5 rounded-full text-[13px] font-medium bg-[#1a1a1a] text-white hover:bg-[#333] transition-colors"
+              onClick={() => scrollToSection("hero-search")}
+              className="hidden sm:block px-5 py-2.5 rounded-full text-[13px] font-medium bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors"
             >
-              Get Started
+              Check My Address
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="pt-16 sm:pt-24 pb-10 sm:pb-14 px-6">
+      {/* Hero — centered */}
+      <section className="pt-16 sm:pt-24 pb-6 sm:pb-8 px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-6">
+            4.9 million properties analyzed
+          </p>
+          <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-normal leading-[1.08] tracking-[-0.03em] text-[#1a1a1a]">
+            Find out if you&apos;re<br />
+            overpaying property tax
+          </h1>
+          <p className="mt-6 text-lg text-[#666] leading-relaxed max-w-xl mx-auto font-light">
+            We compare your home to similar properties assessed lower — and build your appeal case in minutes. Free to check, no signup.
+          </p>
+
+          {/* Search card */}
+          <div className="mt-10" id="hero-search">
+            <SearchBar {...searchBarProps} id="hero-input" />
+          </div>
+
+          {/* Coverage + social proof */}
+          <div className="mt-6 space-y-2">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[13px] text-[#999]">
+              <span>DFW</span>
+              <span className="text-[#ddd]">·</span>
+              <span>Houston</span>
+              <span className="text-[#ddd]">·</span>
+              <span>Austin</span>
+              <span className="text-[#ddd]">·</span>
+              <span>Chicago</span>
+              <span className="text-[#ddd]">·</span>
+              <span className="text-[#bbb]">9 counties, growing</span>
+            </div>
+            <p className="text-[13px] text-[#888] font-normal">
+              Trusted by thousands of Texas &amp; Illinois homeowners
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats — same beige bg, tight to hero */}
+      <section className="py-10 sm:py-14 px-6">
         <div className="max-w-4xl mx-auto">
-          {/* Left-aligned editorial headline */}
-          <div className="max-w-3xl">
-            <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-6">
-              4.9 million properties analyzed
-            </p>
-            <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-light leading-[1.08] tracking-[-0.03em] text-[#1a1a1a]">
-              Find out if you&apos;re<br />
-              overpaying property tax
-            </h1>
-            <p className="mt-6 text-lg text-[#666] leading-relaxed max-w-xl font-light">
-              We analyze your home against comparable properties and build your appeal case. Free, instant, no signup.
-            </p>
-          </div>
-
-          {/* Search */}
-          <form onSubmit={handleSearch} className="mt-10 max-w-xl">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <input 
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Enter your property address..."
-                  className="w-full h-14 px-5 rounded-2xl text-base bg-white border border-black/[0.08] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#6b4fbb]/30 focus:outline-none focus:ring-2 focus:ring-[#6b4fbb]/10 shadow-sm transition-all"
-                  value={address}
-                  onChange={handleInputChange}
-                  onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                  disabled={loading}
-                  autoComplete="off"
-                />
-                {showSuggestions && suggestions.length > 0 && (
-                  <div 
-                    ref={suggestionsRef}
-                    className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-2xl z-50 overflow-hidden bg-white border border-black/[0.08]"
-                  >
-                    {suggestions.map((suggestion, index) => (
-                      <button
-                        key={suggestion.pin || suggestion.acct || index}
-                        type="button"
-                        className={`w-full px-5 py-4 text-left transition-colors hover:bg-[#f7f6f3] ${index !== suggestions.length - 1 ? "border-b border-black/[0.04]" : ""}`}
-                        onClick={() => handleSelectSuggestion(suggestion)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="font-medium text-[#1a1a1a]">{suggestion.address}</div>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${JURISDICTION_COLORS[suggestion.jurisdiction] || "bg-gray-100 text-gray-700"}`}>
-                            {JURISDICTION_LABELS[suggestion.jurisdiction] || suggestion.jurisdiction}
-                          </span>
-                        </div>
-                        <div className="text-sm mt-0.5 text-[#999]">
-                          {suggestion.city}, {suggestion.jurisdiction === "cook_county_il" ? `IL ${(suggestion.zip || "").split('-')[0]}` : "TX"}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <button 
-                type="submit"
-                disabled={loading || !address.trim()}
-                className="h-14 px-8 rounded-2xl font-medium text-base transition-all disabled:opacity-40 bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20"
-              >
-                {loading ? "..." : "Check My Property"}
-              </button>
-            </div>
-          </form>
-
-          {/* Coverage line */}
-          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-[#999]">
-            <span>DFW</span>
-            <span className="text-[#ddd]">·</span>
-            <span>Houston</span>
-            <span className="text-[#ddd]">·</span>
-            <span>Austin</span>
-            <span className="text-[#ddd]">·</span>
-            <span>Chicago</span>
-            <span className="text-[#ddd]">·</span>
-            <span className="text-[#bbb]">9 counties, growing</span>
-          </div>
-
-          {/* No-match email capture */}
-          {noMatch && (
-            <div className="mt-8 max-w-xl rounded-2xl p-6 bg-white border border-black/[0.08] text-left">
-              {notifySubmitted ? (
-                <div className="text-center py-2">
-                  <p className="font-medium text-[#1a1a1a]">You&apos;re on the list</p>
-                  <p className="text-sm mt-1 text-[#999]">We&apos;ll email you as soon as your area is covered.</p>
+          <div className="border-t border-black/[0.06] pt-10 sm:pt-14">
+            <div className="grid grid-cols-3 gap-8 sm:gap-16">
+              {[
+                { value: "$1,136", label: "Avg. annual savings" },
+                { value: "32%", label: "Homes over-assessed" },
+                { value: "72%", label: "Appeal success rate" },
+              ].map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <div className="text-3xl sm:text-5xl font-normal tracking-[-0.03em] text-[#1a1a1a]">{stat.value}</div>
+                  <div className="mt-2 text-[11px] sm:text-[13px] tracking-[0.05em] uppercase text-[#999]">{stat.label}</div>
                 </div>
-              ) : (
-                <>
-                  <p className="font-medium mb-1 text-[#1a1a1a]">We don&apos;t cover that area yet</p>
-                  <p className="text-sm mb-4 text-[#999]">We&apos;re expanding fast. Leave your email and we&apos;ll notify you when we launch in your area.</p>
-                  <form onSubmit={handleNotifySubmit} className="flex gap-2">
-                    <input type="email" placeholder="you@email.com" value={notifyEmail} onChange={(e) => setNotifyEmail(e.target.value)} required
-                      className="flex-1 h-11 px-4 rounded-xl text-sm bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/5"
-                    />
-                    <button type="submit" disabled={notifyLoading} className="h-11 px-5 rounded-xl text-sm font-medium bg-[#1a1a1a] text-white hover:bg-[#333] transition-colors disabled:opacity-50">
-                      {notifyLoading ? "..." : "Notify Me"}
-                    </button>
-                  </form>
-                </>
-              )}
+              ))}
             </div>
-          )}
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="py-14 sm:py-16 bg-white">
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-3 gap-8 sm:gap-16">
-            {[
-              { value: "$1,136", label: "Avg. annual savings" },
-              { value: "32%", label: "Homes over-assessed" },
-              { value: "72%", label: "Appeal success rate" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl sm:text-5xl font-light tracking-[-0.03em] text-[#1a1a1a]">{stat.value}</div>
-                <div className="mt-2 text-[11px] sm:text-[13px] tracking-[0.05em] uppercase text-[#999]">{stat.label}</div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how-it-works" className="py-20 sm:py-28 px-6">
+      {/* How it works — left-aligned editorial headers */}
+      <section id="how-it-works" className="py-20 sm:py-28 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">How it works</p>
-          <h2 className="text-3xl sm:text-4xl font-light tracking-[-0.02em] mb-16">Three steps to your appeal</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-16">Three steps to your appeal</h2>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-16">
             {[
@@ -388,23 +417,23 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 sm:py-28 px-6 bg-white">
+      <section id="pricing" className="py-20 sm:py-28 px-6">
         <div className="max-w-4xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Pricing</p>
-          <h2 className="text-3xl sm:text-4xl font-light tracking-[-0.02em] mb-4">One price. No surprises.</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">One price. No surprises.</h2>
           <p className="text-lg text-[#666] font-light mb-12">No percentage of savings. No hidden fees.</p>
           
-          <div className="rounded-3xl p-8 sm:p-12 bg-[#f7f6f3] border border-black/[0.04]">
+          <div className="rounded-3xl p-8 sm:p-12 bg-white border border-black/[0.06] shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
               <div>
-                <div className="text-6xl sm:text-7xl font-light tracking-[-0.03em] text-[#1a1a1a]">$49</div>
+                <div className="text-6xl sm:text-7xl font-normal tracking-[-0.03em] text-[#1a1a1a]">$49</div>
                 <div className="mt-2 text-[15px] text-[#999]">One-time per property</div>
               </div>
               <button 
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+                onClick={() => { const el = document.getElementById("hero-search"); el?.scrollIntoView({ behavior: "smooth" }); setTimeout(() => document.getElementById("hero-input")?.focus(), 500); }}
                 className="h-14 px-8 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 transition-colors"
               >
-                Start Your Filing
+                Get My Appeal Package
               </button>
             </div>
             
@@ -413,11 +442,11 @@ export default function Home() {
                 {[
                   "Complete filing package with 5+ comparable properties",
                   "Professional evidence brief ready to submit",
-                  "Step-by-step filing instructions",
+                  "Step-by-step filing instructions for your county",
                   "Delivered to your email instantly",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#1a1a1a] mt-2 flex-shrink-0" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#6b4fbb] mt-2 flex-shrink-0" />
                     <span className="text-[15px] text-[#444] font-light">{item}</span>
                   </div>
                 ))}
@@ -425,17 +454,17 @@ export default function Home() {
             </div>
             
             <p className="mt-8 text-[13px] text-[#999]">
-              Compare to attorneys who charge 30% of savings (~$250+)
+              Competitors charge 25–30% of your savings (~$340 on average). You pay $49. Period.
             </p>
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-20 sm:py-28 px-6">
+      <section id="faq" className="py-20 sm:py-28 px-6 bg-white">
         <div className="max-w-3xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">FAQ</p>
-          <h2 className="text-3xl sm:text-4xl font-light tracking-[-0.02em] mb-16">Common questions</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-16">Common questions</h2>
           
           <div className="space-y-10">
             {[
@@ -454,18 +483,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className="py-24 sm:py-32 px-6 bg-white text-center">
+      {/* Final CTA — dark inverted section */}
+      <section className="py-24 sm:py-32 px-6 bg-[#1a1a1a] text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-[-0.02em] mb-6 text-[#1a1a1a]">See if you have a case</h2>
-          <p className="text-lg text-[#666] font-light mb-10">
-            Check your property in 30 seconds — it&apos;s free.
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.02em] mb-4 text-white">See if you have a case</h2>
+          <p className="text-lg text-[#aaa] font-light mb-10">
+            The average homeowner saves $1,136/year. At $49, that&apos;s a 23x return.
           </p>
           <button 
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="h-14 px-10 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 transition-colors"
+            onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => document.getElementById("hero-input")?.focus(), 500); }}
+            className="h-14 px-10 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/30 transition-colors"
           >
-            Check My Property
+            See My Savings
           </button>
         </div>
       </section>
