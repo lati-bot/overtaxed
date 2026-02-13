@@ -74,7 +74,7 @@ export default function ResultsContent() {
   const pin = searchParams.get("pin");
   const acct = searchParams.get("acct");
   const jurisdiction = searchParams.get("jurisdiction");
-  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin" && jurisdiction !== "collin" && jurisdiction !== "tarrant" && jurisdiction !== "denton" && jurisdiction !== "williamson" && jurisdiction !== "fortbend");
+  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin" && jurisdiction !== "collin" && jurisdiction !== "tarrant" && jurisdiction !== "denton" && jurisdiction !== "williamson" && jurisdiction !== "fortbend" && jurisdiction !== "rockwall");
   const isDallas = jurisdiction === "dallas";
   const isAustin = jurisdiction === "austin";
   const isCollin = jurisdiction === "collin";
@@ -82,9 +82,10 @@ export default function ResultsContent() {
   const isDenton = jurisdiction === "denton";
   const isWilliamson = jurisdiction === "williamson";
   const isFortBend = jurisdiction === "fortbend";
-  const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend;
-  const marketLabel = isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "DCAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
-  const jurisdictionValue = isFortBend ? "fortbend" : isWilliamson ? "williamson" : isDenton ? "denton" : isTarrant ? "tarrant" : isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
+  const isRockwall = jurisdiction === "rockwall";
+  const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend || isRockwall;
+  const marketLabel = isRockwall ? "RCAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "DCAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
+  const jurisdictionValue = isRockwall ? "rockwall" : isFortBend ? "fortbend" : isWilliamson ? "williamson" : isDenton ? "denton" : isTarrant ? "tarrant" : isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
 
   useEffect(() => {
     setMounted(true);
@@ -241,6 +242,54 @@ export default function ResultsContent() {
             compCount: (wp.comps || []).length,
           },
           neighborhoodStats: wp.neighborhoodStats || null,
+        });
+        setAnalysisAvailable(true);
+      } else if (isRockwall) {
+        // Rockwall County flow — use Rockwall lookup API
+        const rockwallAcct = searchPin || acct;
+        if (!rockwallAcct) {
+          setError("Missing account number");
+          return;
+        }
+        const response = await fetch(`/api/rockwall/lookup?acct=${rockwallAcct}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Property not found");
+          return;
+        }
+        
+        const rp = data.property;
+        setProperty({
+          pin: rp.acct,
+          address: rp.address,
+          city: rp.city || "ROCKWALL",
+          zip: rp.zipcode || "",
+          township: "",
+          neighborhood: rp.neighborhoodCode || "",
+          characteristics: {
+            class: "",
+            buildingSqFt: rp.sqft && rp.sqft > 0 ? rp.sqft : null,
+            landSqFt: null,
+            yearBuilt: rp.yearBuilt && rp.yearBuilt > 0 ? rp.yearBuilt : null,
+            bedrooms: rp.beds && rp.beds > 0 ? rp.beds : null,
+            fullBaths: rp.fullBaths && rp.fullBaths > 0 ? rp.fullBaths : null,
+            halfBaths: rp.halfBaths && rp.halfBaths > 0 ? rp.halfBaths : null,
+          },
+          assessment: {
+            year: "2025",
+            mailedTotal: rp.currentAssessment,
+            mailedBuilding: rp.improvementVal || 0,
+            mailedLand: rp.landVal || 0,
+            certifiedTotal: null,
+            boardTotal: null,
+          },
+          analysis: {
+            fairAssessment: rp.status === "over" ? rp.fairAssessment : rp.currentAssessment,
+            potentialSavings: rp.status === "over" ? rp.estimatedSavings : 0,
+            compCount: (rp.comps || []).length,
+          },
+          neighborhoodStats: rp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
       } else if (isFortBend) {
@@ -598,7 +647,7 @@ export default function ResultsContent() {
                 <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">–</span>
                 <span>
                   <span className="font-medium text-[#1a1a1a]">Not in our coverage area?</span>{" "}
-                  We cover Cook County IL, Harris, Dallas, Travis, Collin, Tarrant, Denton, Williamson &amp; Fort Bend counties in TX. More coming soon.
+                  We cover Cook County IL, Harris, Dallas, Travis, Collin, Tarrant, Denton, Williamson, Fort Bend &amp; Rockwall counties in TX. More coming soon.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
@@ -746,7 +795,9 @@ export default function ResultsContent() {
                   {property.city}, {isTexas ? "TX" : `IL ${property.zip}`}
                 </p>
                 <p className={`text-sm ${textMuted} mt-1`}>
-                  {isFortBend
+                  {isRockwall
+                    ? `Account: ${property.pin} • Rockwall County`
+                    : isFortBend
                     ? `Account: ${property.pin} • Fort Bend County`
                     : isWilliamson
                     ? `Account: ${property.pin} • Williamson County`
@@ -788,13 +839,13 @@ export default function ResultsContent() {
                     <div className="font-semibold">{property.characteristics.buildingSqFt.toLocaleString()}</div>
                   </div>
                 )}
-                {!isTarrant && !isDenton && !isWilliamson && property.characteristics.bedrooms && (
+                {!isTarrant && !isDenton && !isWilliamson && !isRockwall && property.characteristics.bedrooms && (
                   <div>
                     <div className={`text-sm ${textMuted}`}>Beds</div>
                     <div className="font-semibold">{property.characteristics.bedrooms}</div>
                   </div>
                 )}
-                {!isTarrant && !isDenton && !isWilliamson && property.characteristics.fullBaths && (
+                {!isTarrant && !isDenton && !isWilliamson && !isRockwall && property.characteristics.fullBaths && (
                   <div>
                     <div className={`text-sm ${textMuted}`}>Baths</div>
                     <div className="font-semibold">
@@ -919,7 +970,7 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Step-by-step {isFortBend ? "FBCAD Online Protest" : isWilliamson ? "WCAD Online Protest" : isDenton ? "DCAD E-File" : isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                        <span>Step-by-step {isRockwall ? "RCAD Online Protest" : isFortBend ? "FBCAD Online Protest" : isWilliamson ? "WCAD Online Protest" : isDenton ? "DCAD E-File" : isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
                       </div>
                     </div>
                   </div>
