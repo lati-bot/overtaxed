@@ -323,10 +323,10 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-16 sm:pt-24 pb-16 sm:pb-20 px-6">
+      <section className="pt-12 sm:pt-16 pb-12 sm:pb-16 px-6">
         <div className="max-w-4xl mx-auto text-center">
           {/* Property count badge */}
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-8 ${
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6 ${
             isDark 
               ? "bg-white/5 border border-white/10 text-purple-400" 
               : "bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200/50 text-purple-700"
@@ -346,11 +346,11 @@ export default function Home() {
             </span>
           </h1>
           
-          <p className={`mt-6 sm:mt-8 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>
+          <p className={`mt-5 sm:mt-6 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>
             We analyze your home against similar properties and build your appeal case. Takes 30 seconds.
           </p>
           
-          <form onSubmit={handleSearch} className="mt-10 sm:mt-12 max-w-xl mx-auto">
+          <form onSubmit={handleSearch} className="mt-8 sm:mt-10 max-w-xl mx-auto">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <input 
@@ -411,6 +411,23 @@ export default function Home() {
             </p>
           </form>
 
+          {/* Metro coverage — compact pills */}
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {METRO_GROUPS.map((metro) => (
+              <span
+                key={metro.label}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs cursor-default ${
+                  isDark
+                    ? "bg-white/5 text-gray-400"
+                    : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                {metro.label}
+                <span className={`font-semibold ${isDark ? "text-purple-400" : "text-purple-600"}`}>{metro.count}</span>
+              </span>
+            ))}
+          </div>
+
           {/* No-match email capture */}
           {noMatch && (
             <div className={`mt-6 max-w-xl mx-auto rounded-xl p-6 text-left ${
@@ -466,47 +483,17 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 text-center">
             <div>
-              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>$1,136</div>
-              <div className={`mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Average annual savings</div>
+              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">$1,136</div>
+              <div className={`mt-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}>Average annual savings</div>
             </div>
             <div>
-              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>32%</div>
-              <div className={`mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Of homes are over-assessed</div>
+              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">32%</div>
+              <div className={`mt-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}>Of homes are over-assessed</div>
             </div>
             <div>
-              <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>72%</div>
-              <div className={`mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Appeal success rate</div>
+              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">72%</div>
+              <div className={`mt-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}>Appeal success rate</div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Coverage */}
-      <section className="py-12 sm:py-16 px-6">
-        <div className="max-w-5xl mx-auto text-center">
-          <div className="flex flex-wrap justify-center gap-3">
-            {METRO_GROUPS.map((metro) => (
-              <div
-                key={metro.label}
-                className={`px-4 py-2.5 rounded-xl text-sm cursor-default transition-all ${
-                  isDark
-                    ? "bg-white/5 border border-white/10 hover:border-white/20"
-                    : "bg-white border border-gray-200 hover:border-purple-300 hover:shadow-sm"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{metro.label}</span>
-                  <span className={`text-xs px-1.5 py-0.5 rounded-md font-medium ${
-                    isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"
-                  }`}>
-                    {metro.count}
-                  </span>
-                </div>
-                <div className={`text-xs mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                  {metro.detail}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
