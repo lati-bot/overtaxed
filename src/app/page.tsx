@@ -106,7 +106,7 @@ function SearchBar({
                       key={suggestion.pin || suggestion.acct || index}
                       type="button"
                       className={`w-full px-5 py-3.5 text-left transition-colors hover:bg-[#f7f6f3] ${index !== suggestions.length - 1 ? "border-b border-black/[0.04]" : ""}`}
-                      onClick={() => handleSelectSuggestion(suggestion)}
+                      onMouseDown={(e: React.MouseEvent) => { e.preventDefault(); handleSelectSuggestion(suggestion); }}
                     >
                       <div className="flex items-center justify-between gap-3">
                         {/* [MUST FIX #2] Title case addresses */}
