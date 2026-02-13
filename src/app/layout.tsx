@@ -14,9 +14,21 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: "Overtaxed — Lower Your Property Tax",
-  description: "Find out if you're overpaying property tax. Professional appeal packages for Cook County IL, Houston TX, and Dallas TX. $49 flat fee.",
+  description: "Find out if you're overpaying property tax. We compare your home to similar properties assessed lower and build your appeal case. Covers DFW, Houston, Austin, and Chicago. $49 flat fee.",
   icons: {
     icon: "/favicon.svg",
+    apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    title: "Lower Your Property Tax",
+    description: "Find out if you're overpaying property tax. We compare your home to similar properties assessed lower and build your appeal case. Covers DFW, Houston, Austin, and Chicago. $49 flat fee.",
+    siteName: "Overtaxed",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lower Your Property Tax",
+    description: "Find out if you're overpaying property tax. We compare your home to similar properties assessed lower and build your appeal case. Covers DFW, Houston, Austin, and Chicago. $49 flat fee.",
   },
 };
 
