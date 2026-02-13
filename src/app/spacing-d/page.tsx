@@ -11,7 +11,7 @@ export default function SpacingD() {
             overtaxed
           </div>
           <div className="px-4 py-2 rounded-lg bg-[#1a6b5a] text-white text-sm font-medium">
-            D — Panel w/ History (loading...)
+            D — Panel w/ History
           </div>
         </div>
       </nav>
@@ -62,11 +62,11 @@ export default function SpacingD() {
         </div>
       </section>
 
-      {/* How it Works — ORIGINAL: py-16 sm:py-24, mb-20 */}
-      <section className="py-16 sm:py-24 px-6">
+      {/* How it Works — HISTORY: py-14 sm:py-20, mb-12 */}
+      <section className="py-14 sm:py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">How it works</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-20">Three steps to your appeal</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Three steps to your appeal</h2>
           <div className="bg-white rounded-2xl p-8 sm:p-12 border border-black/[0.06]">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-20 sm:divide-x sm:divide-black/[0.06]">
               {[{ num: "01", title: "Enter your address", desc: "We pull your property data from public records automatically. Covers the DFW, Houston, and Austin metros plus Cook County, IL." },{ num: "02", title: "We find your comps", desc: "Our system identifies similar properties assessed lower than yours — the foundation of your appeal." },{ num: "03", title: "File your appeal", desc: "Download your complete appeal package and file it yourself. We show you exactly how, step by step." }].map((step, i) => (
@@ -83,8 +83,8 @@ export default function SpacingD() {
         </div>
       </section>
 
-      {/* Pricing — ORIGINAL: py-16 sm:py-24, mb-12 */}
-      <section className="py-16 sm:py-24 px-6">
+      {/* Pricing — HISTORY: py-14 sm:py-20, mb-12 */}
+      <section className="py-14 sm:py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Pricing</p>
           <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">One price. No surprises.</h2>
@@ -116,11 +116,11 @@ export default function SpacingD() {
         </div>
       </section>
 
-      {/* FAQ — ORIGINAL: py-16 sm:py-24, mb-16 */}
-      <section className="py-16 sm:py-24 px-6">
+      {/* FAQ — HISTORY: py-14 sm:py-20, mb-12 */}
+      <section className="py-14 sm:py-20 px-6">
         <div className="max-w-3xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">FAQ</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-16">Common questions</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Common questions</h2>
           <div className="space-y-8 sm:space-y-10">
             {[{ q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves. We give you everything you need — comparable properties, evidence brief, and step-by-step instructions." },{ q: "What if my appeal doesn't work?", a: "There's no penalty for appealing. If your assessment isn't reduced, you've lost nothing but the filing time." },{ q: "When can I file?", a: "In Texas, protest after receiving your appraisal notice (usually late March). Deadline is May 15 or 30 days after your notice. In Cook County, IL, appeals open by township on a rotating schedule." },{ q: "Why is this so much cheaper?", a: "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." },{ q: "What areas do you cover?", a: "4.9M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), Austin (Travis, Williamson), and Cook County, IL. More coming." }].map((item, i) => (
               <div key={i} className="border-b border-black/[0.06] pb-8 sm:pb-10"><h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{item.q}</h3><p className="text-[15px] leading-relaxed text-[#666] font-light">{item.a}</p></div>
