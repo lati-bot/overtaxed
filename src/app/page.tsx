@@ -458,31 +458,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Metro coverage chips */}
-          <div className="mt-10 flex flex-wrap justify-center gap-3">
-            {METRO_GROUPS.map((metro) => (
-              <div
-                key={metro.label}
-                className={`group relative px-4 py-2.5 rounded-xl text-sm cursor-default transition-all ${
-                  isDark
-                    ? "bg-white/5 border border-white/10 hover:border-white/20"
-                    : "bg-white border border-gray-200 hover:border-purple-300 hover:shadow-sm"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{metro.label}</span>
-                  <span className={`text-xs px-1.5 py-0.5 rounded-md font-medium ${
-                    isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"
-                  }`}>
-                    {metro.count}
-                  </span>
-                </div>
-                <div className={`text-xs mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                  {metro.detail}
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -502,6 +477,36 @@ export default function Home() {
               <div className={`text-4xl sm:text-5xl font-bold ${isDark ? "text-white" : "text-gray-900"}`}>72%</div>
               <div className={`mt-2 text-sm ${isDark ? "text-gray-400" : "text-gray-500"}`}>Appeal success rate</div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Coverage */}
+      <section className="py-12 sm:py-16 px-6">
+        <div className="max-w-5xl mx-auto text-center">
+          <div className="flex flex-wrap justify-center gap-3">
+            {METRO_GROUPS.map((metro) => (
+              <div
+                key={metro.label}
+                className={`px-4 py-2.5 rounded-xl text-sm cursor-default transition-all ${
+                  isDark
+                    ? "bg-white/5 border border-white/10 hover:border-white/20"
+                    : "bg-white border border-gray-200 hover:border-purple-300 hover:shadow-sm"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>{metro.label}</span>
+                  <span className={`text-xs px-1.5 py-0.5 rounded-md font-medium ${
+                    isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"
+                  }`}>
+                    {metro.count}
+                  </span>
+                </div>
+                <div className={`text-xs mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+                  {metro.detail}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
