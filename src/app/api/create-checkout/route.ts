@@ -35,11 +35,15 @@ export async function POST(request: NextRequest) {
       clientReferenceId = `denton:${propertyId}`;
     } else if (jurisdiction === "williamson") {
       clientReferenceId = `williamson:${propertyId}`;
+    } else if (jurisdiction === "fortbend") {
+      clientReferenceId = `fortbend:${propertyId}`;
+    } else if (jurisdiction === "rockwall") {
+      clientReferenceId = `rockwall:${propertyId}`;
     } else {
       clientReferenceId = propertyId;
     }
 
-    const isTexas = jurisdiction === "houston" || jurisdiction === "dallas" || jurisdiction === "austin" || jurisdiction === "collin" || jurisdiction === "tarrant" || jurisdiction === "denton" || jurisdiction === "williamson";
+    const isTexas = jurisdiction === "houston" || jurisdiction === "dallas" || jurisdiction === "austin" || jurisdiction === "collin" || jurisdiction === "tarrant" || jurisdiction === "denton" || jurisdiction === "williamson" || jurisdiction === "fortbend" || jurisdiction === "rockwall";
     const countyName = jurisdiction === "houston" ? "Harris County" 
       : jurisdiction === "dallas" ? "Dallas County" 
       : jurisdiction === "austin" ? "Travis County"
@@ -47,6 +51,8 @@ export async function POST(request: NextRequest) {
       : jurisdiction === "tarrant" ? "Tarrant County"
       : jurisdiction === "denton" ? "Denton County"
       : jurisdiction === "williamson" ? "Williamson County"
+      : jurisdiction === "fortbend" ? "Fort Bend County"
+      : jurisdiction === "rockwall" ? "Rockwall County"
       : "Cook County";
 
     const origin = request.headers.get("origin") || "https://www.getovertaxed.com";
@@ -66,6 +72,10 @@ export async function POST(request: NextRequest) {
       cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=denton`;
     } else if (jurisdiction === "williamson") {
       cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=williamson`;
+    } else if (jurisdiction === "fortbend") {
+      cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=fortbend`;
+    } else if (jurisdiction === "rockwall") {
+      cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=rockwall`;
     } else {
       cancelUrl = `${origin}/results?pin=${propertyId}`;
     }

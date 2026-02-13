@@ -13,7 +13,7 @@ interface AutocompleteResult {
   township?: string;
   neighborhood?: string;
   display?: string;
-  jurisdiction: "cook_county_il" | "harris_county_tx" | "dallas_county_tx" | "travis_county_tx" | "collin_county_tx" | "tarrant_county_tx" | "denton_county_tx" | "williamson_county_tx" | "fortbend_county_tx";
+  jurisdiction: "cook_county_il" | "harris_county_tx" | "dallas_county_tx" | "travis_county_tx" | "collin_county_tx" | "tarrant_county_tx" | "denton_county_tx" | "williamson_county_tx" | "fortbend_county_tx" | "rockwall_county_tx";
 }
 
 // [MUST FIX #1] Uniform county labels — abbreviated, non-redundant with city line
@@ -26,6 +26,7 @@ const JURISDICTION_LABELS: Record<string, string> = {
   denton_county_tx: "Denton Co.",
   williamson_county_tx: "Williamson Co.",
   fortbend_county_tx: "Fort Bend Co.",
+  rockwall_county_tx: "Rockwall Co.",
   cook_county_il: "Cook Co.",
 };
 
@@ -41,6 +42,7 @@ const JURISDICTION_ROUTES: Record<string, { param: string; field: string }> = {
   denton_county_tx: { param: "denton", field: "acct" },
   williamson_county_tx: { param: "williamson", field: "acct" },
   fortbend_county_tx: { param: "fortbend", field: "acct" },
+  rockwall_county_tx: { param: "rockwall", field: "acct" },
   cook_county_il: { param: "", field: "pin" },
 };
 
@@ -206,7 +208,7 @@ export default function Home() {
     }
     const timer = setTimeout(async () => {
       try {
-        const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes, dentonRes, williamsonRes, fortbendRes] = await Promise.all([
+        const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes, dentonRes, williamsonRes, fortbendRes, rockwallRes] = await Promise.all([
           fetch(`/api/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/houston/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/dallas/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
@@ -216,6 +218,7 @@ export default function Home() {
           fetch(`/api/denton/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/williamson/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/fortbend/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/rockwall/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
         ]);
         const mapResults = (res: any, jurisdiction: AutocompleteResult["jurisdiction"]) =>
           (res.results || []).map((r: any) => ({ ...r, jurisdiction, display: r.display || r.address }));
@@ -229,6 +232,7 @@ export default function Home() {
           ...mapResults(dentonRes, "denton_county_tx"),
           ...mapResults(williamsonRes, "williamson_county_tx"),
           ...mapResults(fortbendRes, "fortbend_county_tx"),
+          ...mapResults(rockwallRes, "rockwall_county_tx"),
         ].slice(0, 8);
         setSuggestions(combined);
         setShowSuggestions(true);
@@ -309,7 +313,7 @@ export default function Home() {
       try {
         const cleanedAddress = address.trim().replace(/,?\s*(IL|TX|ILLINOIS|TEXAS)\s*\d{0,5}\s*$/i, "").replace(/,?\s*$/, "").trim();
         const q = encodeURIComponent(cleanedAddress);
-        const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes, dentonRes, williamsonRes, fortbendRes] = await Promise.all([
+        const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes, dentonRes, williamsonRes, fortbendRes, rockwallRes] = await Promise.all([
           fetch(`/api/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/houston/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/dallas/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
@@ -319,9 +323,11 @@ export default function Home() {
           fetch(`/api/denton/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/williamson/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/fortbend/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
+          fetch(`/api/rockwall/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
         ]);
         const markets = [
-          { res: fortbendRes, j: "fortbend_county_tx" }, { res: dentonRes, j: "denton_county_tx" },
+          { res: fortbendRes, j: "fortbend_county_tx" }, { res: rockwallRes, j: "rockwall_county_tx" },
+          { res: dentonRes, j: "denton_county_tx" },
           { res: williamsonRes, j: "williamson_county_tx" }, { res: tarrantRes, j: "tarrant_county_tx" },
           { res: collinRes, j: "collin_county_tx" }, { res: austinRes, j: "austin_county_tx" },
           { res: dallasRes, j: "dallas_county_tx" }, { res: houstonRes, j: "harris_county_tx" },
@@ -406,7 +412,7 @@ export default function Home() {
             <span>Austin</span>
             <span className="text-[#ddd]">·</span>
             <span>Chicago metro</span>
-            <span className="text-[#ccc]">— 9 counties</span>
+            <span className="text-[#ccc]">— 10 counties</span>
           </div>
 
           {/* Search card */}
@@ -551,7 +557,7 @@ export default function Home() {
               { q: "What if my appeal doesn't work?", a: "There's no penalty for appealing. If your assessment isn't reduced, you've lost nothing but the filing time." },
               { q: "When can I file?", a: "In Texas, protest after receiving your appraisal notice (usually late March). Deadline is May 15 or 30 days after your notice. In Cook County, IL, appeals open by township on a rotating schedule." },
               { q: "Why is this so much cheaper?", a: "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." },
-              { q: "What areas do you cover?", a: "4.9M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), Austin (Travis, Williamson), and Cook County, IL. More coming." },
+              { q: "What areas do you cover?", a: "4.9M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), Austin (Travis, Williamson), Rockwall County, and Cook County, IL. More coming." },
             ].map((item, i) => (
               <div key={i} className="border-b border-black/[0.06] pb-8 sm:pb-10">
                 <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{item.q}</h3>
