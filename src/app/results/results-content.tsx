@@ -841,8 +841,8 @@ export default function ResultsContent() {
           {/* Over-assessed hero + CTA */}
           {hasAnalysis && estimatedSavings > 0 && (
             <div className={`p-5 sm:p-6 md:p-8 bg-[#f7f6f3] border-t border-black/[0.06]`}>
-              <div className={`flex items-center gap-2 font-medium text-[#1a6b5a]`}>
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="inline-flex items-center gap-2 bg-[#e8f4f0] text-[#1a6b5a] font-medium px-4 py-2 rounded-full text-sm">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 {isTexas ? "You\u2019re Over-Appraised" : "You\u2019re Over-Assessed"}
@@ -974,21 +974,24 @@ export default function ResultsContent() {
 
           {/* Fairly assessed */}
           {hasAnalysis && estimatedSavings === 0 && (
-            <div className={`p-5 sm:p-6 md:p-8 ${isDark ? "border-t border-white/5" : "border-t border-black/5"}`}>
+            <div className="p-5 sm:p-6 md:p-8 border-t border-black/[0.06]">
               <div className="text-center">
                 <div className="w-12 h-12 rounded-full bg-[#1a6b5a] flex items-center justify-center mx-auto mb-3">
                   <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <div className={`flex items-center justify-center gap-2 font-medium text-lg text-[#1a6b5a]`}>
-                  Good news — you&apos;re {isTexas ? "fairly appraised" : "fairly assessed"}!
+                <div className="inline-flex items-center gap-2 bg-[#f5f0e8] text-[#8a7d6b] font-medium px-4 py-2 rounded-full text-sm mb-3">
+                  🎉 {isTexas ? "Fairly Appraised" : "Fairly Assessed"}
                 </div>
-                <p className={`mt-2 ${textSecondary}`}>
-                  Based on comparable properties, your {isTexas ? "appraised value" : "assessment"} is in line with similar homes. No appeal needed!
+                <div className="text-lg font-medium text-[#1a1a1a]">
+                  Good news — your {isTexas ? "appraised value" : "assessment"} is in line with similar homes
+                </div>
+                <p className="mt-2 text-[#666]">
+                  Based on comparable properties, no appeal needed!
                 </p>
                 {isTexas && (
-                  <p className={`mt-3 text-sm ${textMuted}`}>
+                  <p className="mt-3 text-sm text-[#999]">
                     Texas reassesses annually — check back after you receive your 2026 appraisal notice (typically March/April).
                   </p>
                 )}
@@ -1037,16 +1040,18 @@ export default function ResultsContent() {
 
         {/* Assessment History */}
         {property.assessmentHistory && property.assessmentHistory.length > 0 && (
-          <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
-            <h2 className="text-base sm:text-lg font-semibold mb-4">Assessment History</h2>
-            <div className="overflow-x-auto -mx-5 sm:-mx-6 md:-mx-8 px-5 sm:px-6 md:px-8">
+          <div className="mt-3 rounded-2xl bg-white border border-black/[0.06] overflow-hidden">
+            <div className="p-5 sm:p-6 md:p-8 pb-0 sm:pb-0 md:pb-0">
+              <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-4">ASSESSMENT HISTORY</div>
+            </div>
+            <div className="overflow-x-auto px-5 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className={`border-b ${borderColor}`}>
-                    <th className={`text-left py-2 ${textSecondary} font-medium`}>Year</th>
-                    <th className={`text-right py-2 ${textSecondary} font-medium`}>Initial</th>
-                    <th className={`text-right py-2 ${textSecondary} font-medium`}>Final</th>
-                    <th className={`text-right py-2 ${textSecondary} font-medium`}>Savings</th>
+                  <tr className="border-b border-black/[0.06]">
+                    <th className="text-left py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Year</th>
+                    <th className="text-right py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Initial</th>
+                    <th className="text-right py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Final</th>
+                    <th className="text-right py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Savings</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1056,24 +1061,24 @@ export default function ResultsContent() {
                     const savedPercent = savedAmount > 0 ? Math.round((savedAmount / year.mailedTotal) * 100) : 0;
                     
                     return (
-                      <tr key={year.year} className={`border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
-                        <td className="py-3 font-medium">{year.year}</td>
-                        <td className={`py-3 text-right ${textSecondary}`}>
+                      <tr key={year.year} className="border-b border-black/[0.04] last:border-b-0">
+                        <td className="py-3 font-medium text-[#1a1a1a]">{year.year}</td>
+                        <td className="py-3 text-right text-[#1a1a1a] text-sm">
                           ${year.mailedTotal.toLocaleString()}
                         </td>
-                        <td className={`py-3 text-right ${textSecondary}`}>
+                        <td className="py-3 text-right text-[#1a1a1a] text-sm">
                           ${finalValue.toLocaleString()}
                         </td>
                         <td className="py-3 text-right">
                           {savedAmount > 0 ? (
-                            <span className={`font-medium text-[#1a6b5a]`}>
+                            <span className="font-medium text-[#1a6b5a]">
                               -${savedAmount.toLocaleString()}
                               <span className="text-xs ml-1 opacity-70">
                                 (-{savedPercent}%)
                               </span>
                             </span>
                           ) : (
-                            <span className={textMuted}>—</span>
+                            <span className="text-[#999]">—</span>
                           )}
                         </td>
                       </tr>
@@ -1087,31 +1092,31 @@ export default function ResultsContent() {
 
         {/* Neighborhood Stats (Houston) */}
         {isTexas && property.neighborhoodStats && (
-          <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
-            <h2 className="text-base sm:text-lg font-semibold mb-4">Your Neighborhood</h2>
+          <div className="mt-3 rounded-2xl bg-white border border-black/[0.06] p-5 sm:p-6 md:p-8">
+            <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-4">YOUR NEIGHBORHOOD</div>
             <div className="grid grid-cols-3 gap-4 sm:gap-6">
               <div>
-                <div className="text-xl sm:text-2xl font-semibold">
+                <div className="text-xl sm:text-2xl font-semibold text-[#1a1a1a]">
                   {property.neighborhoodStats.totalProperties.toLocaleString()}
                 </div>
-                <div className={`text-sm ${textSecondary}`}>Properties</div>
+                <div className="text-sm text-[#666]">Properties</div>
               </div>
               <div>
-                <div className={`text-xl sm:text-2xl font-semibold text-[#1a6b5a]`}>
+                <div className="text-xl sm:text-2xl font-semibold text-[#1a6b5a]">
                   {property.neighborhoodStats.overAssessedPct}%
                 </div>
-                <div className={`text-sm ${textSecondary}`}>Over-Appraised</div>
+                <div className="text-sm text-[#666]">Over-Appraised</div>
               </div>
               {property.neighborhoodStats.avgReduction > 0 && (
                 <div>
-                  <div className={`text-xl sm:text-2xl font-semibold text-[#1a6b5a]`}>
+                  <div className="text-xl sm:text-2xl font-semibold text-[#1a6b5a]">
                     ${property.neighborhoodStats.avgReduction.toLocaleString()}
                   </div>
-                  <div className={`text-sm ${textSecondary}`}>Avg. Reduction</div>
+                  <div className="text-sm text-[#666]">Avg. Reduction</div>
                 </div>
               )}
             </div>
-            <p className={`mt-3 text-sm ${textMuted}`}>
+            <p className="mt-3 text-sm text-[#999]">
               Based on {property.neighborhoodStats.overAssessedCount.toLocaleString()} over-appraised properties in your neighborhood. Median appraisal: ${property.neighborhoodStats.medianPerSqft}/sqft.
             </p>
           </div>
@@ -1119,8 +1124,8 @@ export default function ResultsContent() {
 
         {/* How It Works */}
         {hasAnalysis && estimatedSavings > 0 && (
-          <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
-            <h2 className="text-base sm:text-lg font-semibold mb-5">How It Works</h2>
+          <div className={`mt-3 rounded-2xl border border-black/[0.06] bg-white p-5 sm:p-6 md:p-8`}>
+            <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-5">HOW IT WORKS</div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
               <div className="flex sm:flex-col items-start gap-4 sm:gap-3">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-lg font-semibold bg-[#1a6b5a] text-white`}>
@@ -1161,8 +1166,8 @@ export default function ResultsContent() {
 
         {/* Comparison Chart */}
         {hasAnalysis && estimatedSavings > 0 && (
-          <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
-            <h2 className="text-base sm:text-lg font-semibold mb-5">Your Options</h2>
+          <div className={`mt-3 rounded-2xl border border-black/[0.06] bg-white p-5 sm:p-6 md:p-8`}>
+            <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-5">YOUR OPTIONS</div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* DIY */}
               <div className={`rounded-xl p-4 border ${borderColor} ${isDark ? "" : ""}`}>
@@ -1183,7 +1188,7 @@ export default function ResultsContent() {
                   </div>
                   <div className="flex items-start gap-2">
                     <span className={textMuted}>•</span>
-                    <span className={`font-medium ${isDark ? "text-amber-400" : "text-amber-600"}`}>10+ hours of work</span>
+                    <span className="font-medium text-[#b45309]">10+ hours of work</span>
                   </div>
                 </div>
               </div>
@@ -1234,7 +1239,7 @@ export default function ResultsContent() {
                   </div>
                   <div className="flex items-start gap-2">
                     <span className={textMuted}>•</span>
-                    <span className={`${isDark ? "text-amber-400" : "text-amber-600"}`}>Same data, higher cost</span>
+                    <span className="text-[#b45309]">Same data, higher cost</span>
                   </div>
                 </div>
               </div>
@@ -1244,8 +1249,8 @@ export default function ResultsContent() {
 
         {/* FAQ Section */}
         {hasAnalysis && estimatedSavings > 0 && (
-          <div className={`mt-3 rounded-2xl border ${borderColor} ${bgCard} p-5 sm:p-6 md:p-8 ${isDark ? "" : "shadow-sm"}`}>
-            <h2 className="text-base sm:text-lg font-semibold mb-5">Common Questions</h2>
+          <div className={`mt-3 rounded-2xl border border-black/[0.06] bg-white p-5 sm:p-6 md:p-8`}>
+            <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-5">COMMON QUESTIONS</div>
             <div className="space-y-4">
               <div>
                 <div className="font-medium">Is this legitimate?</div>
@@ -1296,12 +1301,12 @@ export default function ResultsContent() {
 
         {/* Final CTA */}
         {hasAnalysis && estimatedSavings > 0 && (
-          <div className={`mt-3 rounded-2xl border border-[#1a6b5a]/15 bg-[#e8f4f0] p-5 sm:p-6 md:p-8`}>
+          <div className="mt-3 rounded-2xl bg-[#e8f4f0] p-8 md:p-12">
             <div className="text-center">
-              <div className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
+              <div className="text-2xl md:text-3xl font-normal text-[#1a1a1a]">
                 You could be saving ${estimatedSavings.toLocaleString()}/year
               </div>
-              <p className={`text-sm ${textSecondary} mt-1`}>
+              <p className="text-sm text-[#666] mt-2">
                 That&apos;s ${multiYearSavings.toLocaleString()} over {multiYearLabel}. Your filing package is ready — don&apos;t miss your window.
               </p>
               <button 
@@ -1329,7 +1334,7 @@ export default function ResultsContent() {
               >
                 File My {isTexas ? "Protest" : "Appeal"} — $49
               </button>
-              <p className={`mt-3 text-xs ${textMuted}`}>
+              <p className="mt-3 text-xs text-[#666]">
                 🔒 Secure payment • Instant delivery • One-time filing fee
               </p>
             </div>
@@ -1337,7 +1342,7 @@ export default function ResultsContent() {
         )}
 
         {/* Disclaimer */}
-        <p className={`mt-4 text-xs ${textMuted} text-center`}>
+        <p className="mt-4 text-xs text-[#999] text-center">
           {isFortBend
             ? "Appraisal data from Fort Bend Central Appraisal District (FBCAD). Tax bill estimates use an average Fort Bend County rate of ~2.2% and may vary by taxing jurisdiction."
             : isWilliamson
