@@ -237,12 +237,21 @@ export default function Home() {
   }, []);
 
   const handleSelectSuggestion = (s: AutocompleteResult) => {
-    setAddress(s.display || s.address);
-    setSelectedPin(s.pin || s.acct || null);
+    const fullAddress = s.display || s.address;
+    const pin = s.pin || s.acct || null;
+    setAddress(fullAddress);
+    setSelectedPin(pin);
     setSelectedJurisdiction(s.jurisdiction);
     setSuggestions([]);
     setShowSuggestions(false);
     setNoMatch(false);
+    // Auto-navigate after selection — user already chose their property
+    if (pin && s.jurisdiction) {
+      const route = JURISDICTION_ROUTES[s.jurisdiction];
+      if (route) {
+        router.push(route.param ? `/results?acct=${pin}&jurisdiction=${route.param}` : `/results?pin=${pin}`);
+      }
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
