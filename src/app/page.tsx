@@ -240,7 +240,7 @@ export default function Home() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-20 sm:pt-28 pb-20 sm:pb-28 px-6">
+      <section className="pt-16 sm:pt-24 pb-10 sm:pb-14 px-6">
         <div className="max-w-4xl mx-auto">
           {/* Left-aligned editorial headline */}
           <div className="max-w-3xl">
@@ -257,14 +257,14 @@ export default function Home() {
           </div>
 
           {/* Search */}
-          <form onSubmit={handleSearch} className="mt-12 max-w-xl">
+          <form onSubmit={handleSearch} className="mt-10 max-w-xl">
             <div className="flex flex-col sm:flex-row gap-3">
               <div className="relative flex-1">
                 <input 
                   ref={inputRef}
                   type="text"
                   placeholder="Enter your property address..."
-                  className="w-full h-14 px-5 rounded-2xl text-base bg-white border border-black/[0.08] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#1a1a1a]/20 focus:outline-none focus:ring-2 focus:ring-[#1a1a1a]/5 shadow-sm transition-all"
+                  className="w-full h-14 px-5 rounded-2xl text-base bg-white border border-black/[0.08] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#6b4fbb]/30 focus:outline-none focus:ring-2 focus:ring-[#6b4fbb]/10 shadow-sm transition-all"
                   value={address}
                   onChange={handleInputChange}
                   onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
@@ -300,7 +300,7 @@ export default function Home() {
               <button 
                 type="submit"
                 disabled={loading || !address.trim()}
-                className="h-14 px-8 rounded-2xl font-medium text-base transition-all disabled:opacity-40 bg-[#1a1a1a] text-white hover:bg-[#333]"
+                className="h-14 px-8 rounded-2xl font-medium text-base transition-all disabled:opacity-40 bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20"
               >
                 {loading ? "..." : "Check My Property"}
               </button>
@@ -348,17 +348,17 @@ export default function Home() {
       </section>
 
       {/* Stats */}
-      <section className="py-20 sm:py-24 bg-white">
+      <section className="py-14 sm:py-16 bg-white">
         <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-16">
+          <div className="grid grid-cols-3 gap-8 sm:gap-16">
             {[
-              { value: "$1,136", label: "Average annual savings" },
-              { value: "32%", label: "Of homes are over-assessed" },
+              { value: "$1,136", label: "Avg. annual savings" },
+              { value: "32%", label: "Homes over-assessed" },
               { value: "72%", label: "Appeal success rate" },
             ].map((stat) => (
-              <div key={stat.label} className="text-center sm:text-left">
-                <div className="text-5xl sm:text-6xl font-light tracking-[-0.03em] text-[#1a1a1a]">{stat.value}</div>
-                <div className="mt-3 text-[13px] tracking-[0.05em] uppercase text-[#999]">{stat.label}</div>
+              <div key={stat.label} className="text-center">
+                <div className="text-3xl sm:text-5xl font-light tracking-[-0.03em] text-[#1a1a1a]">{stat.value}</div>
+                <div className="mt-2 text-[11px] sm:text-[13px] tracking-[0.05em] uppercase text-[#999]">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -402,7 +402,7 @@ export default function Home() {
               </div>
               <button 
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="h-14 px-8 rounded-2xl font-medium text-base bg-[#1a1a1a] text-white hover:bg-[#333] transition-colors"
+                className="h-14 px-8 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 transition-colors"
               >
                 Start Your Filing
               </button>
@@ -463,7 +463,7 @@ export default function Home() {
           </p>
           <button 
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="h-14 px-10 rounded-2xl font-medium text-base bg-[#1a1a1a] text-white hover:bg-[#333] transition-colors"
+            className="h-14 px-10 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 transition-colors"
           >
             Check My Property
           </button>
