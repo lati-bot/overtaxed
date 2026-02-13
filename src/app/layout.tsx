@@ -17,6 +17,18 @@ export const metadata: Metadata = {
   description: "Find out if you're overpaying property tax. We compare your home to similar properties assessed lower and build your appeal case. Covers DFW, Houston, Austin, and Chicago. $49 flat fee.",
   icons: {
     icon: "/favicon.svg",
+    apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    title: "Lower Your Property Tax",
+    description: "Find out if you're overpaying property tax. We compare your home to similar properties assessed lower and build your appeal case. Covers DFW, Houston, Austin, and Chicago. $49 flat fee.",
+    siteName: "Overtaxed",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Lower Your Property Tax",
+    description: "Find out if you're overpaying property tax. We compare your home to similar properties assessed lower and build your appeal case. Covers DFW, Houston, Austin, and Chicago. $49 flat fee.",
   },
 };
 
