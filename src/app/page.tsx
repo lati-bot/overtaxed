@@ -483,15 +483,15 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-6">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 text-center">
             <div>
-              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">$1,136</div>
+              <div className={`text-4xl sm:text-5xl font-extrabold ${isDark ? "text-white" : "text-[#1a1a1a]"}`}>$1,136</div>
               <div className={`mt-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}>Average annual savings</div>
             </div>
             <div>
-              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">32%</div>
+              <div className={`text-4xl sm:text-5xl font-extrabold ${isDark ? "text-white" : "text-[#1a1a1a]"}`}>32%</div>
               <div className={`mt-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}>Of homes are over-assessed</div>
             </div>
             <div>
-              <div className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">72%</div>
+              <div className={`text-4xl sm:text-5xl font-extrabold ${isDark ? "text-white" : "text-[#1a1a1a]"}`}>72%</div>
               <div className={`mt-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}>Appeal success rate</div>
             </div>
           </div>
