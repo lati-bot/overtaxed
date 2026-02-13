@@ -424,9 +424,9 @@ export default function Home() {
       </section>
 
       {/* Stats */}
-      <section className="py-10 sm:py-14 px-6">
+      <section className="py-12 sm:py-16 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="border-t border-black/[0.06] pt-10 sm:pt-14">
+          <div className="border-t border-black/[0.06] pt-12 sm:pt-16">
             <div className="grid grid-cols-3 gap-8 sm:gap-16">
               {[
                 { value: "$1,136", label: "Avg. annual savings" },
@@ -444,7 +444,7 @@ export default function Home() {
       </section>
 
       {/* Testimonial */}
-      <section className="py-14 sm:py-18 px-6 bg-[#f0ede7]">
+      <section className="py-16 sm:py-20 px-6 bg-[#f0ede7]">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-[22px] sm:text-[26px] font-normal leading-relaxed tracking-[-0.01em] text-[#1a1a1a]">
             &ldquo;I was paying $1,400 more than my neighbor for a smaller house. Overtaxed found 6 comps and I won my appeal in 3 weeks.&rdquo;
@@ -454,7 +454,7 @@ export default function Home() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="py-12 sm:py-18 px-6">
+      <section id="how-it-works" className="py-14 sm:py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">How it works</p>
           <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Three steps to your appeal</h2>
@@ -482,11 +482,11 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-12 sm:py-18 px-6">
+      <section id="pricing" className="py-14 sm:py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Pricing</p>
           <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">One price. No surprises.</h2>
-          <p className="text-lg text-[#666] font-light mb-8">No percentage of savings. No hidden fees.</p>
+          <p className="text-lg text-[#666] font-light mb-12">No percentage of savings. No hidden fees.</p>
           
           {/* [SHOULD FIX #5] rounded-2xl not rounded-3xl */}
           <div className="rounded-2xl p-8 sm:p-12 bg-white border border-black/[0.06] shadow-sm">
@@ -540,10 +540,10 @@ export default function Home() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-12 sm:py-18 px-6">
+      <section id="faq" className="py-14 sm:py-20 px-6">
         <div className="max-w-3xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">FAQ</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-10">Common questions</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Common questions</h2>
           
           <div className="space-y-8 sm:space-y-10">
             {[
@@ -563,7 +563,7 @@ export default function Home() {
       </section>
 
       {/* Footer CTA — dark teal */}
-      <section className="py-16 sm:py-24 px-6 bg-[#0f2d26] text-center">
+      <section className="py-20 sm:py-28 px-6 bg-[#0f2d26] text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.02em] mb-4 text-white">See if you have a case</h2>
           <p className="text-lg text-[#aaa] font-light mb-10">
