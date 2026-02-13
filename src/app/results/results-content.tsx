@@ -67,7 +67,6 @@ export default function ResultsContent() {
   const [multipleResults, setMultipleResults] = useState<MultipleResults[] | null>(null);
   const [analysisAvailable, setAnalysisAvailable] = useState<boolean>(true);
   const [uploadInProgress, setUploadInProgress] = useState<boolean>(false);
-  const [theme, setTheme] = useState<"dark" | "light">("light");
   const [mounted, setMounted] = useState(false);
 
   const address = searchParams.get("address");
@@ -88,17 +87,9 @@ export default function ResultsContent() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("theme") as "dark" | "light" | null;
-    if (saved) setTheme(saved);
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
-
-  const isDark = theme === "dark";
+  const isDark = false;
 
   const fetchProperty = async (searchPin?: string) => {
     setLoading(true);
@@ -544,7 +535,7 @@ export default function ResultsContent() {
   }, [address, pin, acct]);
 
   // Shared styles
-  const bgMain = isDark ? "bg-[#0a0a0a]" : "bg-[#f5f3f7]";
+  const bgMain = isDark ? "bg-[#0a0a0a]" : "bg-[#f7f6f3]";
   const bgCard = isDark ? "bg-white/[0.02]" : "bg-white";
   const borderColor = isDark ? "border-white/10" : "border-black/5";
   const textPrimary = isDark ? "text-white" : "text-[#111]";
@@ -553,7 +544,7 @@ export default function ResultsContent() {
 
   // Prevent flash
   if (!mounted) {
-    return <div className="min-h-screen bg-[#f5f3f7]" />;
+    return <div className="min-h-screen bg-[#f7f6f3]" />;
   }
 
   if (loading) {
@@ -571,18 +562,18 @@ export default function ResultsContent() {
   if (error) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
-        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f5f3f7]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f7f6f3]/80"} backdrop-blur-xl border-b ${borderColor}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="text-lg font-semibold tracking-tight">
-              overtaxed
+            <Link href="/" className="flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="32" height="32" rx="7" fill="#1a6b5a"/>
+                <circle cx="16" cy="15.5" r="7" stroke="white" strokeWidth="3.5" fill="none"/>
+              </svg>
+              <span className="text-lg font-normal text-[#1a1a1a]">overtaxed</span>
             </Link>
-            <button onClick={toggleTheme} className={`p-2 rounded-lg ${isDark ? "hover:bg-white/10 text-gray-400" : "hover:bg-black/5 text-gray-600"}`}>
-              {isDark ? (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-              )}
-            </button>
+            <Link href="/" className="text-sm text-[#1a6b5a] hover:underline">
+              ← New Search
+            </Link>
           </div>
         </nav>
         
@@ -646,7 +637,7 @@ export default function ResultsContent() {
           <div className="mt-8 text-center">
             <Link 
               href="/" 
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-[#6b4fbb] text-white hover:bg-[#5a3fa8]"}`}
+              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-[#1a6b5a] text-white hover:bg-[#155a4c]"}`}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -662,18 +653,18 @@ export default function ResultsContent() {
   if (multipleResults) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
-        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f5f3f7]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+        <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f7f6f3]/80"} backdrop-blur-xl border-b ${borderColor}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="text-lg font-semibold tracking-tight">
-              overtaxed
+            <Link href="/" className="flex items-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="32" height="32" rx="7" fill="#1a6b5a"/>
+                <circle cx="16" cy="15.5" r="7" stroke="white" strokeWidth="3.5" fill="none"/>
+              </svg>
+              <span className="text-lg font-normal text-[#1a1a1a]">overtaxed</span>
             </Link>
-            <button onClick={toggleTheme} className={`p-2 rounded-lg ${isDark ? "hover:bg-white/10 text-gray-400" : "hover:bg-black/5 text-gray-600"}`}>
-              {isDark ? (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-              )}
-            </button>
+            <Link href="/" className="text-sm text-[#1a6b5a] hover:underline">
+              ← New Search
+            </Link>
           </div>
         </nav>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
@@ -687,7 +678,7 @@ export default function ResultsContent() {
               <button
                 key={result.pin}
                 onClick={() => handleSelectProperty(result.pin)}
-                className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bgCard} hover:border-purple-500/50 transition-all ${isDark ? "" : "shadow-sm hover:shadow-md"}`}
+                className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bgCard} hover:border-[#1a6b5a]/50 transition-all ${isDark ? "" : "shadow-sm hover:shadow-md"}`}
               >
                 <div className="font-medium">{result.address}</div>
                 <div className={`text-sm ${textSecondary}`}>
@@ -741,23 +732,18 @@ export default function ResultsContent() {
 
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
-      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f5f3f7]/80"} backdrop-blur-xl border-b ${borderColor}`}>
+      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f7f6f3]/80"} backdrop-blur-xl border-b ${borderColor}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-lg font-semibold tracking-tight">
-            overtaxed
+          <Link href="/" className="flex items-center gap-2">
+            <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="32" height="32" rx="7" fill="#1a6b5a"/>
+              <circle cx="16" cy="15.5" r="7" stroke="white" strokeWidth="3.5" fill="none"/>
+            </svg>
+            <span className="text-lg font-normal text-[#1a1a1a]">overtaxed</span>
           </Link>
-          <div className="flex items-center gap-3 sm:gap-4">
-            <button onClick={toggleTheme} className={`p-2 rounded-lg ${isDark ? "hover:bg-white/10 text-gray-400" : "hover:bg-black/5 text-gray-600"}`}>
-              {isDark ? (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-              )}
-            </button>
-            <Link href="/" className={`text-sm ${textSecondary} ${isDark ? "hover:text-white" : "hover:text-black"}`}>
-              ← New Search
-            </Link>
-          </div>
+          <Link href="/" className="text-sm text-[#1a6b5a] hover:underline">
+            ← New Search
+          </Link>
         </div>
       </nav>
 
@@ -854,8 +840,8 @@ export default function ResultsContent() {
 
           {/* Over-assessed hero + CTA */}
           {hasAnalysis && estimatedSavings > 0 && (
-            <div className={`p-5 sm:p-6 md:p-8 ${isDark ? "bg-emerald-500/10 border-t border-emerald-500/20" : "bg-emerald-50 border-t border-emerald-100"}`}>
-              <div className={`flex items-center gap-2 font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+            <div className={`p-5 sm:p-6 md:p-8 bg-[#f7f6f3] border-t border-black/[0.06]`}>
+              <div className={`flex items-center gap-2 font-medium text-[#1a6b5a]`}>
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -864,23 +850,23 @@ export default function ResultsContent() {
 
               {/* Tax bill comparison — the hero moment */}
               <div className="mt-5 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-                <div className={`flex-1 w-full rounded-xl p-4 ${isDark ? "bg-red-500/10 border border-red-500/20" : "bg-red-50 border border-red-100"}`}>
-                  <div className={`text-xs font-medium uppercase tracking-wide ${isDark ? "text-red-400/70" : "text-red-500/70"}`}>Est. Annual Tax Bill</div>
-                  <div className={`text-2xl sm:text-3xl font-bold mt-1 ${isDark ? "text-red-400" : "text-red-600"}`}>${estimatedTaxBill.toLocaleString()}</div>
+                <div className={`flex-1 w-full rounded-xl p-4 bg-[#f5f0e8] border border-[#e8dcc8]`}>
+                  <div className={`text-xs font-medium uppercase tracking-wide text-[#8a7d6b]`}>Est. Annual Tax Bill</div>
+                  <div className={`text-2xl sm:text-3xl font-bold mt-1 text-[#1a1a1a]`}>${estimatedTaxBill.toLocaleString()}</div>
                 </div>
                 <div className="hidden sm:flex items-center">
-                  <svg className={`w-6 h-6 ${isDark ? "text-emerald-400" : "text-emerald-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className={`w-6 h-6 text-[#999]`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </div>
                 <div className="flex sm:hidden items-center">
-                  <svg className={`w-6 h-6 ${isDark ? "text-emerald-400" : "text-emerald-500"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className={`w-6 h-6 text-[#999]`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
                   </svg>
                 </div>
-                <div className={`flex-1 w-full rounded-xl p-4 ${isDark ? "bg-emerald-500/10 border border-emerald-500/20" : "bg-emerald-100/80 border border-emerald-200"}`}>
-                  <div className={`text-xs font-medium uppercase tracking-wide ${isDark ? "text-emerald-400/70" : "text-emerald-600/70"}`}>After {isTexas ? "Protest" : "Appeal"}</div>
-                  <div className={`text-2xl sm:text-3xl font-bold mt-1 ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${estimatedTaxBillAfter.toLocaleString()}</div>
+                <div className={`flex-1 w-full rounded-xl p-4 bg-[#e8f4f0] border border-[#1a6b5a]/15`}>
+                  <div className={`text-xs font-medium uppercase tracking-wide text-[#1a6b5a]`}>After {isTexas ? "Protest" : "Appeal"}</div>
+                  <div className={`text-2xl sm:text-3xl font-bold mt-1 text-[#1a6b5a]`}>${estimatedTaxBillAfter.toLocaleString()}</div>
                 </div>
               </div>
 
@@ -889,20 +875,20 @@ export default function ResultsContent() {
                 <div className="flex items-center gap-6 flex-wrap">
                   <div>
                     <div className={`text-xs ${textMuted}`}>Annual Savings</div>
-                    <div className={`text-xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${estimatedSavings.toLocaleString()}/yr</div>
+                    <div className={`text-xl font-bold text-[#1a6b5a]`}>${estimatedSavings.toLocaleString()}/yr</div>
                   </div>
                   <div>
                     <div className={`text-xs ${textMuted}`}>Over {multiYearLabel}</div>
-                    <div className={`text-xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>${multiYearSavings.toLocaleString()}</div>
+                    <div className={`text-xl font-bold text-[#1a6b5a]`}>${multiYearSavings.toLocaleString()}</div>
                   </div>
                   <div>
                     <div className={`text-xs ${textMuted}`}>Tax Bill Reduction</div>
-                    <div className={`text-xl font-bold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>{taxBillReductionPct}%</div>
+                    <div className={`text-xl font-bold text-[#1a6b5a]`}>{taxBillReductionPct}%</div>
                   </div>
                 </div>
               </div>
 
-              <p className={`mt-3 text-sm ${isDark ? "text-emerald-300/60" : "text-emerald-600/60"}`}>
+              <p className={`mt-3 text-sm text-[#666]`}>
                 Based on {compCount} comparable properties in your neighborhood.
                 {isTexas 
                   ? " A successful protest this year establishes a lower baseline for future years."
@@ -911,17 +897,17 @@ export default function ResultsContent() {
               </p>
 
               {/* Deadline urgency banner */}
-              <div className={`mt-5 rounded-xl p-3.5 flex items-center gap-3 ${isDark ? "bg-amber-500/10 border border-amber-500/20" : "bg-amber-50 border border-amber-200"}`}>
+              <div className={`mt-5 rounded-xl p-3.5 flex items-center gap-3 bg-[#faf3e0] border border-[#e8d5a8]`}>
                 <span className="text-lg flex-shrink-0">⏰</span>
                 <div>
-                  <span className={`text-sm font-medium ${isDark ? "text-amber-300" : "text-amber-800"}`}>
+                  <span className={`text-sm font-medium text-[#8a7d6b]`}>
                     {isTexas 
                       ? "2026 protest season opens soon — get your analysis ready now" 
                       : "Filing deadlines vary by township — check yours before it closes"
                     }
                   </span>
                   {isTexas && (
-                    <span className={`text-sm ${isDark ? "text-amber-300/60" : "text-amber-700/60"}`}>
+                    <span className={`text-sm text-[#8a7d6b]/60`}>
                       {" "}• Notices arrive late March — filing early gets the best results
                     </span>
                   )}
@@ -929,13 +915,13 @@ export default function ResultsContent() {
               </div>
 
               {/* CTA */}
-              <div className={`mt-5 pt-5 border-t ${isDark ? "border-emerald-500/20" : "border-emerald-200"}`}>
+              <div className={`mt-5 pt-5 border-t border-black/[0.06]`}>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
                     <div className={`font-semibold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>
                       Start Your {isTexas ? "Protest" : "Appeal"} — $49
                     </div>
-                    <div className={`text-sm mt-2 space-y-1 ${isDark ? "text-emerald-300/70" : "text-emerald-700/70"}`}>
+                    <div className={`text-sm mt-2 space-y-1 text-[#666]`}>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
                         <span>Custom {isTexas ? "hearing script" : "evidence brief"} written for <strong>{property.address}</strong></span>
@@ -971,12 +957,12 @@ export default function ResultsContent() {
                         alert("Failed to start checkout. Please try again.");
                       }
                     }}
-                    className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap flex-shrink-0"
+                    className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#1a6b5a] text-white hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap flex-shrink-0"
                   >
                     File My {isTexas ? "Protest" : "Appeal"} — $49
                   </button>
                 </div>
-                <p className={`mt-3 text-xs ${isDark ? "text-emerald-300/50" : "text-emerald-600/60"}`}>
+                <p className={`mt-3 text-xs text-[#999]`}>
                   🔒 One-time filing fee • Delivered instantly to your email
                   {estimatedSavings >= 49 && (
                     <span> • Pays for itself in {estimatedSavings >= 588 ? "1 month" : estimatedSavings >= 98 ? `${Math.ceil(49 / (estimatedSavings / 12))} months` : "under a year"}</span>
@@ -990,8 +976,12 @@ export default function ResultsContent() {
           {hasAnalysis && estimatedSavings === 0 && (
             <div className={`p-5 sm:p-6 md:p-8 ${isDark ? "border-t border-white/5" : "border-t border-black/5"}`}>
               <div className="text-center">
-                <div className="text-4xl mb-3">🎉</div>
-                <div className={`flex items-center justify-center gap-2 font-medium text-lg ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+                <div className="w-12 h-12 rounded-full bg-[#1a6b5a] flex items-center justify-center mx-auto mb-3">
+                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div className={`flex items-center justify-center gap-2 font-medium text-lg text-[#1a6b5a]`}>
                   Good news — you&apos;re {isTexas ? "fairly appraised" : "fairly assessed"}!
                 </div>
                 <p className={`mt-2 ${textSecondary}`}>
@@ -1008,16 +998,16 @@ export default function ResultsContent() {
 
           {/* Analysis Not Available Yet */}
           {!analysisAvailable && (
-            <div className={`p-5 sm:p-6 md:p-8 ${isDark ? "border-t border-purple-500/20 bg-purple-500/10" : "border-t border-purple-200/50 bg-gradient-to-r from-purple-100/50 to-pink-100/50"}`}>
+            <div className={`p-5 sm:p-6 md:p-8 border-t border-[#1a6b5a]/15 bg-[#e8f4f0]`}>
               <div className="text-center">
                 <div className="text-4xl mb-3">⏳</div>
-                <div className={`font-medium text-lg ${isDark ? "text-purple-300" : "text-purple-700"}`}>
+                <div className={`font-medium text-lg text-[#1a6b5a]`}>
                   {uploadInProgress 
                     ? "We're still processing property data"
                     : "Analysis not available for this property"
                   }
                 </div>
-                <p className={`mt-2 ${isDark ? "text-purple-300/70" : "text-purple-600/70"}`}>
+                <p className={`mt-2 text-[#1a6b5a]/70`}>
                   {uploadInProgress
                     ? "We're crunching numbers for all properties in your area. Your property should be ready within a few hours."
                     : "This property type may not be supported, or we don't have enough comparable data."
@@ -1029,13 +1019,13 @@ export default function ResultsContent() {
                       <input 
                         type="email" 
                         placeholder="your@email.com"
-                        className={`flex-1 h-11 px-4 rounded-lg text-sm ${isDark ? "bg-black/30 border-purple-500/30 text-white placeholder-purple-300/50" : "bg-white border-purple-200 text-black placeholder-gray-400"} border focus:outline-none focus:ring-2 focus:ring-purple-500/50`}
+                        className={`flex-1 h-11 px-4 rounded-lg text-sm bg-white border-[#1a6b5a]/20 text-black placeholder-gray-400 border focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/50`}
                       />
-                      <button className="px-4 h-11 rounded-lg font-medium text-sm bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors">
+                      <button className="px-4 h-11 rounded-lg font-medium text-sm bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors">
                         Notify Me
                       </button>
                     </div>
-                    <p className={`mt-3 text-xs ${isDark ? "text-purple-300/50" : "text-purple-600/50"}`}>
+                    <p className={`mt-3 text-xs text-[#1a6b5a]/50`}>
                       We&apos;ll email you when your analysis is ready.
                     </p>
                   </>
@@ -1076,7 +1066,7 @@ export default function ResultsContent() {
                         </td>
                         <td className="py-3 text-right">
                           {savedAmount > 0 ? (
-                            <span className={`font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+                            <span className={`font-medium text-[#1a6b5a]`}>
                               -${savedAmount.toLocaleString()}
                               <span className="text-xs ml-1 opacity-70">
                                 (-{savedPercent}%)
@@ -1107,14 +1097,14 @@ export default function ResultsContent() {
                 <div className={`text-sm ${textSecondary}`}>Properties</div>
               </div>
               <div>
-                <div className={`text-xl sm:text-2xl font-semibold ${isDark ? "text-amber-400" : "text-amber-600"}`}>
+                <div className={`text-xl sm:text-2xl font-semibold text-[#1a6b5a]`}>
                   {property.neighborhoodStats.overAssessedPct}%
                 </div>
                 <div className={`text-sm ${textSecondary}`}>Over-Appraised</div>
               </div>
               {property.neighborhoodStats.avgReduction > 0 && (
                 <div>
-                  <div className={`text-xl sm:text-2xl font-semibold ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>
+                  <div className={`text-xl sm:text-2xl font-semibold text-[#1a6b5a]`}>
                     ${property.neighborhoodStats.avgReduction.toLocaleString()}
                   </div>
                   <div className={`text-sm ${textSecondary}`}>Avg. Reduction</div>
@@ -1133,7 +1123,7 @@ export default function ResultsContent() {
             <h2 className="text-base sm:text-lg font-semibold mb-5">How It Works</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6">
               <div className="flex sm:flex-col items-start gap-4 sm:gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg font-bold ${isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-lg font-semibold bg-[#1a6b5a] text-white`}>
                   1
                 </div>
                 <div>
@@ -1144,7 +1134,7 @@ export default function ResultsContent() {
                 </div>
               </div>
               <div className="flex sm:flex-col items-start gap-4 sm:gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg font-bold ${isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-lg font-semibold bg-[#1a6b5a] text-white`}>
                   2
                 </div>
                 <div>
@@ -1155,7 +1145,7 @@ export default function ResultsContent() {
                 </div>
               </div>
               <div className="flex sm:flex-col items-start gap-4 sm:gap-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-lg font-bold ${isDark ? "bg-purple-500/20 text-purple-400" : "bg-purple-100 text-purple-600"}`}>
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-lg font-semibold bg-[#1a6b5a] text-white`}>
                   3
                 </div>
                 <div>
@@ -1199,28 +1189,28 @@ export default function ResultsContent() {
               </div>
 
               {/* Overtaxed — highlighted */}
-              <div className={`rounded-xl p-4 border-2 ${isDark ? "border-purple-500/40 bg-purple-500/5" : "border-purple-300 bg-purple-50/50"} relative`}>
-                <div className={`absolute -top-3 left-4 px-2 py-0.5 rounded-full text-xs font-medium ${isDark ? "bg-purple-500 text-white" : "bg-purple-600 text-white"}`}>
+              <div className={`rounded-xl p-4 border-2 border-[#1a6b5a] bg-[#e8f4f0]/30 relative`}>
+                <div className={`absolute -top-3 left-4 px-2 py-0.5 rounded-full text-xs font-medium bg-[#1a6b5a] text-white`}>
                   Best Value
                 </div>
-                <div className={`text-sm font-medium uppercase tracking-wide ${isDark ? "text-purple-400" : "text-purple-600"}`}>Overtaxed</div>
+                <div className={`text-sm font-medium uppercase tracking-wide text-[#1a6b5a]`}>Overtaxed</div>
                 <div className={`text-2xl font-bold mt-2 ${textPrimary}`}>$49</div>
                 <div className={`text-sm ${textSecondary} mt-3 space-y-2`}>
                   <div className="flex items-start gap-2">
-                    <span className={`${isDark ? "text-emerald-400" : "text-emerald-500"}`}>✓</span>
+                    <span className={`text-[#1a6b5a]`}>✓</span>
                     <span>{compCount} comparable properties found for you</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className={`${isDark ? "text-emerald-400" : "text-emerald-500"}`}>✓</span>
+                    <span className={`text-[#1a6b5a]`}>✓</span>
                     <span>Professional {isTexas ? "hearing script" : "evidence brief"}</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className={`${isDark ? "text-emerald-400" : "text-emerald-500"}`}>✓</span>
+                    <span className={`text-[#1a6b5a]`}>✓</span>
                     <span>Step-by-step filing guide</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className={`${isDark ? "text-emerald-400" : "text-emerald-500"}`}>✓</span>
-                    <span className={`font-medium ${isDark ? "text-emerald-400" : "text-emerald-600"}`}>Ready in 5 minutes</span>
+                    <span className={`text-[#1a6b5a]`}>✓</span>
+                    <span className={`font-medium text-[#1a6b5a]`}>Ready in 5 minutes</span>
                   </div>
                 </div>
               </div>
@@ -1306,7 +1296,7 @@ export default function ResultsContent() {
 
         {/* Final CTA */}
         {hasAnalysis && estimatedSavings > 0 && (
-          <div className={`mt-3 rounded-2xl border ${isDark ? "border-purple-500/20 bg-purple-500/5" : "border-purple-200 bg-purple-50/50"} p-5 sm:p-6 md:p-8`}>
+          <div className={`mt-3 rounded-2xl border border-[#1a6b5a]/15 bg-[#e8f4f0] p-5 sm:p-6 md:p-8`}>
             <div className="text-center">
               <div className={`text-lg font-semibold ${isDark ? "text-white" : "text-gray-900"}`}>
                 You could be saving ${estimatedSavings.toLocaleString()}/year
@@ -1335,7 +1325,7 @@ export default function ResultsContent() {
                     alert("Failed to start checkout. Please try again.");
                   }
                 }}
-                className="mt-4 px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                className="mt-4 px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#1a6b5a] text-white hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
               >
                 File My {isTexas ? "Protest" : "Appeal"} — $49
               </button>
