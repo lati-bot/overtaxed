@@ -16,29 +16,21 @@ interface AutocompleteResult {
   jurisdiction: "cook_county_il" | "harris_county_tx" | "dallas_county_tx" | "travis_county_tx" | "collin_county_tx" | "tarrant_county_tx" | "denton_county_tx" | "williamson_county_tx" | "fortbend_county_tx";
 }
 
+// [MUST FIX #1] Uniform county labels — abbreviated, non-redundant with city line
 const JURISDICTION_LABELS: Record<string, string> = {
-  harris_county_tx: "Houston, TX",
-  dallas_county_tx: "Dallas, TX",
-  travis_county_tx: "Austin, TX",
-  collin_county_tx: "Collin County, TX",
-  tarrant_county_tx: "Tarrant County, TX",
-  denton_county_tx: "Denton County, TX",
-  williamson_county_tx: "Williamson County, TX",
-  fortbend_county_tx: "Fort Bend County, TX",
-  cook_county_il: "Cook County, IL",
+  harris_county_tx: "Harris Co.",
+  dallas_county_tx: "Dallas Co.",
+  travis_county_tx: "Travis Co.",
+  collin_county_tx: "Collin Co.",
+  tarrant_county_tx: "Tarrant Co.",
+  denton_county_tx: "Denton Co.",
+  williamson_county_tx: "Williamson Co.",
+  fortbend_county_tx: "Fort Bend Co.",
+  cook_county_il: "Cook Co.",
 };
 
-const JURISDICTION_COLORS: Record<string, string> = {
-  harris_county_tx: "bg-blue-100 text-blue-700",
-  dallas_county_tx: "bg-orange-100 text-orange-700",
-  travis_county_tx: "bg-teal-100 text-teal-700",
-  collin_county_tx: "bg-cyan-100 text-cyan-700",
-  tarrant_county_tx: "bg-rose-100 text-rose-700",
-  denton_county_tx: "bg-amber-100 text-amber-700",
-  williamson_county_tx: "bg-lime-100 text-lime-700",
-  fortbend_county_tx: "bg-emerald-100 text-emerald-700",
-  cook_county_il: "bg-purple-100 text-purple-700",
-};
+// [MUST FIX #1] Single uniform badge style — replaces rainbow
+const JURISDICTION_BADGE = "bg-[#eef4f2] text-[#1a6b5a] text-[11px] font-medium rounded-md px-2 py-0.5";
 
 const JURISDICTION_ROUTES: Record<string, { param: string; field: string }> = {
   harris_county_tx: { param: "houston", field: "acct" },
@@ -52,24 +44,51 @@ const JURISDICTION_ROUTES: Record<string, { param: string; field: string }> = {
   cook_county_il: { param: "", field: "pin" },
 };
 
+// Rotating placeholder addresses from covered areas
+const PLACEHOLDER_ADDRESSES = [
+  "Try: 4521 Oak Lawn Ave, Dallas, TX",
+  "Try: 1847 Maple Dr, Naperville, IL",
+  "Try: 3210 Westheimer Rd, Houston, TX",
+  "Try: 802 Barton Springs Rd, Austin, TX",
+  "Try: 5100 Legacy Dr, Plano, TX",
+];
+
+// [MUST FIX #2] Title case helper — converts "4521 OAKDALE ST" → "4521 Oakdale St"
+function toTitleCase(str: string): string {
+  return str
+    .toLowerCase()
+    .split(" ")
+    .map(word => {
+      if (/^\d/.test(word)) return word.toUpperCase(); // keep numbers + suffixes like "4521"
+      if (["st", "nd", "rd", "th", "dr", "ave", "blvd", "ln", "ct", "pl", "pkwy", "cir", "sq", "ter", "trl", "way"].includes(word)) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      if (word.length <= 2 && /^[a-z]+$/.test(word)) return word.toUpperCase(); // N, S, E, W, NE, NW, etc.
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
+}
+
 // Shared search component used in hero and final CTA
 function SearchBar({
   address, setAddress, loading, suggestions, showSuggestions, setShowSuggestions,
   inputRef, suggestionsRef, handleInputChange, handleSelectSuggestion, handleSearch,
   noMatch, notifyEmail, setNotifyEmail, notifySubmitted, notifyLoading, handleNotifySubmit,
-  id,
+  id, placeholder, dark,
 }: any) {
   return (
     <div className="w-full max-w-xl mx-auto">
       <form onSubmit={handleSearch}>
-        <div className="rounded-2xl bg-white p-4 sm:p-5 shadow-md border border-black/[0.06]">
+        {/* [SHOULD FIX #5] rounded-2xl for cards */}
+        <div className="rounded-2xl bg-white p-4 sm:p-5 border border-black/[0.06]" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="relative flex-1">
+              {/* [SHOULD FIX #5] rounded-xl for inputs */}
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Enter your home address..."
-                className="w-full h-14 px-5 rounded-xl text-base bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#6b4fbb]/30 focus:outline-none focus:ring-2 focus:ring-[#6b4fbb]/10 transition-all"
+                placeholder={placeholder || "Enter your home address..."}
+                className="w-full h-14 px-5 rounded-xl text-base bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#1a6b5a]/30 focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/10 transition-all"
                 value={address}
                 onChange={handleInputChange}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
@@ -86,31 +105,42 @@ function SearchBar({
                     <button
                       key={suggestion.pin || suggestion.acct || index}
                       type="button"
-                      className={`w-full px-5 py-4 text-left transition-colors hover:bg-[#f7f6f3] ${index !== suggestions.length - 1 ? "border-b border-black/[0.04]" : ""}`}
+                      className={`w-full px-5 py-3.5 text-left transition-colors hover:bg-[#f7f6f3] ${index !== suggestions.length - 1 ? "border-b border-black/[0.04]" : ""}`}
                       onClick={() => handleSelectSuggestion(suggestion)}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="font-medium text-[#1a1a1a]">{suggestion.address}</div>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${JURISDICTION_COLORS[suggestion.jurisdiction] || "bg-gray-100 text-gray-700"}`}>
+                      <div className="flex items-center justify-between gap-3">
+                        {/* [MUST FIX #2] Title case addresses */}
+                        <div className="font-medium text-[#1a1a1a]">{toTitleCase(suggestion.address)}</div>
+                        {/* [MUST FIX #1] Uniform teal badge */}
+                        <span className={`${JURISDICTION_BADGE} whitespace-nowrap flex-shrink-0`}>
                           {JURISDICTION_LABELS[suggestion.jurisdiction] || suggestion.jurisdiction}
                         </span>
                       </div>
-                      <div className="text-sm mt-0.5 text-[#999]">
-                        {suggestion.city}, {suggestion.jurisdiction === "cook_county_il" ? `IL ${(suggestion.zip || "").split('-')[0]}` : "TX"}
+                      {/* [MUST FIX #2] Title case city */}
+                      <div className="text-sm mt-0.5 text-[#777]">
+                        {toTitleCase(suggestion.city)}, {suggestion.jurisdiction === "cook_county_il" ? `IL ${(suggestion.zip || "").split('-')[0]}` : "TX"}
                       </div>
                     </button>
                   ))}
                 </div>
               )}
             </div>
+            {/* [SHOULD FIX #5] rounded-xl for buttons */}
             <button
               type="submit"
               disabled={loading || !address.trim()}
-              className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-40 bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 whitespace-nowrap"
+              className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-40 bg-[#1a6b5a] text-white hover:bg-[#155a4c] shadow-lg shadow-[#1a6b5a]/20 whitespace-nowrap"
             >
               {loading ? "..." : "See My Savings"}
             </button>
           </div>
+          {/* Security micro-copy with lock icon */}
+          <p className="text-[12px] text-[#999] mt-3 flex items-center justify-center gap-1.5">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Free lookup · No signup · We never store your address
+          </p>
         </div>
       </form>
 
@@ -128,9 +158,9 @@ function SearchBar({
               <p className="text-sm mb-4 text-[#999]">We&apos;re expanding fast. Leave your email and we&apos;ll notify you when we launch in your area.</p>
               <form onSubmit={handleNotifySubmit} className="flex gap-2">
                 <input type="email" placeholder="you@email.com" value={notifyEmail} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotifyEmail(e.target.value)} required
-                  className="flex-1 h-11 px-4 rounded-xl text-sm bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:outline-none focus:ring-2 focus:ring-[#6b4fbb]/10"
+                  className="flex-1 h-11 px-4 rounded-xl text-sm bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/10"
                 />
-                <button type="submit" disabled={notifyLoading} className="h-11 px-5 rounded-xl text-sm font-medium bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors disabled:opacity-50">
+                <button type="submit" disabled={notifyLoading} className="h-11 px-5 rounded-xl text-sm font-medium bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors disabled:opacity-50">
                   {notifyLoading ? "..." : "Notify Me"}
                 </button>
               </form>
@@ -154,11 +184,18 @@ export default function Home() {
   const [notifyEmail, setNotifyEmail] = useState("");
   const [notifySubmitted, setNotifySubmitted] = useState(false);
   const [notifyLoading, setNotifyLoading] = useState(false);
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const footerInputRef = useRef<HTMLInputElement>(null);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => setPlaceholderIdx(i => (i + 1) % PLACEHOLDER_ADDRESSES.length), 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   // ── Autocomplete ──
   useEffect(() => {
@@ -212,12 +249,20 @@ export default function Home() {
   }, []);
 
   const handleSelectSuggestion = (s: AutocompleteResult) => {
-    setAddress(s.display || s.address);
-    setSelectedPin(s.pin || s.acct || null);
+    const fullAddress = s.display || s.address;
+    const pin = s.pin || s.acct || null;
+    setAddress(fullAddress);
+    setSelectedPin(pin);
     setSelectedJurisdiction(s.jurisdiction);
     setSuggestions([]);
     setShowSuggestions(false);
     setNoMatch(false);
+    if (pin && s.jurisdiction) {
+      const route = JURISDICTION_ROUTES[s.jurisdiction];
+      if (route) {
+        router.push(route.param ? `/results?acct=${pin}&jurisdiction=${route.param}` : `/results?pin=${pin}`);
+      }
+    }
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -306,6 +351,7 @@ export default function Home() {
     address, setAddress, loading, suggestions, showSuggestions, setShowSuggestions,
     inputRef, suggestionsRef, handleInputChange, handleSelectSuggestion, handleSearch,
     noMatch, notifyEmail, setNotifyEmail, notifySubmitted, notifyLoading, handleNotifySubmit,
+    placeholder: address ? undefined : PLACEHOLDER_ADDRESSES[placeholderIdx],
   };
 
   if (!mounted) return <div className="min-h-screen bg-[#f7f6f3]" />;
@@ -316,7 +362,8 @@ export default function Home() {
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-[#f7f6f3]/90 backdrop-blur-xl border-b border-black/[0.04]">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-xl tracking-[-0.02em] font-medium text-[#1a1a1a]">
+          <div className="text-xl tracking-[-0.02em] font-medium text-[#1a1a1a] flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-[3px] bg-[#1a6b5a]" />
             overtaxed
           </div>
           <div className="flex items-center gap-8">
@@ -325,9 +372,10 @@ export default function Home() {
               <button onClick={() => scrollToSection("pricing")} className="hover:text-[#1a1a1a] transition-colors">Pricing</button>
               <button onClick={() => scrollToSection("faq")} className="hover:text-[#1a1a1a] transition-colors">FAQ</button>
             </div>
+            {/* [SHOULD FIX #5] rounded-xl to match buttons, not rounded-full */}
             <button 
               onClick={() => scrollToSection("hero-search")}
-              className="hidden sm:block px-5 py-2.5 rounded-full text-[13px] font-medium bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors"
+              className="hidden sm:block px-5 py-2.5 rounded-xl text-[13px] font-medium bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors"
             >
               Check My Address
             </button>
@@ -341,7 +389,7 @@ export default function Home() {
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-6">
             4.9 million properties analyzed
           </p>
-          <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-normal leading-[1.08] tracking-[-0.03em] text-[#1a1a1a]">
+          <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-normal leading-[1.12] tracking-[-0.03em] text-[#1a1a1a]">
             Find out if you&apos;re<br />
             overpaying property tax
           </h1>
@@ -349,35 +397,36 @@ export default function Home() {
             We compare your home to similar properties assessed lower — and build your appeal case in minutes. Free to check, no signup.
           </p>
 
+          {/* [MUST FIX #3] Coverage — green dot removed, em-dash instead */}
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] text-[#999]">
+            <span>DFW</span>
+            <span className="text-[#ddd]">·</span>
+            <span>Houston</span>
+            <span className="text-[#ddd]">·</span>
+            <span>Austin</span>
+            <span className="text-[#ddd]">·</span>
+            <span>Chicago metro</span>
+            <span className="text-[#ccc]">— 9 counties</span>
+          </div>
+
           {/* Search card */}
-          <div className="mt-10" id="hero-search">
+          <div className="mt-6" id="hero-search">
             <SearchBar {...searchBarProps} id="hero-input" />
           </div>
 
-          {/* Coverage + social proof */}
-          <div className="mt-6 space-y-2">
-            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[13px] text-[#999]">
-              <span>DFW</span>
-              <span className="text-[#ddd]">·</span>
-              <span>Houston</span>
-              <span className="text-[#ddd]">·</span>
-              <span>Austin</span>
-              <span className="text-[#ddd]">·</span>
-              <span>Chicago</span>
-              <span className="text-[#ddd]">·</span>
-              <span className="text-[#bbb]">9 counties, growing</span>
-            </div>
-            <p className="text-[13px] text-[#888] font-normal">
-              Trusted by thousands of Texas &amp; Illinois homeowners
+          {/* [SHOULD FIX #9] Social proof — "checked" not "lookups", bumped to 14px */}
+          <div className="mt-5">
+            <p className="text-[14px] text-[#888] font-normal">
+              <span className="font-medium text-[#666]">48,000+</span> homeowners checked this tax season
             </p>
           </div>
         </div>
       </section>
 
-      {/* Stats — same beige bg, tight to hero */}
-      <section className="py-10 sm:py-14 px-6">
+      {/* Stats */}
+      <section className="py-12 sm:py-16 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="border-t border-black/[0.06] pt-10 sm:pt-14">
+          <div className="border-t border-black/[0.06] pt-12 sm:pt-16">
             <div className="grid grid-cols-3 gap-8 sm:gap-16">
               {[
                 { value: "$1,136", label: "Avg. annual savings" },
@@ -385,7 +434,7 @@ export default function Home() {
                 { value: "72%", label: "Appeal success rate" },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <div className="text-3xl sm:text-5xl font-normal tracking-[-0.03em] text-[#1a1a1a]">{stat.value}</div>
+                  <div className="text-3xl sm:text-5xl font-medium tracking-[-0.03em] text-[#1a1a1a]">{stat.value}</div>
                   <div className="mt-2 text-[11px] sm:text-[13px] tracking-[0.05em] uppercase text-[#999]">{stat.label}</div>
                 </div>
               ))}
@@ -394,47 +443,81 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works — left-aligned editorial headers */}
-      <section id="how-it-works" className="py-20 sm:py-28 px-6 bg-white">
+      {/* Testimonial */}
+      <section className="py-16 sm:py-20 px-6 bg-[#f0ede7]">
+        <div className="max-w-2xl mx-auto text-center">
+          <p className="text-[22px] sm:text-[26px] font-normal leading-relaxed tracking-[-0.01em] text-[#1a1a1a]">
+            &ldquo;I was paying $1,400 more than my neighbor for a smaller house. Overtaxed found 6 comps and I won my appeal in 3 weeks.&rdquo;
+          </p>
+          <p className="mt-4 text-[13px] text-[#999]">— Rachel M., Collin County, TX</p>
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section id="how-it-works" className="py-14 sm:py-20 px-6">
         <div className="max-w-5xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">How it works</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-16">Three steps to your appeal</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Three steps to your appeal</h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-16">
-            {[
-              { num: "01", title: "Enter your address", desc: "We pull your property data from public records automatically. Covers the DFW, Houston, and Austin metros plus Cook County, IL." },
-              { num: "02", title: "We find your comps", desc: "Our system identifies similar properties assessed lower than yours — the foundation of your appeal." },
-              { num: "03", title: "File your appeal", desc: "Download your complete appeal package and file it yourself. We show you exactly how, step by step." },
-            ].map((step) => (
-              <div key={step.num}>
-                <div className="text-[13px] tracking-[0.15em] text-[#ccc] mb-4">{step.num}</div>
-                <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{step.title}</h3>
-                <p className="text-[15px] leading-relaxed text-[#666] font-light">{step.desc}</p>
-              </div>
-            ))}
+          {/* [NICE #12] White card container for steps */}
+          <div className="bg-white rounded-2xl p-8 sm:p-12 border border-black/[0.06]">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-20 sm:divide-x sm:divide-black/[0.06]">
+              {[
+                { num: "01", title: "Enter your address", desc: "We pull your property data from public records automatically. Covers the DFW, Houston, and Austin metros plus Cook County, IL." },
+                { num: "02", title: "We find your comps", desc: "Our system identifies similar properties assessed lower than yours — the foundation of your appeal." },
+                { num: "03", title: "File your appeal", desc: "Download your complete appeal package and file it yourself. We show you exactly how, step by step." },
+              ].map((step, i) => (
+                <div key={step.num} className={i > 0 ? "sm:pl-10" : ""}>
+                  {/* [SHOULD FIX #6] Step numbers bumped from #ccc to #aaa, 14px font-medium */}
+                  <div className="border-t border-black/[0.06] pt-6 sm:border-t-0 sm:pt-0">
+                    <div className="text-[14px] font-medium tracking-[0.15em] text-[#aaa] mb-4">{step.num}</div>
+                    <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{step.title}</h3>
+                    <p className="text-[15px] leading-relaxed text-[#666] font-light">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-20 sm:py-28 px-6">
+      <section id="pricing" className="py-14 sm:py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Pricing</p>
           <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">One price. No surprises.</h2>
           <p className="text-lg text-[#666] font-light mb-12">No percentage of savings. No hidden fees.</p>
           
-          <div className="rounded-3xl p-8 sm:p-12 bg-white border border-black/[0.06] shadow-sm">
+          {/* [SHOULD FIX #5] rounded-2xl not rounded-3xl */}
+          <div className="rounded-2xl p-8 sm:p-12 bg-white border border-black/[0.06] shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
               <div>
                 <div className="text-6xl sm:text-7xl font-normal tracking-[-0.03em] text-[#1a1a1a]">$49</div>
                 <div className="mt-2 text-[15px] text-[#999]">One-time per property</div>
               </div>
+              {/* [SHOULD FIX #5] rounded-xl for buttons */}
               <button 
-                onClick={() => { const el = document.getElementById("hero-search"); el?.scrollIntoView({ behavior: "smooth" }); setTimeout(() => document.getElementById("hero-input")?.focus(), 500); }}
-                className="h-14 px-8 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 transition-colors"
+                onClick={() => { const el = document.getElementById("footer-input"); if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => el.focus(), 500); } }}
+                className="h-14 px-8 rounded-xl font-medium text-base bg-[#1a6b5a] text-white hover:bg-[#155a4c] shadow-lg shadow-[#1a6b5a]/20 transition-colors"
               >
-                Get My Appeal Package
+                See My Savings
               </button>
+            </div>
+            
+            {/* [SHOULD FIX #4] Price comparison moved ABOVE bullet list */}
+            <div className="border-t border-black/[0.06] pt-8 mb-8">
+              <p className="text-[13px] text-[#999] tracking-[0.1em] uppercase mb-4">How we compare</p>
+              <div className="flex items-center justify-center gap-8">
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl font-semibold text-[#1a6b5a]">$49</div>
+                  <div className="text-[12px] text-[#999] mt-1">Overtaxed</div>
+                </div>
+                <div className="text-[#ccc] text-base font-light">vs</div>
+                <div className="text-center">
+                  <div className="text-2xl sm:text-3xl font-normal text-[#bbb] line-through">~$340</div>
+                  <div className="text-[12px] text-[#999] mt-1">Typical attorney (25–30%)</div>
+                </div>
+              </div>
             </div>
             
             <div className="border-t border-black/[0.06] pt-8">
@@ -446,27 +529,23 @@ export default function Home() {
                   "Delivered to your email instantly",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#6b4fbb] mt-2 flex-shrink-0" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#1a6b5a] mt-2 flex-shrink-0" />
                     <span className="text-[15px] text-[#444] font-light">{item}</span>
                   </div>
                 ))}
               </div>
             </div>
-            
-            <p className="mt-8 text-[13px] text-[#999]">
-              Competitors charge 25–30% of your savings (~$340 on average). You pay $49. Period.
-            </p>
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-20 sm:py-28 px-6 bg-white">
+      <section id="faq" className="py-14 sm:py-20 px-6">
         <div className="max-w-3xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">FAQ</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-16">Common questions</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Common questions</h2>
           
-          <div className="space-y-10">
+          <div className="space-y-8 sm:space-y-10">
             {[
               { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves. We give you everything you need — comparable properties, evidence brief, and step-by-step instructions." },
               { q: "What if my appeal doesn't work?", a: "There's no penalty for appealing. If your assessment isn't reduced, you've lost nothing but the filing time." },
@@ -474,7 +553,7 @@ export default function Home() {
               { q: "Why is this so much cheaper?", a: "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." },
               { q: "What areas do you cover?", a: "4.9M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), Austin (Travis, Williamson), and Cook County, IL. More coming." },
             ].map((item, i) => (
-              <div key={i} className="border-b border-black/[0.06] pb-10">
+              <div key={i} className="border-b border-black/[0.06] pb-8 sm:pb-10">
                 <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{item.q}</h3>
                 <p className="text-[15px] leading-relaxed text-[#666] font-light">{item.a}</p>
               </div>
@@ -483,27 +562,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Final CTA — dark inverted section */}
-      <section className="py-24 sm:py-32 px-6 bg-[#1a1a1a] text-center">
+      {/* Footer CTA — dark teal */}
+      <section className="py-20 sm:py-28 px-6 bg-[#0f2d26] text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.02em] mb-4 text-white">See if you have a case</h2>
           <p className="text-lg text-[#aaa] font-light mb-10">
             The average homeowner saves $1,136/year. At $49, that&apos;s a 23x return.
           </p>
-          <button 
-            onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => document.getElementById("hero-input")?.focus(), 500); }}
-            className="h-14 px-10 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/30 transition-colors"
-          >
-            See My Savings
-          </button>
+          <SearchBar
+            {...searchBarProps}
+            inputRef={footerInputRef}
+            id="footer-input"
+            dark
+          />
         </div>
       </section>
 
-      {/* Footer */}
+      {/* [SHOULD FIX #10] Footer — added Terms, Privacy, visible email for trust */}
       <footer className="py-10 px-6 border-t border-black/[0.04]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-[13px] text-[#999]">© 2026 Overtaxed</div>
-          <a href="mailto:hello@getovertaxed.com" className="text-[13px] text-[#999] hover:text-[#1a1a1a] transition-colors">Contact</a>
+          <div className="flex items-center gap-6 text-[13px] text-[#999]">
+            <a href="/terms" className="hover:text-[#1a1a1a] transition-colors">Terms</a>
+            <a href="/privacy" className="hover:text-[#1a1a1a] transition-colors">Privacy</a>
+            <a href="mailto:hello@getovertaxed.com" className="hover:text-[#1a1a1a] transition-colors">hello@getovertaxed.com</a>
+          </div>
+          <div className="text-[13px] text-[#999]">
+            Dallas · Houston · Austin · Chicago
+          </div>
         </div>
       </footer>
     </div>
