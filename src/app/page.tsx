@@ -443,8 +443,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* [SHOULD FIX #7] Testimonial — committed visual differentiation with warmer bg + name */}
-      <section className="py-16 sm:py-20 px-6 bg-[#f0ede7]">
+      {/* Testimonial — warmer bg band */}
+      <section className="py-12 sm:py-16 px-6 bg-[#f0ede7]">
         <div className="max-w-2xl mx-auto text-center">
           <p className="text-[22px] sm:text-[26px] font-normal leading-relaxed tracking-[-0.01em] text-[#1a1a1a]">
             &ldquo;I was paying $1,400 more than my neighbor for a smaller house. Overtaxed found 6 comps and I won my appeal in 3 weeks.&rdquo;
@@ -453,11 +453,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* [SHOULD FIX #6 & #8] How it works — structured steps, standardized spacing */}
-      <section id="how-it-works" className="py-16 sm:py-24 px-6">
+      {/* How it works */}
+      <section id="how-it-works" className="py-12 sm:py-16 px-6">
         <div className="max-w-5xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">How it works</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-20">Three steps to your appeal</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-10">Three steps to your appeal</h2>
           
           {/* [NICE #12] White card container for steps */}
           <div className="bg-white rounded-2xl p-8 sm:p-12 border border-black/[0.06]">
@@ -481,12 +481,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* [SHOULD FIX #4 & #5 & #8] Pricing — comparison moved up, rounded-2xl, standardized spacing */}
-      <section id="pricing" className="py-16 sm:py-24 px-6">
+      {/* Pricing */}
+      <section id="pricing" className="py-12 sm:py-16 px-6">
         <div className="max-w-4xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Pricing</p>
           <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">One price. No surprises.</h2>
-          <p className="text-lg text-[#666] font-light mb-12">No percentage of savings. No hidden fees.</p>
+          <p className="text-lg text-[#666] font-light mb-8">No percentage of savings. No hidden fees.</p>
           
           {/* [SHOULD FIX #5] rounded-2xl not rounded-3xl */}
           <div className="rounded-2xl p-8 sm:p-12 bg-white border border-black/[0.06] shadow-sm">
@@ -539,11 +539,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* [SHOULD FIX #8 & NICE #14] FAQ — standardized spacing, tighter on mobile */}
-      <section id="faq" className="py-16 sm:py-24 px-6">
+      {/* FAQ */}
+      <section id="faq" className="py-12 sm:py-16 px-6">
         <div className="max-w-3xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">FAQ</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-16">Common questions</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-10">Common questions</h2>
           
           <div className="space-y-8 sm:space-y-10">
             {[
@@ -562,8 +562,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* [NICE #13] Final CTA — dark teal instead of near-black */}
-      <section className="py-20 sm:py-28 px-6 bg-[#0f2d26] text-center">
+      {/* Final CTA — dark teal */}
+      <section className="py-16 sm:py-20 px-6 bg-[#0f2d26] text-center">
         <div className="max-w-2xl mx-auto">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.02em] mb-4 text-white">See if you have a case</h2>
           <p className="text-lg text-[#aaa] font-light mb-10">
