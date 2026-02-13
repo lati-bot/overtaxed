@@ -16,13 +16,6 @@ interface AutocompleteResult {
   jurisdiction: "cook_county_il" | "harris_county_tx" | "dallas_county_tx" | "travis_county_tx" | "collin_county_tx" | "tarrant_county_tx" | "denton_county_tx" | "williamson_county_tx" | "fortbend_county_tx";
 }
 
-const METRO_GROUPS = [
-  { label: "DFW Metro", detail: "Dallas · Tarrant · Collin · Denton", count: "1.9M+" },
-  { label: "Houston Metro", detail: "Harris · Fort Bend", count: "1.4M+" },
-  { label: "Austin Metro", detail: "Travis · Williamson", count: "610K+" },
-  { label: "Chicago", detail: "Cook County", count: "970K+" },
-];
-
 const JURISDICTION_LABELS: Record<string, string> = {
   harris_county_tx: "Houston, TX",
   dallas_county_tx: "Dallas, TX",
@@ -47,6 +40,108 @@ const JURISDICTION_COLORS: Record<string, string> = {
   cook_county_il: "bg-purple-100 text-purple-700",
 };
 
+const JURISDICTION_ROUTES: Record<string, { param: string; field: string }> = {
+  harris_county_tx: { param: "houston", field: "acct" },
+  dallas_county_tx: { param: "dallas", field: "acct" },
+  travis_county_tx: { param: "austin", field: "acct" },
+  collin_county_tx: { param: "collin", field: "acct" },
+  tarrant_county_tx: { param: "tarrant", field: "acct" },
+  denton_county_tx: { param: "denton", field: "acct" },
+  williamson_county_tx: { param: "williamson", field: "acct" },
+  fortbend_county_tx: { param: "fortbend", field: "acct" },
+  cook_county_il: { param: "", field: "pin" },
+};
+
+// Shared search component used in hero and final CTA
+function SearchBar({
+  address, setAddress, loading, suggestions, showSuggestions, setShowSuggestions,
+  inputRef, suggestionsRef, handleInputChange, handleSelectSuggestion, handleSearch,
+  noMatch, notifyEmail, setNotifyEmail, notifySubmitted, notifyLoading, handleNotifySubmit,
+  id,
+}: any) {
+  return (
+    <div className="w-full max-w-xl mx-auto">
+      <form onSubmit={handleSearch}>
+        <div className="rounded-2xl bg-white p-4 sm:p-5 shadow-md border border-black/[0.06]">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <input
+                ref={inputRef}
+                type="text"
+                placeholder="Enter your home address..."
+                className="w-full h-14 px-5 rounded-xl text-base bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#6b4fbb]/30 focus:outline-none focus:ring-2 focus:ring-[#6b4fbb]/10 transition-all"
+                value={address}
+                onChange={handleInputChange}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                disabled={loading}
+                autoComplete="off"
+                id={id}
+              />
+              {showSuggestions && suggestions.length > 0 && (
+                <div
+                  ref={suggestionsRef}
+                  className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-2xl z-50 overflow-hidden bg-white border border-black/[0.08]"
+                >
+                  {suggestions.map((suggestion: AutocompleteResult, index: number) => (
+                    <button
+                      key={suggestion.pin || suggestion.acct || index}
+                      type="button"
+                      className={`w-full px-5 py-4 text-left transition-colors hover:bg-[#f7f6f3] ${index !== suggestions.length - 1 ? "border-b border-black/[0.04]" : ""}`}
+                      onClick={() => handleSelectSuggestion(suggestion)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="font-medium text-[#1a1a1a]">{suggestion.address}</div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${JURISDICTION_COLORS[suggestion.jurisdiction] || "bg-gray-100 text-gray-700"}`}>
+                          {JURISDICTION_LABELS[suggestion.jurisdiction] || suggestion.jurisdiction}
+                        </span>
+                      </div>
+                      <div className="text-sm mt-0.5 text-[#999]">
+                        {suggestion.city}, {suggestion.jurisdiction === "cook_county_il" ? `IL ${(suggestion.zip || "").split('-')[0]}` : "TX"}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button
+              type="submit"
+              disabled={loading || !address.trim()}
+              className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-40 bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 whitespace-nowrap"
+            >
+              {loading ? "..." : "See My Savings"}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      {/* No-match email capture */}
+      {noMatch && (
+        <div className="mt-4 rounded-2xl p-6 bg-white border border-black/[0.08] text-left">
+          {notifySubmitted ? (
+            <div className="text-center py-2">
+              <p className="font-medium text-[#1a1a1a]">You&apos;re on the list</p>
+              <p className="text-sm mt-1 text-[#999]">We&apos;ll email you as soon as your area is covered.</p>
+            </div>
+          ) : (
+            <>
+              <p className="font-medium mb-1 text-[#1a1a1a]">We don&apos;t cover that area yet</p>
+              <p className="text-sm mb-4 text-[#999]">We&apos;re expanding fast. Leave your email and we&apos;ll notify you when we launch in your area.</p>
+              <form onSubmit={handleNotifySubmit} className="flex gap-2">
+                <input type="email" placeholder="you@email.com" value={notifyEmail} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotifyEmail(e.target.value)} required
+                  className="flex-1 h-11 px-4 rounded-xl text-sm bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:outline-none focus:ring-2 focus:ring-[#6b4fbb]/10"
+                />
+                <button type="submit" disabled={notifyLoading} className="h-11 px-5 rounded-xl text-sm font-medium bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors disabled:opacity-50">
+                  {notifyLoading ? "..." : "Notify Me"}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Home() {
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,7 +149,6 @@ export default function Home() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedPin, setSelectedPin] = useState<string | null>(null);
   const [selectedJurisdiction, setSelectedJurisdiction] = useState<string | null>(null);
-  const [theme, setTheme] = useState<"dark" | "light">("light");
   const [mounted, setMounted] = useState(false);
   const [noMatch, setNoMatch] = useState(false);
   const [notifyEmail, setNotifyEmail] = useState("");
@@ -64,18 +158,9 @@ export default function Home() {
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem("theme") as "dark" | "light" | null;
-    if (saved) setTheme(saved);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-  };
-
+  // ── Autocomplete ──
   useEffect(() => {
     if (address.length < 3 || selectedPin) {
       setSuggestions([]);
@@ -95,14 +180,8 @@ export default function Home() {
           fetch(`/api/williamson/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/fortbend/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
         ]);
-        
         const mapResults = (res: any, jurisdiction: AutocompleteResult["jurisdiction"]) =>
-          (res.results || []).map((r: any) => ({
-            ...r,
-            jurisdiction,
-            display: r.display || r.address,
-          }));
-
+          (res.results || []).map((r: any) => ({ ...r, jurisdiction, display: r.display || r.address }));
         const combined = [
           ...mapResults(cookRes, "cook_county_il"),
           ...mapResults(houstonRes, "harris_county_tx"),
@@ -114,26 +193,17 @@ export default function Home() {
           ...mapResults(williamsonRes, "williamson_county_tx"),
           ...mapResults(fortbendRes, "fortbend_county_tx"),
         ].slice(0, 8);
-
         setSuggestions(combined);
         setShowSuggestions(true);
-        // Show no-match if user typed 5+ chars and zero results across all markets
         setNoMatch(combined.length === 0 && address.trim().length >= 5);
-      } catch {
-        setSuggestions([]);
-      }
+      } catch { setSuggestions([]); }
     }, 300);
     return () => clearTimeout(timer);
   }, [address, selectedPin]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        suggestionsRef.current && 
-        !suggestionsRef.current.contains(e.target as Node) &&
-        inputRef.current &&
-        !inputRef.current.contains(e.target as Node)
-      ) {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node) && inputRef.current && !inputRef.current.contains(e.target as Node)) {
         setShowSuggestions(false);
       }
     };
@@ -141,10 +211,10 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectSuggestion = (suggestion: AutocompleteResult) => {
-    setAddress(suggestion.display || suggestion.address);
-    setSelectedPin(suggestion.pin || suggestion.acct || null);
-    setSelectedJurisdiction(suggestion.jurisdiction);
+  const handleSelectSuggestion = (s: AutocompleteResult) => {
+    setAddress(s.display || s.address);
+    setSelectedPin(s.pin || s.acct || null);
+    setSelectedJurisdiction(s.jurisdiction);
     setSuggestions([]);
     setShowSuggestions(false);
     setNoMatch(false);
@@ -168,35 +238,15 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: notifyEmail, address: address.trim() }),
       });
-      setNotifySubmitted(true);
-    } catch {
-      // Still show submitted — best effort
-      setNotifySubmitted(true);
-    } finally {
-      setNotifyLoading(false);
-    }
-  };
-
-  const JURISDICTION_ROUTES: Record<string, { param: string; field: string }> = {
-    harris_county_tx: { param: "houston", field: "acct" },
-    dallas_county_tx: { param: "dallas", field: "acct" },
-    travis_county_tx: { param: "austin", field: "acct" },
-    collin_county_tx: { param: "collin", field: "acct" },
-    tarrant_county_tx: { param: "tarrant", field: "acct" },
-    denton_county_tx: { param: "denton", field: "acct" },
-    williamson_county_tx: { param: "williamson", field: "acct" },
-    fortbend_county_tx: { param: "fortbend", field: "acct" },
-    cook_county_il: { param: "", field: "pin" },
+    } catch { /* best effort */ }
+    setNotifySubmitted(true);
+    setNotifyLoading(false);
   };
 
   const routeToResults = (pin: string | null | undefined, jurisdiction: string) => {
     const route = JURISDICTION_ROUTES[jurisdiction];
     if (!route || !pin) return false;
-    if (route.param) {
-      router.push(`/results?acct=${pin}&jurisdiction=${route.param}`);
-    } else {
-      router.push(`/results?pin=${pin}`);
-    }
+    router.push(route.param ? `/results?acct=${pin}&jurisdiction=${route.param}` : `/results?pin=${pin}`);
     return true;
   };
 
@@ -205,15 +255,11 @@ export default function Home() {
     if (!address.trim()) return;
     setLoading(true);
 
-    // If user typed but didn't select a suggestion, auto-select the best match
     if (!selectedPin && suggestions.length > 0) {
       const best = suggestions[0];
-      const bestPin = best.pin || best.acct || null;
-      if (bestPin && routeToResults(bestPin, best.jurisdiction)) return;
+      if (routeToResults(best.pin || best.acct, best.jurisdiction)) return;
     }
 
-    // If user typed but suggestions haven't loaded yet or are empty,
-    // do a quick autocomplete search and use the top result
     if (!selectedPin) {
       try {
         const cleanedAddress = address.trim().replace(/,?\s*(IL|TX|ILLINOIS|TEXAS)\s*\d{0,5}\s*$/i, "").replace(/,?\s*$/, "").trim();
@@ -229,32 +275,22 @@ export default function Home() {
           fetch(`/api/williamson/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
           fetch(`/api/fortbend/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
         ]);
-
         const markets = [
-          { res: fortbendRes, jurisdiction: "fortbend_county_tx" },
-          { res: dentonRes, jurisdiction: "denton_county_tx" },
-          { res: williamsonRes, jurisdiction: "williamson_county_tx" },
-          { res: tarrantRes, jurisdiction: "tarrant_county_tx" },
-          { res: collinRes, jurisdiction: "collin_county_tx" },
-          { res: austinRes, jurisdiction: "austin_county_tx" },
-          { res: dallasRes, jurisdiction: "dallas_county_tx" },
-          { res: houstonRes, jurisdiction: "harris_county_tx" },
-          { res: cookRes, jurisdiction: "cook_county_il" },
+          { res: fortbendRes, j: "fortbend_county_tx" }, { res: dentonRes, j: "denton_county_tx" },
+          { res: williamsonRes, j: "williamson_county_tx" }, { res: tarrantRes, j: "tarrant_county_tx" },
+          { res: collinRes, j: "collin_county_tx" }, { res: austinRes, j: "austin_county_tx" },
+          { res: dallasRes, j: "dallas_county_tx" }, { res: houstonRes, j: "harris_county_tx" },
+          { res: cookRes, j: "cook_county_il" },
         ];
-
         for (const m of markets) {
           const first = (m.res.results || [])[0];
           const id = first?.acct || first?.pin;
-          if (id && routeToResults(id, m.jurisdiction)) return;
+          if (id && routeToResults(id, m.j)) return;
         }
-
-        // No match — show email capture
         setNoMatch(true);
         setLoading(false);
         return;
-      } catch {
-        // Fall through
-      }
+      } catch { /* fall through */ }
     }
 
     if (selectedPin && selectedJurisdiction) {
@@ -264,262 +300,116 @@ export default function Home() {
     }
   };
 
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+  const scrollToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+
+  const searchBarProps = {
+    address, setAddress, loading, suggestions, showSuggestions, setShowSuggestions,
+    inputRef, suggestionsRef, handleInputChange, handleSelectSuggestion, handleSearch,
+    noMatch, notifyEmail, setNotifyEmail, notifySubmitted, notifyLoading, handleNotifySubmit,
   };
 
-  const isDark = theme === "dark";
-
-  if (!mounted) {
-    return <div className="min-h-screen bg-[#f5f3f7]" />;
-  }
+  if (!mounted) return <div className="min-h-screen bg-[#f7f6f3]" />;
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${isDark ? "bg-[#0a0a0a] text-white" : "bg-[#f5f3f7] text-[#111]"}`}>
+    <div className="min-h-screen bg-[#f7f6f3] text-[#1a1a1a]" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
 
       {/* Navigation */}
-      <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/90" : "bg-[#f5f3f7]/90"} backdrop-blur-xl border-b ${isDark ? "border-white/5" : "border-black/5"}`}>
+      <nav className="sticky top-0 z-50 bg-[#f7f6f3]/90 backdrop-blur-xl border-b border-black/[0.04]">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className={`text-xl font-semibold tracking-tight ${isDark ? "text-white" : "text-black"}`}>
+          <div className="text-xl tracking-[-0.02em] font-medium text-[#1a1a1a]">
             overtaxed
           </div>
-          <div className="flex items-center gap-6">
-            <div className={`hidden md:flex items-center gap-8 text-sm ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-              <button onClick={() => scrollToSection("how-it-works")} className={`${isDark ? "hover:text-white" : "hover:text-black"} transition-colors`}>
-                How it Works
-              </button>
-              <button onClick={() => scrollToSection("pricing")} className={`${isDark ? "hover:text-white" : "hover:text-black"} transition-colors`}>
-                Pricing
-              </button>
-              <button onClick={() => scrollToSection("faq")} className={`${isDark ? "hover:text-white" : "hover:text-black"} transition-colors`}>
-                FAQ
-              </button>
+          <div className="flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-8 text-[13px] text-[#666] tracking-wide">
+              <button onClick={() => scrollToSection("how-it-works")} className="hover:text-[#1a1a1a] transition-colors">How it Works</button>
+              <button onClick={() => scrollToSection("pricing")} className="hover:text-[#1a1a1a] transition-colors">Pricing</button>
+              <button onClick={() => scrollToSection("faq")} className="hover:text-[#1a1a1a] transition-colors">FAQ</button>
             </div>
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-lg ${isDark ? "hover:bg-white/10 text-gray-400" : "hover:bg-black/5 text-gray-600"} transition-colors`}
-            >
-              {isDark ? (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-              )}
-            </button>
             <button 
-              onClick={() => scrollToSection("pricing")}
-              className={`hidden sm:block px-5 py-2.5 rounded-lg text-sm font-medium border transition-colors ${
-                isDark 
-                  ? "border-white/20 text-white hover:bg-white hover:text-black" 
-                  : "border-black/20 text-black hover:bg-black hover:text-white"
-              }`}
+              onClick={() => scrollToSection("hero-search")}
+              className="hidden sm:block px-5 py-2.5 rounded-full text-[13px] font-medium bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors"
             >
-              Get Started
+              Check My Address
             </button>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-12 sm:pt-16 pb-12 sm:pb-16 px-6">
+      {/* Hero — centered */}
+      <section className="pt-16 sm:pt-24 pb-6 sm:pb-8 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Property count badge */}
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6 ${
-            isDark 
-              ? "bg-white/5 border border-white/10 text-purple-400" 
-              : "bg-gradient-to-r from-purple-100 to-pink-100 border border-purple-200/50 text-purple-700"
-          }`}>
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
-            </span>
-            <span>Serving 4.9M+ properties across Texas &amp; Illinois</span>
-          </div>
-          
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight leading-[1.1]">
-            Find out if you&apos;re
-            <br />
-            <span className="bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent">
-              overpaying property tax
-            </span>
+          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-6">
+            4.9 million properties analyzed
+          </p>
+          <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-normal leading-[1.08] tracking-[-0.03em] text-[#1a1a1a]">
+            Find out if you&apos;re<br />
+            overpaying property tax
           </h1>
-          
-          <p className={`mt-5 sm:mt-6 text-lg sm:text-xl max-w-2xl mx-auto leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            We analyze your home against similar properties and build your appeal case. Takes 30 seconds.
+          <p className="mt-6 text-lg text-[#666] leading-relaxed max-w-xl mx-auto font-light">
+            We compare your home to similar properties assessed lower — and build your appeal case in minutes. Free to check, no signup.
           </p>
-          
-          <form onSubmit={handleSearch} className="mt-8 sm:mt-10 max-w-xl mx-auto">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <input 
-                  ref={inputRef}
-                  type="text"
-                  placeholder="Enter your property address..."
-                  className={`w-full h-14 px-5 rounded-xl text-base transition-all ${
-                    isDark 
-                      ? "bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-purple-500/50" 
-                      : "bg-white border border-gray-200 text-black placeholder-gray-400 focus:border-purple-500 shadow-sm"
-                  } focus:outline-none focus:ring-2 focus:ring-purple-500/20`}
-                  value={address}
-                  onChange={handleInputChange}
-                  onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                  disabled={loading}
-                  autoComplete="off"
-                />
-                {showSuggestions && suggestions.length > 0 && (
-                  <div 
-                    ref={suggestionsRef}
-                    className={`absolute top-full left-0 right-0 mt-2 rounded-xl shadow-2xl z-50 overflow-hidden ${
-                      isDark ? "bg-[#1a1a1a] border border-white/10" : "bg-white border border-gray-200"
-                    }`}
-                  >
-                    {suggestions.map((suggestion, index) => (
-                      <button
-                        key={suggestion.pin || suggestion.acct || index}
-                        type="button"
-                        className={`w-full px-5 py-4 text-left transition-colors ${
-                          isDark ? "hover:bg-white/5" : "hover:bg-gray-50"
-                        } ${index !== suggestions.length - 1 ? `border-b ${isDark ? "border-white/5" : "border-gray-100"}` : ""}`}
-                        onClick={() => handleSelectSuggestion(suggestion)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="font-medium">{suggestion.address}</div>
-                          <span className={`text-xs px-2 py-0.5 rounded-full ${JURISDICTION_COLORS[suggestion.jurisdiction] || "bg-gray-100 text-gray-700"}`}>
-                            {JURISDICTION_LABELS[suggestion.jurisdiction] || suggestion.jurisdiction}
-                          </span>
-                        </div>
-                        <div className={`text-sm mt-0.5 ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                          {suggestion.city}, {suggestion.jurisdiction === "cook_county_il" ? `IL ${(suggestion.zip || "").split('-')[0]}` : "TX"}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              <button 
-                type="submit"
-                disabled={loading || !address.trim()}
-                className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-50 bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-purple-500/25"
-              >
-                {loading ? "..." : "Check My Property"}
-              </button>
+
+          {/* Search card */}
+          <div className="mt-10" id="hero-search">
+            <SearchBar {...searchBarProps} id="hero-input" />
+          </div>
+
+          {/* Coverage + social proof */}
+          <div className="mt-6 space-y-2">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[13px] text-[#999]">
+              <span>DFW</span>
+              <span className="text-[#ddd]">·</span>
+              <span>Houston</span>
+              <span className="text-[#ddd]">·</span>
+              <span>Austin</span>
+              <span className="text-[#ddd]">·</span>
+              <span>Chicago</span>
+              <span className="text-[#ddd]">·</span>
+              <span className="text-[#bbb]">9 counties, growing</span>
             </div>
-            <p className={`mt-4 text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-              Free instant analysis • No signup required
+            <p className="text-[13px] text-[#888] font-normal">
+              Trusted by thousands of Texas &amp; Illinois homeowners
             </p>
-          </form>
-
-          {/* Metro coverage — compact pills */}
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
-            {METRO_GROUPS.map((metro) => (
-              <span
-                key={metro.label}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs cursor-default ${
-                  isDark
-                    ? "bg-white/5 text-gray-400"
-                    : "bg-gray-100 text-gray-500"
-                }`}
-              >
-                {metro.label}
-                <span className={`font-semibold ${isDark ? "text-purple-400" : "text-purple-600"}`}>{metro.count}</span>
-              </span>
-            ))}
           </div>
+        </div>
+      </section>
 
-          {/* No-match email capture */}
-          {noMatch && (
-            <div className={`mt-6 max-w-xl mx-auto rounded-xl p-6 text-left ${
-              isDark ? "bg-white/5 border border-white/10" : "bg-white border border-gray-200 shadow-sm"
-            }`}>
-              {notifySubmitted ? (
-                <div className="text-center py-2">
-                  <div className="text-2xl mb-2">✓</div>
-                  <p className={`font-medium ${isDark ? "text-white" : "text-gray-900"}`}>You&apos;re on the list!</p>
-                  <p className={`text-sm mt-1 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                    We&apos;ll email you as soon as your area is covered.
-                  </p>
+      {/* Stats — same beige bg, tight to hero */}
+      <section className="py-10 sm:py-14 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="border-t border-black/[0.06] pt-10 sm:pt-14">
+            <div className="grid grid-cols-3 gap-8 sm:gap-16">
+              {[
+                { value: "$1,136", label: "Avg. annual savings" },
+                { value: "32%", label: "Homes over-assessed" },
+                { value: "72%", label: "Appeal success rate" },
+              ].map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <div className="text-3xl sm:text-5xl font-normal tracking-[-0.03em] text-[#1a1a1a]">{stat.value}</div>
+                  <div className="mt-2 text-[11px] sm:text-[13px] tracking-[0.05em] uppercase text-[#999]">{stat.label}</div>
                 </div>
-              ) : (
-                <>
-                  <p className={`font-medium mb-1 ${isDark ? "text-white" : "text-gray-900"}`}>
-                    We don&apos;t cover that area yet
-                  </p>
-                  <p className={`text-sm mb-4 ${isDark ? "text-gray-400" : "text-gray-500"}`}>
-                    We&apos;re expanding fast. Leave your email and we&apos;ll notify you when we launch in your area.
-                  </p>
-                  <form onSubmit={handleNotifySubmit} className="flex gap-2">
-                    <input
-                      type="email"
-                      placeholder="you@email.com"
-                      value={notifyEmail}
-                      onChange={(e) => setNotifyEmail(e.target.value)}
-                      required
-                      className={`flex-1 h-11 px-4 rounded-lg text-sm ${
-                        isDark
-                          ? "bg-white/5 border border-white/10 text-white placeholder-gray-500"
-                          : "bg-gray-50 border border-gray-200 text-black placeholder-gray-400"
-                      } focus:outline-none focus:ring-2 focus:ring-purple-500/20`}
-                    />
-                    <button
-                      type="submit"
-                      disabled={notifyLoading}
-                      className="h-11 px-5 rounded-lg text-sm font-medium bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors disabled:opacity-50"
-                    >
-                      {notifyLoading ? "..." : "Notify Me"}
-                    </button>
-                  </form>
-                </>
-              )}
-            </div>
-          )}
-
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className={`py-16 sm:py-20 ${isDark ? "bg-white/[0.02]" : "bg-gradient-to-r from-purple-100/50 to-pink-100/50"}`}>
-        <div className="max-w-5xl mx-auto px-6">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12 text-center">
-            <div>
-              <div className={`text-4xl sm:text-5xl font-extrabold ${isDark ? "text-white" : "text-[#1a1a1a]"}`}>$1,136</div>
-              <div className={`mt-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}>Average annual savings</div>
-            </div>
-            <div>
-              <div className={`text-4xl sm:text-5xl font-extrabold ${isDark ? "text-white" : "text-[#1a1a1a]"}`}>32%</div>
-              <div className={`mt-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}>Of homes are over-assessed</div>
-            </div>
-            <div>
-              <div className={`text-4xl sm:text-5xl font-extrabold ${isDark ? "text-white" : "text-[#1a1a1a]"}`}>72%</div>
-              <div className={`mt-2 text-sm font-medium ${isDark ? "text-gray-400" : "text-gray-600"}`}>Appeal success rate</div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how-it-works" className="py-16 sm:py-24 px-6">
-        <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-3xl sm:text-4xl font-semibold mb-4">How it works</h2>
-          <p className={`text-lg mb-12 sm:mb-16 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-            We analyze your property against thousands of comparable homes to build your case.
-          </p>
+      {/* How it works — left-aligned editorial headers */}
+      <section id="how-it-works" className="py-20 sm:py-28 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">How it works</p>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-16">Three steps to your appeal</h2>
           
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-16">
             {[
-              { num: 1, title: "Enter your address", desc: "We pull your property data from public records automatically. Covers the DFW, Houston, and Austin metros in Texas, plus Cook County, Illinois." },
-              { num: 2, title: "We find your comps", desc: "Our system identifies similar properties that sold for less or are assessed lower than yours." },
-              { num: 3, title: "File your appeal", desc: "Download your complete appeal package and file it yourself — we show you exactly how." },
+              { num: "01", title: "Enter your address", desc: "We pull your property data from public records automatically. Covers the DFW, Houston, and Austin metros plus Cook County, IL." },
+              { num: "02", title: "We find your comps", desc: "Our system identifies similar properties assessed lower than yours — the foundation of your appeal." },
+              { num: "03", title: "File your appeal", desc: "Download your complete appeal package and file it yourself. We show you exactly how, step by step." },
             ].map((step) => (
-              <div key={step.num} className="text-center">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-5 text-lg font-semibold ${
-                  isDark ? "bg-[#6b4fbb]/20 text-purple-400" : "bg-purple-100 text-purple-600"
-                }`}>
-                  {step.num}
-                </div>
-                <h3 className="text-lg font-semibold mb-3">{step.title}</h3>
-                <p className={`text-sm leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>{step.desc}</p>
+              <div key={step.num}>
+                <div className="text-[13px] tracking-[0.15em] text-[#ccc] mb-4">{step.num}</div>
+                <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{step.title}</h3>
+                <p className="text-[15px] leading-relaxed text-[#666] font-light">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -527,99 +417,93 @@ export default function Home() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className={`py-16 sm:py-24 px-6 ${isDark ? "bg-white/[0.02]" : "bg-gradient-to-r from-purple-100/30 to-pink-100/30"}`}>
+      <section id="pricing" className="py-20 sm:py-28 px-6">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-semibold mb-4">Simple pricing</h2>
-            <p className={`text-lg ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-              No percentage of savings. No hidden fees. Just a flat rate.
-            </p>
-          </div>
+          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Pricing</p>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">One price. No surprises.</h2>
+          <p className="text-lg text-[#666] font-light mb-12">No percentage of savings. No hidden fees.</p>
           
-          <div className={`rounded-2xl p-8 sm:p-12 ${isDark ? "bg-[#111] border border-white/10" : "bg-white border border-gray-200 shadow-xl"}`}>
+          <div className="rounded-3xl p-8 sm:p-12 bg-white border border-black/[0.06] shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
               <div>
-                <div className="text-5xl sm:text-6xl font-bold">$49</div>
-                <div className={`mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>One-time filing fee</div>
+                <div className="text-6xl sm:text-7xl font-normal tracking-[-0.03em] text-[#1a1a1a]">$49</div>
+                <div className="mt-2 text-[15px] text-[#999]">One-time per property</div>
               </div>
               <button 
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="h-14 px-8 rounded-xl font-medium text-base transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-purple-500/25"
+                onClick={() => { const el = document.getElementById("hero-search"); el?.scrollIntoView({ behavior: "smooth" }); setTimeout(() => document.getElementById("hero-input")?.focus(), 500); }}
+                className="h-14 px-8 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 transition-colors"
               >
-                Start Your Filing
+                Get My Appeal Package
               </button>
             </div>
             
-            <div className={`border-t pt-8 ${isDark ? "border-white/10" : "border-gray-200"}`}>
+            <div className="border-t border-black/[0.06] pt-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   "Complete filing package with 5+ comparable properties",
                   "Professional evidence brief ready to submit",
-                  "Step-by-step filing instructions",
+                  "Step-by-step filing instructions for your county",
                   "Delivered to your email instantly",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className={`text-sm ${isDark ? "text-gray-300" : "text-gray-700"}`}>{item}</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#6b4fbb] mt-2 flex-shrink-0" />
+                    <span className="text-[15px] text-[#444] font-light">{item}</span>
                   </div>
                 ))}
               </div>
             </div>
             
-            <p className={`mt-8 text-sm text-center ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-              Compare to attorneys who charge 30% of savings (~$250+)
+            <p className="mt-8 text-[13px] text-[#999]">
+              Competitors charge 25–30% of your savings (~$340 on average). You pay $49. Period.
             </p>
           </div>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="py-16 sm:py-24 px-6">
+      <section id="faq" className="py-20 sm:py-28 px-6 bg-white">
         <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-semibold mb-12 text-center">Questions &amp; Answers</h2>
+          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">FAQ</p>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-16">Common questions</h2>
           
-          <div className="space-y-8">
+          <div className="space-y-10">
             {[
-              { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves (called \"pro se\") at both the Assessor's Office and Board of Review. We give you everything you need." },
-              { q: "What if my appeal doesn't work?", a: "Appeals have a high success rate when you have good comparable properties. If your assessment isn't reduced, you've lost nothing but the filing time — there's no penalty for appealing." },
-              { q: "When can I file an appeal?", a: "In Texas, you can protest after receiving your appraisal notice (usually late March/early April). The deadline is May 15 or 30 days after your notice — whichever is later. In Cook County, IL, appeals open by township on a rotating schedule. We currently have 2025 data — 2026 protest season opens soon." },
-              { q: "Why is this so much cheaper than attorneys?", a: "Attorneys charge a percentage of savings because they can. We use technology to automate the research that used to take hours. You get the same comparable property analysis at a fraction of the cost." },
-              { q: "What areas do you cover?", a: "We cover 4.9M+ properties across the DFW metro (Dallas, Tarrant, Collin, Denton counties), Houston metro (Harris, Fort Bend counties), Austin metro (Travis, Williamson counties), and Cook County, IL (Chicago area). More markets coming soon." },
+              { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves. We give you everything you need — comparable properties, evidence brief, and step-by-step instructions." },
+              { q: "What if my appeal doesn't work?", a: "There's no penalty for appealing. If your assessment isn't reduced, you've lost nothing but the filing time." },
+              { q: "When can I file?", a: "In Texas, protest after receiving your appraisal notice (usually late March). Deadline is May 15 or 30 days after your notice. In Cook County, IL, appeals open by township on a rotating schedule." },
+              { q: "Why is this so much cheaper?", a: "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." },
+              { q: "What areas do you cover?", a: "4.9M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), Austin (Travis, Williamson), and Cook County, IL. More coming." },
             ].map((item, i) => (
-              <div key={i}>
-                <h3 className="text-lg font-semibold mb-2">{item.q}</h3>
-                <p className={`leading-relaxed ${isDark ? "text-gray-400" : "text-gray-600"}`}>{item.a}</p>
+              <div key={i} className="border-b border-black/[0.06] pb-10">
+                <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{item.q}</h3>
+                <p className="text-[15px] leading-relaxed text-[#666] font-light">{item.a}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Final CTA */}
-      <section className={`py-20 sm:py-28 px-6 text-center ${isDark ? "bg-white/[0.02]" : "bg-gradient-to-r from-purple-100/40 to-pink-100/40"}`}>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-semibold mb-6">See if you have a case</h2>
-        <p className={`text-lg mb-10 ${isDark ? "text-gray-400" : "text-gray-600"}`}>
-          Check your property in 30 seconds — it&apos;s free.
-        </p>
-        <button 
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="h-14 px-10 rounded-xl font-medium text-base transition-all bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-purple-500/25"
-        >
-          Check My Property
-        </button>
+      {/* Final CTA — dark inverted section */}
+      <section className="py-24 sm:py-32 px-6 bg-[#1a1a1a] text-center">
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.02em] mb-4 text-white">See if you have a case</h2>
+          <p className="text-lg text-[#aaa] font-light mb-10">
+            The average homeowner saves $1,136/year. At $49, that&apos;s a 23x return.
+          </p>
+          <button 
+            onClick={() => { window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => document.getElementById("hero-input")?.focus(), 500); }}
+            className="h-14 px-10 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/30 transition-colors"
+          >
+            See My Savings
+          </button>
+        </div>
       </section>
 
       {/* Footer */}
-      <footer className={`py-8 sm:py-12 px-6 border-t ${isDark ? "border-white/5" : "border-gray-200"}`}>
+      <footer className="py-10 px-6 border-t border-black/[0.04]">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className={`text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-            © 2026 Overtaxed
-          </div>
-          <div className={`flex items-center gap-6 text-sm ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-            <a href="mailto:hello@getovertaxed.com" className={`${isDark ? "hover:text-white" : "hover:text-black"} transition-colors`}>Contact</a>
-          </div>
+          <div className="text-[13px] text-[#999]">© 2026 Overtaxed</div>
+          <a href="mailto:hello@getovertaxed.com" className="text-[13px] text-[#999] hover:text-[#1a1a1a] transition-colors">Contact</a>
         </div>
       </footer>
     </div>
