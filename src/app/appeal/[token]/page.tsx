@@ -83,48 +83,43 @@ function AppealPage() {
       try {
         const detected = detectJurisdiction(token);
 
-        // Order endpoints: detected jurisdiction first, then others as fallback
-        type Jurisdiction = "cook" | "houston" | "dallas" | "austin" | "collin" | "tarrant" | "denton" | "williamson" | "fortbend";
-        const allEndpoints: { path: string; jurisdiction: Jurisdiction }[] = [
-          { path: "/api/generate-appeal", jurisdiction: "cook" },
-          { path: "/api/houston/generate-appeal", jurisdiction: "houston" },
-          { path: "/api/dallas/generate-appeal", jurisdiction: "dallas" },
-          { path: "/api/austin/generate-appeal", jurisdiction: "austin" },
-          { path: "/api/collin/generate-appeal", jurisdiction: "collin" },
-          { path: "/api/tarrant/generate-appeal", jurisdiction: "tarrant" },
-          { path: "/api/denton/generate-appeal", jurisdiction: "denton" },
-          { path: "/api/williamson/generate-appeal", jurisdiction: "williamson" },
-          { path: "/api/fortbend/generate-appeal", jurisdiction: "fortbend" },
-        ];
-        const endpoints = detected
-          ? [allEndpoints.find(e => e.jurisdiction === detected)!, ...allEndpoints.filter(e => e.jurisdiction !== detected)]
-          : allEndpoints;
+        // Map jurisdiction to endpoint
+        const jurisdictionEndpoints: Record<string, string> = {
+          cook: "/api/generate-appeal",
+          houston: "/api/houston/generate-appeal",
+          dallas: "/api/dallas/generate-appeal",
+          austin: "/api/austin/generate-appeal",
+          collin: "/api/collin/generate-appeal",
+          tarrant: "/api/tarrant/generate-appeal",
+          denton: "/api/denton/generate-appeal",
+          williamson: "/api/williamson/generate-appeal",
+          fortbend: "/api/fortbend/generate-appeal",
+        };
 
-        let lastError = "Failed to load appeal package";
+        // If we detected a jurisdiction, call that endpoint directly
+        // If not detected, fall back to Cook County (legacy PINs)
+        const targetJurisdiction = detected || "cook";
+        const endpoint = jurisdictionEndpoints[targetJurisdiction];
 
-        for (const ep of endpoints) {
-          try {
-            const res = await fetch(`${ep.path}?token=${token}`);
-            const data = await res.json();
-            if (res.ok) {
-              setProperty(data.property);
-              if (ep.jurisdiction === "houston") setIsHouston(true);
-              if (ep.jurisdiction === "dallas") setIsDallas(true);
-              if (ep.jurisdiction === "austin") setIsAustin(true);
-              if (ep.jurisdiction === "collin") setIsCollin(true);
-              if (ep.jurisdiction === "tarrant") setIsTarrant(true);
-              if (ep.jurisdiction === "denton") setIsDenton(true);
-              if (ep.jurisdiction === "williamson") setIsWilliamson(true);
-              if (ep.jurisdiction === "fortbend") setIsFortBend(true);
-              return;
-            }
-            if (data.error) lastError = data.error;
-          } catch {
-            // try next endpoint
+        try {
+          const res = await fetch(`${endpoint}?token=${token}`);
+          const data = await res.json();
+          if (res.ok) {
+            setProperty(data.property);
+            if (targetJurisdiction === "houston") setIsHouston(true);
+            if (targetJurisdiction === "dallas") setIsDallas(true);
+            if (targetJurisdiction === "austin") setIsAustin(true);
+            if (targetJurisdiction === "collin") setIsCollin(true);
+            if (targetJurisdiction === "tarrant") setIsTarrant(true);
+            if (targetJurisdiction === "denton") setIsDenton(true);
+            if (targetJurisdiction === "williamson") setIsWilliamson(true);
+            if (targetJurisdiction === "fortbend") setIsFortBend(true);
+          } else {
+            setError(data.error || "Failed to load appeal package");
           }
+        } catch {
+          setError("Failed to load appeal package");
         }
-
-        setError(lastError);
       } catch {
         setError("Failed to load appeal package. This link may have expired.");
       } finally {

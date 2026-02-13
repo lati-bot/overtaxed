@@ -121,54 +121,48 @@ function SuccessPage() {
 
     const fetchData = async () => {
       try {
-        // Detect jurisdiction from token to route directly (avoid waterfall)
+        // Detect jurisdiction from token to route directly (no waterfall)
         const detected = detectJurisdiction(accessToken);
 
-        // Order endpoints: detected jurisdiction first, then others as fallback
-        type Jurisdiction = "cook" | "houston" | "dallas" | "austin" | "collin" | "tarrant" | "denton" | "williamson" | "fortbend";
-        const allEndpoints: { path: string; jurisdiction: Jurisdiction }[] = [
-          { path: "/api/generate-appeal", jurisdiction: "cook" },
-          { path: "/api/houston/generate-appeal", jurisdiction: "houston" },
-          { path: "/api/dallas/generate-appeal", jurisdiction: "dallas" },
-          { path: "/api/austin/generate-appeal", jurisdiction: "austin" },
-          { path: "/api/collin/generate-appeal", jurisdiction: "collin" },
-          { path: "/api/tarrant/generate-appeal", jurisdiction: "tarrant" },
-          { path: "/api/denton/generate-appeal", jurisdiction: "denton" },
-          { path: "/api/williamson/generate-appeal", jurisdiction: "williamson" },
-          { path: "/api/fortbend/generate-appeal", jurisdiction: "fortbend" },
-        ];
-        // Put detected jurisdiction first, then the rest as fallback
-        const endpoints = detected
-          ? [allEndpoints.find(e => e.jurisdiction === detected)!, ...allEndpoints.filter(e => e.jurisdiction !== detected)]
-          : allEndpoints;
+        // Map jurisdiction to endpoint
+        const jurisdictionEndpoints: Record<string, string> = {
+          cook: "/api/generate-appeal",
+          houston: "/api/houston/generate-appeal",
+          dallas: "/api/dallas/generate-appeal",
+          austin: "/api/austin/generate-appeal",
+          collin: "/api/collin/generate-appeal",
+          tarrant: "/api/tarrant/generate-appeal",
+          denton: "/api/denton/generate-appeal",
+          williamson: "/api/williamson/generate-appeal",
+          fortbend: "/api/fortbend/generate-appeal",
+        };
 
-        let lastError = "Failed to load appeal package";
+        // If we detected a jurisdiction, call that endpoint directly
+        // If not detected, fall back to Cook County (legacy PINs)
+        const targetJurisdiction = detected || "cook";
+        const endpoint = jurisdictionEndpoints[targetJurisdiction];
 
-        for (const ep of endpoints) {
-          const result = await tryEndpoint(ep.path, sessionId, accessToken);
-          if (result.ok && result.data) {
-            const txJurisdictions = ["houston", "dallas", "austin", "collin", "tarrant", "denton", "williamson"] as const;
-            if (txJurisdictions.includes(ep.jurisdiction as any)) {
-              setProperty(mapTexasProperty(result.data.property, ep.jurisdiction as any));
-              if (ep.jurisdiction === "houston") setIsHouston(true);
-              else if (ep.jurisdiction === "dallas") setIsDallas(true);
-              else if (ep.jurisdiction === "austin") setIsAustin(true);
-              else if (ep.jurisdiction === "collin") setIsCollin(true);
-              else if (ep.jurisdiction === "tarrant") setIsTarrant(true);
-              else if (ep.jurisdiction === "denton") setIsDenton(true);
-              else if (ep.jurisdiction === "williamson") setIsWilliamson(true);
-              else if (ep.jurisdiction === "fortbend") setIsFortBend(true);
-            } else {
-              setProperty(result.data.property);
-            }
-            setToken(result.data.token);
-            setEmail(result.data.email || null);
-            return;
+        const result = await tryEndpoint(endpoint, sessionId, accessToken);
+        if (result.ok && result.data) {
+          const txJurisdictions = ["houston", "dallas", "austin", "collin", "tarrant", "denton", "williamson", "fortbend"] as const;
+          if (txJurisdictions.includes(targetJurisdiction as any)) {
+            setProperty(mapTexasProperty(result.data.property, targetJurisdiction as any));
+            if (targetJurisdiction === "houston") setIsHouston(true);
+            else if (targetJurisdiction === "dallas") setIsDallas(true);
+            else if (targetJurisdiction === "austin") setIsAustin(true);
+            else if (targetJurisdiction === "collin") setIsCollin(true);
+            else if (targetJurisdiction === "tarrant") setIsTarrant(true);
+            else if (targetJurisdiction === "denton") setIsDenton(true);
+            else if (targetJurisdiction === "williamson") setIsWilliamson(true);
+            else if (targetJurisdiction === "fortbend") setIsFortBend(true);
+          } else {
+            setProperty(result.data.property);
           }
-          if (result.error) lastError = result.error;
+          setToken(result.data.token);
+          setEmail(result.data.email || null);
+        } else {
+          setError(result.error || "Failed to load appeal package");
         }
-
-        setError(lastError);
       } catch {
         setError("Failed to load appeal package. Please try again.");
       } finally {
