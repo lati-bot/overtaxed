@@ -68,6 +68,7 @@ export default function ResultsContent() {
   const [analysisAvailable, setAnalysisAvailable] = useState<boolean>(true);
   const [uploadInProgress, setUploadInProgress] = useState<boolean>(false);
   const [mounted, setMounted] = useState(false);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
@@ -558,7 +559,7 @@ export default function ResultsContent() {
     );
   }
 
-  // Fun, helpful error page
+  // Error / not-found page
   if (error) {
     return (
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
@@ -577,73 +578,60 @@ export default function ResultsContent() {
           </div>
         </nav>
         
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-          <div className="text-center mb-8">
-            <div className="text-6xl sm:text-8xl mb-4">🏠❓</div>
-          </div>
-          
-          <h1 className="text-2xl sm:text-3xl font-semibold text-center">
-            Hmm, we couldn&apos;t find that one
-          </h1>
-          
-          <p className={`mt-3 text-center ${textSecondary} text-lg`}>
-            We searched high and low, but no luck. Here&apos;s what might be going on:
-          </p>
-          
-          <div className={`mt-8 rounded-2xl ${bgCard} border ${borderColor} p-6 ${isDark ? "" : "shadow-sm"}`}>
-            <div className="space-y-4">
-              <div className="flex items-start gap-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? "bg-white/10" : "bg-black/5"}`}>
-                  <span className="text-sm">📍</span>
-                </div>
-                <div>
-                  <div className="font-medium">Not in our coverage area?</div>
-                  <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    We currently cover Cook County, IL, Houston, TX (Harris County), Dallas, TX (Dallas County), Austin, TX (Travis County), Collin County, TX, Tarrant County, TX, Denton County, TX, and Williamson County, TX. More markets coming soon!
-                  </p>
-                </div>
-              </div>
-              
-              <div className={`border-t ${borderColor}`}></div>
-              
-              <div className="flex items-start gap-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? "bg-white/10" : "bg-black/5"}`}>
-                  <span className="text-sm">✏️</span>
-                </div>
-                <div>
-                  <div className="font-medium">Typo in the address?</div>
-                  <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    Double-check the spelling. Our autocomplete should help — start typing and pick from the list.
-                  </p>
-                </div>
-              </div>
-              
-              <div className={`border-t ${borderColor}`}></div>
-              
-              <div className="flex items-start gap-4">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${isDark ? "bg-white/10" : "bg-black/5"}`}>
-                  <span className="text-sm">🏢</span>
-                </div>
-                <div>
-                  <div className="font-medium">Condo or commercial property?</div>
-                  <p className={`text-sm ${textSecondary} mt-0.5`}>
-                    We specialize in single-family homes and small multi-family (2-4 units).
-                  </p>
-                </div>
-              </div>
+        <div className="max-w-lg mx-auto px-4 sm:px-6 py-12 sm:py-20">
+          <div className="bg-white rounded-2xl border border-black/[0.06] p-8">
+            <svg className="w-12 h-12 text-[#b45309] mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            
+            <h1 className="text-xl font-medium text-[#1a1a1a] text-center mt-5">
+              We couldn&apos;t find that property
+            </h1>
+            
+            <p className="mt-2 text-center text-[#666] text-sm">
+              Here are a few things to check:
+            </p>
+            
+            <ul className="mt-5 space-y-3 text-sm text-[#666]">
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">–</span>
+                <span>
+                  <span className="font-medium text-[#1a1a1a]">Not in our coverage area?</span>{" "}
+                  We cover Cook County IL, Harris, Dallas, Travis, Collin, Tarrant, Denton, Williamson &amp; Fort Bend counties in TX. More coming soon.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">–</span>
+                <span>
+                  <span className="font-medium text-[#1a1a1a]">Typo in the address?</span>{" "}
+                  Double-check the spelling — our autocomplete should help.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">–</span>
+                <span>
+                  <span className="font-medium text-[#1a1a1a]">Condo or commercial?</span>{" "}
+                  We specialize in single-family homes and small multi-family (2-4 units).
+                </span>
+              </li>
+            </ul>
+            
+            <div className="mt-6">
+              <Link 
+                href="/" 
+                className="block w-full text-center px-6 py-3 rounded-xl font-medium transition-colors bg-[#1a6b5a] hover:bg-[#155a4c] text-white"
+              >
+                Try Another Address
+              </Link>
             </div>
-          </div>
-          
-          <div className="mt-8 text-center">
-            <Link 
-              href="/" 
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-colors ${isDark ? "bg-white text-black hover:bg-gray-100" : "bg-[#1a6b5a] text-white hover:bg-[#155a4c]"}`}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Try another address
-            </Link>
+            
+            <p className="mt-4 text-center text-sm">
+              Need help?{" "}
+              <a href="mailto:hello@getovertaxed.com" className="text-[#1a6b5a] hover:underline">
+                hello@getovertaxed.com
+              </a>
+            </p>
           </div>
         </div>
       </div>
@@ -669,16 +657,15 @@ export default function ResultsContent() {
         </nav>
         <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
           <div className="text-center mb-6">
-            <div className="text-4xl mb-3">🎯</div>
-            <h1 className="text-xl sm:text-2xl font-semibold">We found a few matches</h1>
-            <p className={`mt-2 ${textSecondary}`}>Which one is yours?</p>
+            <h1 className="text-xl sm:text-2xl font-semibold text-[#1a1a1a]">We found a few matches</h1>
+            <p className="mt-2 text-[#666]">Which one is yours?</p>
           </div>
           <div className="space-y-3">
             {multipleResults.map((result) => (
               <button
                 key={result.pin}
                 onClick={() => handleSelectProperty(result.pin)}
-                className={`w-full text-left p-4 rounded-xl border ${borderColor} ${bgCard} hover:border-[#1a6b5a]/50 transition-all ${isDark ? "" : "shadow-sm hover:shadow-md"}`}
+                className="w-full text-left p-4 rounded-2xl border border-black/[0.06] bg-white hover:border-[#1a6b5a]/50 transition-all"
               >
                 <div className="font-medium">{result.address}</div>
                 <div className={`text-sm ${textSecondary}`}>
@@ -938,6 +925,8 @@ export default function ResultsContent() {
                   </div>
                   <button 
                     onClick={async () => {
+                      if (checkoutLoading) return;
+                      setCheckoutLoading(true);
                       try {
                         const res = await fetch("/api/create-checkout", {
                           method: "POST",
@@ -952,14 +941,27 @@ export default function ResultsContent() {
                           window.location.href = data.url;
                         } else {
                           alert("Failed to start checkout. Please try again.");
+                          setCheckoutLoading(false);
                         }
                       } catch {
                         alert("Failed to start checkout. Please try again.");
+                        setCheckoutLoading(false);
                       }
                     }}
-                    className="w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#1a6b5a] text-white hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer whitespace-nowrap flex-shrink-0"
+                    disabled={checkoutLoading}
+                    className={`w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#1a6b5a] text-white whitespace-nowrap flex-shrink-0 ${checkoutLoading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'}`}
                   >
-                    File My {isTexas ? "Protest" : "Appeal"} — $49
+                    {checkoutLoading ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                        </svg>
+                        Processing...
+                      </span>
+                    ) : (
+                      `File My ${isTexas ? "Protest" : "Appeal"} — $49`
+                    )}
                   </button>
                 </div>
                 <p className={`mt-3 text-xs text-[#999]`}>
@@ -1170,7 +1172,7 @@ export default function ResultsContent() {
             <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-5">YOUR OPTIONS</div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* DIY */}
-              <div className={`rounded-xl p-4 border ${borderColor} ${isDark ? "" : ""}`}>
+              <div className={`rounded-2xl p-4 border border-black/[0.06]`}>
                 <div className={`text-sm font-medium ${textMuted} uppercase tracking-wide`}>Do It Yourself</div>
                 <div className={`text-2xl font-bold mt-2 ${textPrimary}`}>Free</div>
                 <div className={`text-sm ${textSecondary} mt-3 space-y-2`}>
@@ -1194,7 +1196,7 @@ export default function ResultsContent() {
               </div>
 
               {/* Overtaxed — highlighted */}
-              <div className={`rounded-xl p-4 border-2 border-[#1a6b5a] bg-[#e8f4f0]/30 relative`}>
+              <div className={`rounded-2xl p-4 border-2 border-[#1a6b5a] bg-[#e8f4f0]/30 relative`}>
                 <div className={`absolute -top-3 left-4 px-2 py-0.5 rounded-full text-xs font-medium bg-[#1a6b5a] text-white`}>
                   Best Value
                 </div>
@@ -1221,7 +1223,7 @@ export default function ResultsContent() {
               </div>
 
               {/* Tax Attorney */}
-              <div className={`rounded-xl p-4 border ${borderColor}`}>
+              <div className={`rounded-2xl p-4 border border-black/[0.06]`}>
                 <div className={`text-sm font-medium ${textMuted} uppercase tracking-wide`}>Tax Attorney</div>
                 <div className={`text-2xl font-bold mt-2 ${textPrimary}`}>$300–$500+</div>
                 <div className={`text-sm ${textSecondary} mt-3 space-y-2`}>
@@ -1249,51 +1251,49 @@ export default function ResultsContent() {
 
         {/* FAQ Section */}
         {hasAnalysis && estimatedSavings > 0 && (
-          <div className={`mt-3 rounded-2xl border border-black/[0.06] bg-white p-5 sm:p-6 md:p-8`}>
-            <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-5">COMMON QUESTIONS</div>
-            <div className="space-y-4">
-              <div>
-                <div className="font-medium">Is this legitimate?</div>
-                <p className={`text-sm ${textSecondary} mt-1`}>
+          <div className="mt-3 rounded-2xl border border-black/[0.06] bg-white overflow-hidden">
+            <div className="p-5 sm:p-6 md:p-8 pb-0 sm:pb-0 md:pb-0">
+              <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-2">COMMON QUESTIONS</div>
+            </div>
+            <div>
+              <div className="border-b border-black/[0.04]">
+                <div className="text-base font-medium text-[#1a1a1a] py-4 px-6">Is this legitimate?</div>
+                <div className="text-sm text-[#666] px-6 pb-4">
                   {isTexas 
                     ? "Absolutely. Protesting your property tax appraisal is a formal right under Texas law. Hundreds of thousands of Texas homeowners protest every year — it's one of the most common things homeowners do."
                     : "Yes. Appealing your property tax assessment is a formal right in Illinois. The Cook County Assessor's Office and Board of Review process hundreds of thousands of appeals every year."
                   }
-                </p>
+                </div>
               </div>
-              <div className={`border-t ${borderColor}`}></div>
-              <div>
-                <div className="font-medium">Can I do this myself for free?</div>
-                <p className={`text-sm ${textSecondary} mt-1`}>
+              <div className="border-b border-black/[0.04]">
+                <div className="text-base font-medium text-[#1a1a1a] py-4 px-6">Can I do this myself for free?</div>
+                <div className="text-sm text-[#666] px-6 pb-4">
                   Yes, but it typically takes 10+ hours of research — finding comparable properties, calculating assessment ratios, understanding the filing process, and preparing evidence. We do all that for you in minutes.
-                </p>
+                </div>
               </div>
-              <div className={`border-t ${borderColor}`}></div>
-              <div>
-                <div className="font-medium">What if my {isTexas ? "protest" : "appeal"} isn&apos;t successful?</div>
-                <p className={`text-sm ${textSecondary} mt-1`}>
+              <div className="border-b border-black/[0.04]">
+                <div className="text-base font-medium text-[#1a1a1a] py-4 px-6">What if my {isTexas ? "protest" : "appeal"} isn&apos;t successful?</div>
+                <div className="text-sm text-[#666] px-6 pb-4">
                   {isTexas 
                     ? "There's no penalty for protesting. If the appraisal review board doesn't lower your value, your taxes stay the same — you don't lose anything. Most homeowners who protest with evidence get some reduction."
                     : "There's no penalty for appealing. If the Board of Review doesn't reduce your assessment, it stays the same — you never pay more for trying. Most appeals with proper comparable evidence receive some reduction."
                   }
-                </p>
+                </div>
               </div>
-              <div className={`border-t ${borderColor}`}></div>
-              <div>
-                <div className="font-medium">When is the deadline?</div>
-                <p className={`text-sm ${textSecondary} mt-1`}>
+              <div className="border-b border-black/[0.04]">
+                <div className="text-base font-medium text-[#1a1a1a] py-4 px-6">When is the deadline?</div>
+                <div className="text-sm text-[#666] px-6 pb-4">
                   {isTexas 
                     ? "Texas protest season typically opens in late March when appraisal notices are mailed. The deadline is usually May 15 (or 30 days after your notice date, whichever is later). Filing early gives you the best shot at an informal settlement."
                     : "Deadlines vary by township and filing body. The Assessor accepts appeals during your township's reassessment year. Board of Review appeals typically open after the Assessor's decisions are final. Check your township's current status."
                   }
-                </p>
+                </div>
               </div>
-              <div className={`border-t ${borderColor}`}></div>
-              <div>
-                <div className="font-medium">What&apos;s included in the $49 filing package?</div>
-                <p className={`text-sm ${textSecondary} mt-1`}>
+              <div className="last:border-b-0">
+                <div className="text-base font-medium text-[#1a1a1a] py-4 px-6">What&apos;s included in the $49 filing package?</div>
+                <div className="text-sm text-[#666] px-6 pb-4">
                   A complete, ready-to-file package: {compCount} comparable properties with detailed analysis (addresses, values, $/sqft), a professional {isTexas ? "hearing script you can read word-for-word at your hearing" : "evidence brief for the Board of Review"}, and step-by-step instructions with screenshots showing exactly where to click. Everything is delivered instantly to your email as a downloadable PDF.
-                </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1311,6 +1311,8 @@ export default function ResultsContent() {
               </p>
               <button 
                 onClick={async () => {
+                  if (checkoutLoading) return;
+                  setCheckoutLoading(true);
                   try {
                     const res = await fetch("/api/create-checkout", {
                       method: "POST",
@@ -1325,14 +1327,27 @@ export default function ResultsContent() {
                       window.location.href = data.url;
                     } else {
                       alert("Failed to start checkout. Please try again.");
+                      setCheckoutLoading(false);
                     }
                   } catch {
                     alert("Failed to start checkout. Please try again.");
+                    setCheckoutLoading(false);
                   }
                 }}
-                className="mt-4 px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#1a6b5a] text-white hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer"
+                disabled={checkoutLoading}
+                className={`mt-4 px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#1a6b5a] text-white ${checkoutLoading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'}`}
               >
-                File My {isTexas ? "Protest" : "Appeal"} — $49
+                {checkoutLoading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                    </svg>
+                    Processing...
+                  </span>
+                ) : (
+                  `File My ${isTexas ? "Protest" : "Appeal"} — $49`
+                )}
               </button>
               <p className="mt-3 text-xs text-[#666]">
                 🔒 Secure payment • Instant delivery • One-time filing fee

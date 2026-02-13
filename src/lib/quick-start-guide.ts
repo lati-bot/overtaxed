@@ -1,0 +1,393 @@
+/**
+ * Quick Start Guide Generator
+ * Generates a clean, minimal 2-page PDF guide for property tax protests
+ */
+
+export interface QuickStartData {
+  address: string;
+  acct: string;
+  city: string;
+  state: string;
+  county: string;           // "Harris", "Dallas", etc.
+  filingUrl: string;        // "hcad.org", "dallascad.org", etc.
+  filingBody: string;       // "HCAD", "DCAD", etc.
+  filingPortal: string;     // "iFile", "uFile", etc.
+  deadline: string;         // "May 15"
+  currentAssessment: number;
+  fairAssessment: number;
+  estimatedSavings: number;
+  overAssessedPct: number;
+  perSqft: number;
+  compMedianPerSqft: number;
+  compCount: number;
+}
+
+export function generateQuickStartGuideHtml(data: QuickStartData): string {
+  const formatCurrency = (amount: number) => 
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+
+  const formatNumber = (num: number, decimals: number = 0) => 
+    num.toFixed(decimals);
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Property Tax Protest Quick Start Guide</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    @page {
+      size: letter;
+      margin: 0.75in 0.75in;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #1a1a1a;
+      background: white;
+    }
+
+    .page {
+      page-break-after: always;
+      min-height: 9in;
+      position: relative;
+      padding-bottom: 40px;
+    }
+
+    .page:last-child {
+      page-break-after: auto;
+    }
+
+    /* Page 1 - Action Page */
+    .hero {
+      margin-bottom: 48px;
+      text-align: center;
+    }
+
+    .hero-savings {
+      font-size: 22px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+    }
+
+    .hero-address {
+      font-size: 16px;
+      font-weight: 400;
+      color: #444;
+      margin-bottom: 4px;
+    }
+
+    .hero-sub {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .steps-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #999;
+      margin-bottom: 28px;
+    }
+
+    .steps {
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    .step {
+      margin-bottom: 56px;
+    }
+
+    .step-header {
+      font-size: 16px;
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border: 1.5px solid #1a1a1a;
+      border-radius: 50%;
+      font-size: 14px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .step-deadline {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+
+    .step-content {
+      font-size: 13px;
+      color: #4a4a4a;
+      line-height: 1.7;
+      margin-left: 40px;
+    }
+
+    .filing-box {
+      background: #fafafa;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      padding: 16px 20px;
+      margin-top: 12px;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+
+    .filing-box-row {
+      margin-bottom: 6px;
+    }
+
+    .filing-box-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .filing-box-label {
+      display: inline-block;
+      width: 140px;
+      color: #666;
+    }
+
+    .filing-box-value {
+      color: #1a1a1a;
+    }
+
+    .filing-box-value strong {
+      font-weight: 600;
+    }
+
+    .reassurance {
+      text-align: center;
+      font-size: 13px;
+      color: #666;
+      margin-top: 64px;
+      padding-top: 24px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    /* Page 2 - Hearing Script */
+    .hearing-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+
+    .hearing-subtitle {
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .script-section {
+      margin-bottom: 32px;
+    }
+
+    .script-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .script-text {
+      font-size: 13px;
+      color: #1a1a1a;
+      line-height: 1.7;
+    }
+
+    .pushback-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 16px;
+      margin-top: 40px;
+    }
+
+    .pushback-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .pushback-table td {
+      padding: 12px 16px;
+      border: 1px solid #e0e0e0;
+      vertical-align: top;
+      line-height: 1.6;
+    }
+
+    .pushback-table td:first-child {
+      width: 35%;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .pushback-table td:last-child {
+      color: #1a1a1a;
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 10px;
+      color: #999;
+      padding: 12px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Page 1: Action Page -->
+  <div class="page">
+    <div class="hero">
+      <div class="hero-savings">Save ${formatCurrency(data.estimatedSavings)}/year on your property taxes</div>
+      <div class="hero-address">${data.address}</div>
+      <div class="hero-sub">Account: ${data.acct} · ${data.county} County, ${data.state}</div>
+    </div>
+
+    <div class="steps">
+      <div class="steps-label">How to file your protest</div>
+      <!-- Step 1 -->
+      <div class="step">
+        <div class="step-header">
+          <span class="step-number">1</span>
+          <span>File online — <span class="step-deadline">by ${data.deadline}</span></span>
+        </div>
+        <div class="step-content">
+          <div class="filing-box">
+            <div class="filing-box-row">
+              <span class="filing-box-label">Go to:</span>
+              <span class="filing-box-value">${data.filingUrl}</span>
+            </div>
+            <div class="filing-box-row">
+              <span class="filing-box-label">Account number:</span>
+              <span class="filing-box-value"><strong>${data.acct}</strong></span>
+            </div>
+            <div class="filing-box-row">
+              <span class="filing-box-label">Select:</span>
+              <span class="filing-box-value">Unequal Appraisal</span>
+            </div>
+            <div class="filing-box-row">
+              <span class="filing-box-label">Enter fair value:</span>
+              <span class="filing-box-value"><strong>${formatCurrency(data.fairAssessment)}</strong></span>
+            </div>
+            <div class="filing-box-row">
+              <span class="filing-box-label">Upload:</span>
+              <span class="filing-box-value">Evidence packet from Overtaxed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step">
+        <div class="step-header">
+          <span class="step-number">2</span>
+          <span>Check for an offer</span>
+        </div>
+        <div class="step-content">
+          In 1-3 weeks, check ${data.filingPortal} for a settlement offer from ${data.filingBody}.<br>
+          Accept if it's good. Reject if it's not — you'll get a hearing.
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step">
+        <div class="step-header">
+          <span class="step-number">3</span>
+          <span>Your hearing (if needed)</span>
+        </div>
+        <div class="step-content">
+          Bring your evidence packet and use the script on the next page.<br>
+          The hearing is informal — just present your case calmly.
+        </div>
+      </div>
+    </div>
+
+    <div class="reassurance">
+      Zero risk. They can't raise your taxes for protesting.
+    </div>
+
+    <div class="footer">
+      Generated by Overtaxed
+    </div>
+  </div>
+
+  <!-- Page 2: Hearing Script -->
+  <div class="page">
+    <div class="hearing-title">What to say at your hearing</div>
+    <div class="hearing-subtitle">Read this if you get a hearing. Keep it simple — 2 minutes max.</div>
+
+    <div class="script-section">
+      <div class="script-label">Opening</div>
+      <div class="script-text">
+        "Good morning. I'm protesting the value of my property at <strong>${data.address}</strong>, Account ${data.acct}, on the basis of <strong>unequal appraisal</strong>."
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="script-label">Your Argument</div>
+      <div class="script-text">
+        "My property is appraised at <strong>$${formatNumber(data.perSqft, 2)}/sqft</strong>. I've identified ${data.compCount} comparable properties in the same neighborhood that are appraised at a median of <strong>$${formatNumber(data.compMedianPerSqft, 2)}/sqft</strong> — that's <strong>${formatNumber(data.overAssessedPct, 1)}% lower</strong> than mine.<br><br>
+        Under Texas Tax Code Section 42.26, properties must be appraised equally. I'm requesting a reduction to <strong>${formatCurrency(data.fairAssessment)}</strong>, which matches the median of comparable properties."
+      </div>
+    </div>
+
+    <div class="script-section">
+      <div class="script-label">Closing</div>
+      <div class="script-text">
+        "I've provided ${data.compCount} comparable properties with addresses, account numbers, and appraised values. I respectfully request the board adjust my value to ${formatCurrency(data.fairAssessment)}."
+      </div>
+    </div>
+
+    <div class="pushback-title">If they push back</div>
+
+    <table class="pushback-table">
+      <tr>
+        <td>"Your home has upgrades they don't"</td>
+        <td>"The comparables are in the same neighborhood with similar build year and square footage. I'm asking for equal treatment under Section 42.26, not a discount."</td>
+      </tr>
+      <tr>
+        <td>"Those comps aren't similar enough"</td>
+        <td>"They're in the same appraisal neighborhood, same era construction, similar size. Section 42.26 requires the board to consider the median of comparable properties."</td>
+      </tr>
+      <tr>
+        <td>"We can offer you $X" (a compromise)</td>
+        <td>If at or below ${formatCurrency(data.fairAssessment)}: "I'll accept that." If higher: "The comparable data supports ${formatCurrency(data.fairAssessment)}. I'd like the board to consider the evidence."</td>
+      </tr>
+    </table>
+
+    <div class="footer">
+      Generated by Overtaxed
+    </div>
+  </div>
+
+</body>
+</html>`;
+}

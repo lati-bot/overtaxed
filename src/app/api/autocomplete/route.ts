@@ -20,9 +20,10 @@ export async function GET(request: NextRequest) {
   
   try {
     const cleaned = query.trim().toUpperCase();
+    const sanitized = cleaned.replace(/'/g, "''");
     
     // Build search query - match addresses starting with the input
-    const whereClause = encodeURIComponent(`upper(property_address) like upper('${cleaned}%')`);
+    const whereClause = encodeURIComponent(`upper(property_address) like upper('${sanitized}%')`);
     const url = `${PARCEL_API}?$where=${whereClause}&$limit=8&$select=pin,property_address,property_city,property_zip,township_name`;
     
     const response = await fetch(url);

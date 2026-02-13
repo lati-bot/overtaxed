@@ -102,7 +102,9 @@ function parseAddress(input: string): { houseNum: string; street: string } | nul
 }
 
 async function searchByAddress(houseNum: string, street: string): Promise<ParcelResult[]> {
-  const query = `${houseNum}%${street}%`;
+  const sanitizedHouseNum = houseNum.replace(/'/g, "''");
+  const sanitizedStreet = street.replace(/'/g, "''");
+  const query = `${sanitizedHouseNum}%${sanitizedStreet}%`;
   const whereClause = encodeURIComponent(`upper(property_address) like upper('${query}')`);
   const url = `${PARCEL_API}?$where=${whereClause}&$limit=20`;
   
