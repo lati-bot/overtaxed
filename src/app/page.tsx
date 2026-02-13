@@ -471,7 +471,7 @@ export default function Home() {
                 <div className="mt-2 text-[15px] text-[#999]">One-time per property</div>
               </div>
               <button 
-                onClick={() => { const el = document.getElementById("hero-search"); el?.scrollIntoView({ behavior: "smooth" }); setTimeout(() => document.getElementById("hero-input")?.focus(), 500); }}
+                onClick={() => { const el = document.getElementById("footer-input"); if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => el.focus(), 500); } }}
                 className="h-14 px-8 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 transition-colors"
               >
                 Get My Appeal Package
