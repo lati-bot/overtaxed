@@ -78,7 +78,7 @@ function SearchBar({
                 ref={inputRef}
                 type="text"
                 placeholder={placeholder || "Enter your home address..."}
-                className="w-full h-14 px-5 rounded-xl text-base bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#6b4fbb]/30 focus:outline-none focus:ring-2 focus:ring-[#6b4fbb]/10 transition-all"
+                className="w-full h-14 px-5 rounded-xl text-base bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#1a6b5a]/30 focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/10 transition-all"
                 value={address}
                 onChange={handleInputChange}
                 onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
@@ -115,7 +115,7 @@ function SearchBar({
             <button
               type="submit"
               disabled={loading || !address.trim()}
-              className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-40 bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 whitespace-nowrap"
+              className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-40 bg-[#1a6b5a] text-white hover:bg-[#155a4c] shadow-lg shadow-[#1a6b5a]/20 whitespace-nowrap"
             >
               {loading ? "..." : "See My Savings"}
             </button>
@@ -144,9 +144,9 @@ function SearchBar({
               <p className="text-sm mb-4 text-[#999]">We&apos;re expanding fast. Leave your email and we&apos;ll notify you when we launch in your area.</p>
               <form onSubmit={handleNotifySubmit} className="flex gap-2">
                 <input type="email" placeholder="you@email.com" value={notifyEmail} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotifyEmail(e.target.value)} required
-                  className="flex-1 h-11 px-4 rounded-xl text-sm bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:outline-none focus:ring-2 focus:ring-[#6b4fbb]/10"
+                  className="flex-1 h-11 px-4 rounded-xl text-sm bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/10"
                 />
-                <button type="submit" disabled={notifyLoading} className="h-11 px-5 rounded-xl text-sm font-medium bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors disabled:opacity-50">
+                <button type="submit" disabled={notifyLoading} className="h-11 px-5 rounded-xl text-sm font-medium bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors disabled:opacity-50">
                   {notifyLoading ? "..." : "Notify Me"}
                 </button>
               </form>
@@ -344,7 +344,7 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           {/* [#8] Purple brand mark before wordmark */}
           <div className="text-xl tracking-[-0.02em] font-medium text-[#1a1a1a] flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-[3px] bg-[#6b4fbb]" />
+            <span className="w-2.5 h-2.5 rounded-[3px] bg-[#1a6b5a]" />
             overtaxed
           </div>
           <div className="flex items-center gap-8">
@@ -355,7 +355,7 @@ export default function Home() {
             </div>
             <button 
               onClick={() => scrollToSection("hero-search")}
-              className="hidden sm:block px-5 py-2.5 rounded-full text-[13px] font-medium bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] transition-colors"
+              className="hidden sm:block px-5 py-2.5 rounded-full text-[13px] font-medium bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors"
             >
               Check My Address
             </button>
@@ -380,7 +380,7 @@ export default function Home() {
 
           {/* [#3] Coverage ABOVE search */}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] text-[#999]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#6b4fbb] inline-block" />
+            <span className="w-1.5 h-1.5 rounded-full bg-[#1a6b5a] inline-block" />
             <span>DFW</span>
             <span className="text-[#ddd]">·</span>
             <span>Houston</span>
@@ -472,7 +472,7 @@ export default function Home() {
               </div>
               <button 
                 onClick={() => { const el = document.getElementById("footer-input"); if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => el.focus(), 500); } }}
-                className="h-14 px-8 rounded-2xl font-medium text-base bg-[#6b4fbb] text-white hover:bg-[#5a3fa8] shadow-lg shadow-[#6b4fbb]/20 transition-colors"
+                className="h-14 px-8 rounded-2xl font-medium text-base bg-[#1a6b5a] text-white hover:bg-[#155a4c] shadow-lg shadow-[#1a6b5a]/20 transition-colors"
               >
                 Get My Appeal Package
               </button>
@@ -487,7 +487,7 @@ export default function Home() {
                   "Delivered to your email instantly",
                 ].map((item) => (
                   <div key={item} className="flex items-start gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#6b4fbb] mt-2 flex-shrink-0" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#1a6b5a] mt-2 flex-shrink-0" />
                     <span className="text-[15px] text-[#444] font-light">{item}</span>
                   </div>
                 ))}
