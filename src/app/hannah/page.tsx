@@ -55,12 +55,14 @@ function RevealSection({
   );
 }
 
-/* ── Photo placeholder ── */
-function PhotoPlaceholder({
-  aspectRatio = "4 / 5",
+/* ── Photo component ── */
+function Photo({
+  src,
+  alt,
   caption,
 }: {
-  aspectRatio?: string;
+  src: string;
+  alt: string;
   caption?: string;
 }) {
   return (
@@ -72,27 +74,21 @@ function PhotoPlaceholder({
       <div
         style={{
           width: "100%",
-          aspectRatio,
-          background: "#F0EAE2",
-          border: "1px solid #D9CEBC",
-          borderRadius: 2,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
           overflow: "hidden",
+          borderRadius: 2,
+          border: "1px solid #D9CEBC",
         }}
       >
-        <span
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={alt}
           style={{
-            fontFamily: SANS,
-            fontSize: 11,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-            color: "#C4B9A8",
+            width: "100%",
+            height: "auto",
+            display: "block",
           }}
-        >
-          Photo
-        </span>
+        />
       </div>
       {caption && (
         <p
@@ -311,7 +307,7 @@ export default function HannahPage() {
           </RevealSection>
 
           {/* — Photo moment 1 — */}
-          <PhotoPlaceholder aspectRatio="3 / 4" />
+          <Photo src="/hannah/photo1.jpg" alt="Tomi and Hannah" />
 
           {/* — The memory — */}
           <RevealSection>
@@ -402,7 +398,7 @@ export default function HannahPage() {
           </RevealSection>
 
           {/* — Photo moment 2 — */}
-          <PhotoPlaceholder aspectRatio="16 / 10" />
+          <Photo src="/hannah/photo2.jpg" alt="Tomi and Hannah" />
 
           {/* — The future — */}
           <RevealSection>
