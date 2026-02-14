@@ -405,34 +405,35 @@ function generatePdfHtml(data: PropertyData): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Board of Review Appeal — Lack of Uniformity — ${data.address}</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     @page { size: Letter; margin: 0.6in 0.65in; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 11px; line-height: 1.45; color: #1a1a2e; background: #fff; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; line-height: 1.45; color: #1a1a1a; background: #fff; }
     .page { max-width: 8.5in; margin: 0 auto; padding: 0; }
     
     /* Header */
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 3px solid #1a1a2e; }
-    .header-left .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #1a1a2e; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 3px solid #1a6b5a; }
+    .header-left .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #1a6b5a; }
     .header-left .subtitle { font-size: 10px; color: #666; margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
     .header-right { text-align: right; font-size: 10px; color: #666; }
-    .header-right .date { font-weight: 600; color: #1a1a2e; }
+    .header-right .date { font-weight: 600; color: #1a1a1a; }
     
     /* Title block */
     .title-block { background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
     .appeal-type { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 6px; font-weight: 600; }
-    .property-address { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+    .property-address { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
     .property-meta { font-size: 11px; color: #555; }
     .property-meta span { margin-right: 16px; }
     
     /* Summary cards */
     .summary-row { display: flex; gap: 12px; margin-bottom: 20px; }
     .summary-card { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; }
-    .summary-card.alert { border-color: #dc2626; background: #fef2f2; }
-    .summary-card.success { border-color: #16a34a; background: #f0fdf4; }
+    .summary-card.alert { border-color: #b45309; background: #fffbeb; }
+    .summary-card.success { border-color: #1a6b5a; background: #e8f4f0; }
     .summary-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 4px; font-weight: 600; }
     .summary-value { font-size: 22px; font-weight: 700; }
-    .summary-card.alert .summary-value { color: #dc2626; }
-    .summary-card.success .summary-value { color: #16a34a; }
+    .summary-card.alert .summary-value { color: #b45309; }
+    .summary-card.success .summary-value { color: #1a6b5a; }
     .summary-detail { font-size: 10px; color: #666; margin-top: 2px; }
     
     /* Assessment breakdown */
@@ -442,37 +443,37 @@ function generatePdfHtml(data: PropertyData): string {
     .breakdown-table { width: 100%; border-collapse: collapse; }
     .breakdown-table td { padding: 5px 8px; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
     .breakdown-table td:last-child { text-align: right; font-weight: 600; }
-    .breakdown-table tr:last-child td { border-bottom: 2px solid #1a1a2e; font-weight: 700; }
+    .breakdown-table tr:last-child td { border-bottom: 2px solid #1a6b5a; font-weight: 700; }
     
     /* Section */
     .section { margin-bottom: 20px; }
-    .section-title { font-size: 13px; font-weight: 700; color: #1a1a2e; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .section-title { font-size: 13px; font-weight: 700; color: #1a6b5a; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
     
     /* Brief */
-    .brief { background: #f8f9fa; border-left: 4px solid #1a1a2e; padding: 14px 18px; margin-bottom: 20px; font-size: 11px; line-height: 1.6; color: #333; }
+    .brief { background: #f8f9fa; border-left: 4px solid #1a6b5a; padding: 14px 18px; margin-bottom: 20px; font-size: 11px; line-height: 1.6; color: #333; }
     .brief p { margin-bottom: 8px; }
     .brief p:last-child { margin-bottom: 0; }
     
     /* Comps table */
     .comps-table { width: 100%; border-collapse: collapse; font-size: 9.5px; margin-bottom: 8px; }
-    .comps-table th { background: #1a1a2e; color: #fff; padding: 7px 5px; text-align: left; font-weight: 600; font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .comps-table th { background: #1a6b5a; color: #fff; padding: 7px 5px; text-align: left; font-weight: 600; font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.5px; }
     .comps-table th.right, .comps-table td.right { text-align: right; }
     .comps-table td { padding: 6px 5px; border-bottom: 1px solid #e8e8e8; }
     .comps-table tr:nth-child(even) { background: #fafafa; }
     .comp-num { color: #999; font-weight: 600; width: 20px; }
     .comp-address { font-weight: 600; font-size: 10px; }
     .comp-pin { font-family: 'SF Mono', 'Consolas', monospace; font-size: 8.5px; color: #888; }
-    .highlight { color: #16a34a; font-weight: 700; }
+    .highlight { color: #1a6b5a; font-weight: 700; }
     
     /* Summary row at bottom of comps */
-    .comps-summary { display: flex; gap: 20px; padding: 10px 0; border-top: 2px solid #1a1a2e; font-size: 10px; }
+    .comps-summary { display: flex; gap: 20px; padding: 10px 0; border-top: 2px solid #1a6b5a; font-size: 10px; }
     .comps-summary-item { }
     .comps-summary-item .label { color: #666; font-size: 9px; text-transform: uppercase; }
-    .comps-summary-item .value { font-weight: 700; font-size: 13px; color: #16a34a; }
+    .comps-summary-item .value { font-weight: 700; font-size: 13px; color: #1a6b5a; }
     
     /* Subject highlight row */
-    .comps-table tr.subject-row { background: #fef2f2; border: 2px solid #dc2626; }
-    .comps-table tr.subject-row td { font-weight: 600; color: #dc2626; }
+    .comps-table tr.subject-row { background: #fffbeb; border: 2px solid #b45309; }
+    .comps-table tr.subject-row td { font-weight: 600; color: #b45309; }
     
     /* Assessment history */
     .history-table { width: 100%; border-collapse: collapse; font-size: 10px; }
@@ -484,7 +485,7 @@ function generatePdfHtml(data: PropertyData): string {
     /* Filing steps */
     .steps { counter-reset: step; }
     .step { display: flex; margin-bottom: 14px; }
-    .step-number { width: 24px; height: 24px; background: #1a1a2e; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0; margin-right: 12px; margin-top: 1px; }
+    .step-number { width: 24px; height: 24px; background: #1a6b5a; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0; margin-right: 12px; margin-top: 1px; }
     .step-content { flex: 1; }
     .step-title { font-weight: 700; font-size: 11px; margin-bottom: 2px; }
     .step-desc { font-size: 10px; color: #555; line-height: 1.5; }
@@ -504,8 +505,16 @@ function generatePdfHtml(data: PropertyData): string {
     <!-- Header -->
     <div class="header">
       <div class="header-left">
-        <div class="logo">overtaxed</div>
-        <div class="subtitle">Board of Review Appeal Evidence Package</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <svg width="28" height="28" viewBox="0 0 32 32">
+            <rect width="32" height="32" rx="7" fill="#1a6b5a"/>
+            <circle cx="16" cy="15.5" r="8" fill="none" stroke="white" stroke-width="3.5"/>
+          </svg>
+          <div>
+            <div class="logo">overtaxed</div>
+            <div class="subtitle">Board of Review Appeal Evidence Package</div>
+          </div>
+        </div>
       </div>
       <div class="header-right">
         <div class="date">${today}</div>
@@ -544,6 +553,11 @@ function generatePdfHtml(data: PropertyData): string {
         <div class="summary-value">$${data.savings.toLocaleString()}</div>
         <div class="summary-detail">Based on assessment reduction of $${data.reduction.toLocaleString()}</div>
       </div>
+    </div>
+    
+    <!-- Deadline Warning -->
+    <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 14px 18px; font-size: 11px; line-height: 1.6; margin-bottom: 20px;">
+      <p style="margin: 0;"><strong>⏰ Deadline:</strong> The Board of Review opens each township for approximately 30 days. Your township (<strong>${data.township}</strong>) must be open to file. Check <a href="https://www.cookcountyboardofreview.com" style="color: #2563eb;">cookcountyboardofreview.com</a> for your township's dates. Once your township opens, file immediately — you cannot file after it closes.</p>
     </div>
     
     <!-- Assessment Breakdown -->
@@ -620,7 +634,7 @@ function generatePdfHtml(data: PropertyData): string {
             <td class="right">$${data.currentBldg.toLocaleString()}</td>
             <td class="right">$${data.currentLand.toLocaleString()}</td>
             <td class="right">$${data.currentAssessment.toLocaleString()}</td>
-            <td class="right" style="color: #dc2626; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>
+            <td class="right" style="color: #b45309; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>
           </tr>
           ${compsHtml}
         </tbody>
@@ -629,7 +643,7 @@ function generatePdfHtml(data: PropertyData): string {
       <div class="comps-summary">
         <div class="comps-summary-item">
           <div class="label">Subject $/SF</div>
-          <div class="value" style="color: #dc2626;">$${data.perSqft.toFixed(2)}</div>
+          <div class="value" style="color: #b45309;">$${data.perSqft.toFixed(2)}</div>
         </div>
         <div class="comps-summary-item">
           <div class="label">Comp Median $/SF</div>
@@ -644,6 +658,8 @@ function generatePdfHtml(data: PropertyData): string {
           <div class="value">$${(data.perSqft - data.compMedianPerSqft).toFixed(2)}/SF (${data.overAssessedPct}%)</div>
         </div>
       </div>
+      
+      <p style="font-size: 9.5px; color: #666; line-height: 1.5; margin-top: 8px; font-style: italic;">These comparable properties were selected based on proximity, neighborhood, size, and property classification. If the appraiser challenges a specific comparable, focus on the ones most similar to your property in age and size. Even 3–4 strong comps are sufficient to demonstrate unequal treatment.</p>
     </div>
     
     <!-- Assessment History -->
@@ -806,7 +822,7 @@ function generateBrief(data: PropertyData): string {
   return `
     <p>The subject property at <strong>${data.address}</strong> (PIN: ${formattedPin}), classified as Class ${data.classCode} (${data.classDescription}), is currently assessed at <strong>$${data.currentAssessment.toLocaleString()}</strong>, which equates to <strong>$${data.perSqft.toFixed(2)} per square foot</strong> of building area.</p>
     
-    <p>An analysis of ${data.comps.length} comparable properties within Assessment Neighborhood ${data.neighborhood}${sameClass > 0 ? `, ${sameClass} of which share the same Class ${data.classCode} classification,` : ""} demonstrates that the subject property is assessed at a rate <strong>${data.overAssessedPct}% above the comparable median</strong> of $${data.compMedianPerSqft.toFixed(2)} per square foot. This constitutes a lack of uniformity in violation of Article IX, Section 4 of the Illinois Constitution, which requires that taxes upon real property be levied uniformly by valuation.</p>
+    <p>An analysis of ${data.comps.length} comparable properties within Assessment Neighborhood ${data.neighborhood}${sameClass > 0 ? `, ${sameClass} of which share the same Class ${data.classCode} classification,` : ""} demonstrates that the subject property is assessed at a rate <strong>${data.overAssessedPct}% above the comparable median</strong> of $${data.compMedianPerSqft.toFixed(2)} per square foot. This constitutes a lack of uniformity in violation of Article IX, Section 4 of the Illinois Constitution, which requires that taxes upon real property be levied uniformly by valuation. Pursuant to 35 ILCS 200/16-70 et seq., the Board of Review has authority to revise and correct assessments to achieve uniformity.</p>
     
     <p>Based on the comparable evidence presented, the petitioner requests a reduction in assessed value from <strong>$${data.currentAssessment.toLocaleString()}</strong> to <strong>$${data.fairAssessment.toLocaleString()}</strong>, a reduction of <strong>$${data.reduction.toLocaleString()}</strong>, which would result in estimated annual tax savings of approximately <strong>$${data.savings.toLocaleString()}</strong>.</p>
   `;
@@ -852,36 +868,43 @@ async function sendEmail(
   await getResend().emails.send({
     from: "Overtaxed <hello@getovertaxed.com>",
     to: email,
-    subject: `Board of Review Appeal Package — ${data.address} — PIN ${formattedPin}`,
+    subject: `Your appeal package is ready — save $${data.savings.toLocaleString()}/year on property taxes`,
     html: `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
-        <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Your Board of Review appeal package is ready</h1>
-        <p style="color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to file your property tax appeal for <strong>${data.address}</strong> with the Cook County Board of Review.</p>
-        
-        <div style="background: #f0fdf4; border: 2px solid #16a34a; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
-          <p style="margin: 0 0 4px 0; font-size: 14px; color: #166534;"><strong>Estimated Annual Savings: $${data.savings.toLocaleString()}</strong></p>
-          <p style="margin: 0; font-size: 13px; color: #166534;">Current: $${data.currentAssessment.toLocaleString()} → Fair: $${data.fairAssessment.toLocaleString()} (${data.overAssessedPct}% over-assessed)</p>
+      <div style="background: #f7f6f3; padding: 32px 16px;">
+        <div style="max-width: 600px; margin: 0 auto;">
+          <div style="background: #1a6b5a; padding: 20px 24px; border-radius: 12px 12px 0 0;">
+            <span style="color: white; font-size: 18px; font-weight: 800; letter-spacing: -0.5px;">overtaxed</span>
+          </div>
+          <div style="background: #ffffff; padding: 28px 24px; border: 1px solid #e2e2e0; border-top: none; border-radius: 0 0 12px 12px;">
+            <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #1a1a1a;">Your Board of Review appeal package is ready</h1>
+            <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to file your property tax appeal for <strong>${data.address}</strong> with the Cook County Board of Review.</p>
+            
+            <div style="background: #e8f4f0; border: 2px solid #1a6b5a; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
+              <p style="margin: 0 0 4px 0; font-size: 14px; color: #1a6b5a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Estimated Annual Savings: $${data.savings.toLocaleString()}</strong></p>
+              <p style="margin: 0; font-size: 13px; color: #1a6b5a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Current: $${data.currentAssessment.toLocaleString()} → Fair: $${data.fairAssessment.toLocaleString()} (${data.overAssessedPct}% over-assessed)</p>
+            </div>
+            
+            <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Your appeal package includes:</strong></p>
+            <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+              <li>${data.comps.length} comparable properties with full assessment details</li>
+              <li>Written uniformity argument citing the Illinois Constitution</li>
+              <li>Assessment history and breakdown</li>
+              <li>Step-by-step Board of Review filing instructions</li>
+              <li>Pre-written notes you can copy & paste into the filing form</li>
+            </ul>
+            
+            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;">
+              <p style="margin: 0; font-size: 13px; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📸 Don't forget:</strong> The Board of Review requires a photo of the front of your property (Rule #17). Take a clear photo with your phone before you file.</p>
+            </div>
+            
+            <p style="margin-bottom: 16px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Your appeal package PDF is attached to this email. You can also access it online:</p>
+            <a href="${accessLink}" style="display: block; width: 100%; text-align: center; background: #1a6b5a; color: #fff; padding: 14px 28px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px;">View Your Appeal Package</a>
+            
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
+            <p style="color: #999; font-size: 11px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">This link expires in 30 days. For questions, reply to this email.</p>
+            <p style="color: #999; font-size: 11px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Overtaxed · hello@getovertaxed.com</p>
+          </div>
         </div>
-        
-        <p style="font-size: 14px; margin-bottom: 8px;"><strong>Your appeal package includes:</strong></p>
-        <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px;">
-          <li>${data.comps.length} comparable properties with full assessment details</li>
-          <li>Written uniformity argument citing the Illinois Constitution</li>
-          <li>Assessment history and breakdown</li>
-          <li>Step-by-step Board of Review filing instructions</li>
-          <li>Pre-written notes you can copy & paste into the filing form</li>
-        </ul>
-        
-        <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;">
-          <p style="margin: 0; font-size: 13px; color: #92400e;"><strong>📸 Don't forget:</strong> The Board of Review requires a photo of the front of your property (Rule #17). Take a clear photo with your phone before you file.</p>
-        </div>
-        
-        <p style="margin-bottom: 16px; font-size: 14px;">Your appeal package PDF is attached to this email. You can also access it online:</p>
-        <a href="${accessLink}" style="display: inline-block; background: #1a1a2e; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">View Appeal Package</a>
-        
-        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
-        <p style="color: #999; font-size: 11px;">This link expires in 30 days. For questions, reply to this email.</p>
-        <p style="color: #999; font-size: 11px;">Overtaxed · hello@getovertaxed.com</p>
       </div>
     `,
     attachments: [

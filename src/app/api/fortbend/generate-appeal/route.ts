@@ -190,31 +190,32 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Property Tax Protest — Uniform & Equal — ${data.address}</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     @page { size: Letter; margin: 0.6in 0.65in; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 11px; line-height: 1.45; color: #1a1a2e; background: #fff; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 11px; line-height: 1.45; color: #1a1a1a; background: #fff; }
     .page { max-width: 8.5in; margin: 0 auto; padding: 0; }
     
-    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 3px solid #1a1a2e; }
-    .header-left .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #1a1a2e; }
+    .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 3px solid #1a6b5a; }
+    .header-left .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; color: #1a6b5a; }
     .header-left .subtitle { font-size: 10px; color: #666; margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
     .header-right { text-align: right; font-size: 10px; color: #666; }
-    .header-right .date { font-weight: 600; color: #1a1a2e; }
+    .header-right .date { font-weight: 600; color: #1a1a1a; }
     
     .title-block { background: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; }
     .appeal-type { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #666; margin-bottom: 6px; font-weight: 600; }
-    .property-address { font-size: 18px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+    .property-address { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
     .property-meta { font-size: 11px; color: #555; }
     .property-meta span { margin-right: 16px; }
     
     .summary-row { display: flex; gap: 12px; margin-bottom: 20px; }
     .summary-card { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 16px; }
-    .summary-card.alert { border-color: #dc2626; background: #fef2f2; }
-    .summary-card.success { border-color: #16a34a; background: #f0fdf4; }
+    .summary-card.alert { border-color: #b45309; background: #fffbeb; }
+    .summary-card.success { border-color: #1a6b5a; background: #e8f4f0; }
     .summary-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: #666; margin-bottom: 4px; font-weight: 600; }
     .summary-value { font-size: 22px; font-weight: 700; }
-    .summary-card.alert .summary-value { color: #dc2626; }
-    .summary-card.success .summary-value { color: #16a34a; }
+    .summary-card.alert .summary-value { color: #b45309; }
+    .summary-card.success .summary-value { color: #1a6b5a; }
     .summary-detail { font-size: 10px; color: #666; margin-top: 2px; }
     
     .breakdown-row { display: flex; gap: 12px; margin-bottom: 20px; }
@@ -223,35 +224,35 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
     .breakdown-table { width: 100%; border-collapse: collapse; }
     .breakdown-table td { padding: 5px 8px; font-size: 11px; border-bottom: 1px solid #f0f0f0; }
     .breakdown-table td:last-child { text-align: right; font-weight: 600; }
-    .breakdown-table tr:last-child td { border-bottom: 2px solid #1a1a2e; font-weight: 700; }
+    .breakdown-table tr:last-child td { border-bottom: 2px solid #1a6b5a; font-weight: 700; }
     
     .section { margin-bottom: 20px; }
-    .section-title { font-size: 13px; font-weight: 700; color: #1a1a2e; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .section-title { font-size: 13px; font-weight: 700; color: #1a6b5a; padding-bottom: 6px; border-bottom: 2px solid #e2e8f0; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
     
-    .brief { background: #f8f9fa; border-left: 4px solid #1a1a2e; padding: 14px 18px; margin-bottom: 20px; font-size: 11px; line-height: 1.6; color: #333; }
+    .brief { background: #f8f9fa; border-left: 4px solid #1a6b5a; padding: 14px 18px; margin-bottom: 20px; font-size: 11px; line-height: 1.6; color: #333; }
     .brief p { margin-bottom: 8px; }
     .brief p:last-child { margin-bottom: 0; }
     
     .comps-table { width: 100%; border-collapse: collapse; font-size: 10px; margin-bottom: 8px; }
-    .comps-table th { background: #1a1a2e; color: #fff; padding: 8px 6px; text-align: left; font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .comps-table th { background: #1a6b5a; color: #fff; padding: 8px 6px; text-align: left; font-weight: 600; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
     .comps-table th.right, .comps-table td.right { text-align: right; }
     .comps-table td { padding: 7px 6px; border-bottom: 1px solid #e8e8e8; }
     .comps-table tr:nth-child(even) { background: #fafafa; }
     .comp-num { color: #999; font-weight: 600; width: 24px; }
     .comp-address { font-weight: 600; font-size: 10.5px; }
     .comp-acct { font-family: 'SF Mono', 'Consolas', monospace; font-size: 8.5px; color: #888; }
-    .highlight { color: #16a34a; font-weight: 700; }
+    .highlight { color: #1a6b5a; font-weight: 700; }
     
-    .comps-summary { display: flex; gap: 20px; padding: 10px 0; border-top: 2px solid #1a1a2e; font-size: 10px; }
+    .comps-summary { display: flex; gap: 20px; padding: 10px 0; border-top: 2px solid #1a6b5a; font-size: 10px; }
     .comps-summary-item .label { color: #666; font-size: 9px; text-transform: uppercase; }
-    .comps-summary-item .value { font-weight: 700; font-size: 13px; color: #16a34a; }
+    .comps-summary-item .value { font-weight: 700; font-size: 13px; color: #1a6b5a; }
     
-    .comps-table tr.subject-row { background: #fef2f2; border: 2px solid #dc2626; }
-    .comps-table tr.subject-row td { font-weight: 600; color: #dc2626; }
+    .comps-table tr.subject-row { background: #fffbeb; border: 2px solid #b45309; }
+    .comps-table tr.subject-row td { font-weight: 600; color: #b45309; }
     
     .steps { counter-reset: step; }
     .step { display: flex; margin-bottom: 14px; }
-    .step-number { width: 24px; height: 24px; background: #1a1a2e; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0; margin-right: 12px; margin-top: 1px; }
+    .step-number { width: 24px; height: 24px; background: #1a6b5a; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0; margin-right: 12px; margin-top: 1px; }
     .step-content { flex: 1; }
     .step-title { font-weight: 700; font-size: 11px; margin-bottom: 2px; }
     .step-desc { font-size: 10px; color: #555; line-height: 1.5; }
@@ -260,7 +261,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
     .info-box { border-radius: 8px; padding: 14px 18px; font-size: 11px; line-height: 1.6; margin-bottom: 16px; }
     .info-box.warning { background: #fef3c7; border: 2px solid #f59e0b; }
     .info-box.info { background: #eff6ff; border: 2px solid #3b82f6; }
-    .info-box.tip { background: #f0fdf4; border: 2px solid #16a34a; }
+    .info-box.tip { background: #e8f4f0; border: 2px solid #1a6b5a; }
     
     .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e2e8f0; font-size: 8.5px; color: #999; line-height: 1.5; }
     .page-break { page-break-before: always; }
@@ -273,8 +274,16 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
     <!-- Header -->
     <div class="header">
       <div class="header-left">
-        <div class="logo">overtaxed</div>
-        <div class="subtitle">Property Tax Protest Evidence Package</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <svg width="28" height="28" viewBox="0 0 32 32">
+            <rect width="32" height="32" rx="7" fill="#1a6b5a"/>
+            <circle cx="16" cy="15.5" r="8" fill="none" stroke="white" stroke-width="3.5"/>
+          </svg>
+          <div>
+            <div class="logo">overtaxed</div>
+            <div class="subtitle">Property Tax Protest Evidence Package</div>
+          </div>
+        </div>
       </div>
       <div class="header-right">
         <div class="date">${today}</div>
@@ -382,7 +391,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
             <td class="right">${data.sqft.toLocaleString()}</td>
             <td class="right">${data.yearBuilt || "—"}</td>
             <td class="right">$${data.currentAssessment.toLocaleString()}</td>
-            <td class="right" style="color: #dc2626; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>
+            <td class="right" style="color: #b45309; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>
           </tr>
           ${compsHtml}
         </tbody>
@@ -391,7 +400,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
       <div class="comps-summary">
         <div class="comps-summary-item">
           <div class="label">Subject $/SF</div>
-          <div class="value" style="color: #dc2626;">$${data.perSqft.toFixed(2)}</div>
+          <div class="value" style="color: #b45309;">$${data.perSqft.toFixed(2)}</div>
         </div>
         <div class="comps-summary-item">
           <div class="label">Comp Median $/SF</div>
@@ -406,6 +415,8 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
           <div class="value">$${(data.perSqft - data.compMedianPerSqft).toFixed(2)}/SF (${data.overAssessedPct}%)</div>
         </div>
       </div>
+      
+      <p style="font-size: 9.5px; color: #666; line-height: 1.5; margin-top: 8px; font-style: italic;">These comparable properties were selected based on proximity, neighborhood, size, and property classification. If the appraiser challenges a specific comparable, focus on the ones most similar to your property in age and size. Even 3–4 strong comps are sufficient to demonstrate unequal treatment.</p>
     </div>
     
     <!-- FILING INSTRUCTIONS -->
@@ -484,7 +495,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
         <p style="margin-bottom: 8px;">"I am protesting the appraised value of my property at <strong>${data.address}</strong>, Account ${data.acct}, on the grounds of <strong>unequal appraisal</strong>."</p>
         <p style="margin-bottom: 8px;">"My property is currently appraised at <strong>$${data.currentAssessment.toLocaleString()}</strong>, which comes to <strong>$${data.perSqft.toFixed(2)} per square foot</strong>."</p>
         <p style="margin-bottom: 8px;">"I've identified ${data.comps.length} comparable properties in the same neighborhood (${data.neighborhoodCode}) with similar characteristics. The median appraised value of these comparable properties is <strong>$${data.compMedianPerSqft.toFixed(2)} per square foot</strong> — my property is appraised <strong>${data.overAssessedPct}% higher</strong> than comparable properties."</p>
-        <p style="margin-bottom: 8px;">"Under the Texas Tax Code Section 42.26, property must be appraised equally and uniformly. I am requesting my appraised value be reduced to <strong>$${data.fairAssessment.toLocaleString()}</strong>, which reflects the median per-square-foot value of comparable properties in my neighborhood."</p>
+        <p style="margin-bottom: 8px;">"Under Texas Tax Code §41.41(a)(2), I have the right to protest on grounds of unequal appraisal, and under §42.26(a), my appraised value must not exceed the median of comparable properties. I am requesting my appraised value be reduced to <strong>$${data.fairAssessment.toLocaleString()}</strong>, which reflects the median per-square-foot value of comparable properties in my neighborhood."</p>
         <p style="margin-bottom: 0;">"I have provided ${data.comps.length} comparable properties with their addresses, account numbers, and appraised values as supporting evidence."</p>
       </div>
     </div>
@@ -495,7 +506,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
       
       <div class="info-box tip">
         <p style="margin: 0 0 8px 0;"><strong>🏆 Why "Uniform & Equal" is Your Strongest Argument</strong></p>
-        <p style="margin: 0;">Texas Tax Code Section 42.26 requires that properties be appraised equally. If your property is appraised higher per square foot than comparable properties, the Appraisal Review Board <strong>must</strong> reduce your value to the median. This is a stronger legal argument than simply saying your home is worth less — it's backed by law and is the argument used by professional tax protest firms.</p>
+        <p style="margin: 0;">Texas Tax Code §41.41(a)(2) gives you the right to protest on unequal appraisal grounds, and §42.26(a) requires that your appraised value not exceed the median of comparable properties. If your property is appraised higher per square foot than comparable properties, the Appraisal Review Board <strong>must</strong> reduce your value to the median. This is a stronger legal argument than simply saying your home is worth less — it's backed by law and is the argument used by professional tax protest firms.</p>
       </div>
       
       <div class="info-box info">
@@ -525,7 +536,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
     
     <!-- Footer -->
     <div class="footer">
-      <p><strong>Disclaimer:</strong> This document provides comparable property data and analysis to support a property tax protest based on unequal appraisal under Texas Tax Code Section 42.26. It does not constitute legal advice. All appraisal data is sourced from Fort Bend Central Appraisal District (FBCAD) public records. Filing deadlines and procedures are subject to change — verify current deadlines at fbcad.org before filing.</p>
+      <p><strong>Disclaimer:</strong> This document provides comparable property data and analysis to support a property tax protest based on unequal appraisal under Texas Tax Code §41.41(a)(2) and §42.26(a). It does not constitute legal advice. All appraisal data is sourced from Fort Bend Central Appraisal District (FBCAD) public records. Filing deadlines and procedures are subject to change — verify current deadlines at fbcad.org before filing.</p>
       <p style="margin-top: 6px;">Generated by Overtaxed · ${today} · Account: ${data.acct}</p>
     </div>
   </div>
@@ -537,9 +548,9 @@ function generateFortBendBrief(data: FortBendPropertyData): string {
   return `
     <p>The subject property at <strong>${data.address}</strong> (FBCAD Account: ${data.acct}), located in appraisal neighborhood ${data.neighborhoodCode}, is currently appraised at <strong>$${data.currentAssessment.toLocaleString()}</strong>, which equates to <strong>$${data.perSqft.toFixed(2)} per square foot</strong> of building area.</p>
     
-    <p>An analysis of ${data.comps.length} comparable properties within the same appraisal neighborhood demonstrates that the subject property is appraised at a rate <strong>${data.overAssessedPct}% above the comparable median</strong> of $${data.compMedianPerSqft.toFixed(2)} per square foot. This constitutes an unequal appraisal in violation of <strong>Texas Tax Code Section 42.26</strong>, which requires that the appraised value of property not exceed the median appraised value of comparable properties in the same area.</p>
+    <p>An analysis of ${data.comps.length} comparable properties within the same appraisal neighborhood demonstrates that the subject property is appraised at a rate <strong>${data.overAssessedPct}% above the comparable median</strong> of $${data.compMedianPerSqft.toFixed(2)} per square foot. This constitutes an unequal appraisal Under <strong>Texas Tax Code §41.41(a)(2)</strong>, a property owner has the right to protest the appraised value on grounds that the property is unequally appraised. Under <strong>§42.26(a)</strong>, the appraised value of property must not exceed the median appraised value of a reasonable number of comparable properties appropriately adjusted.</p>
     
-    <p>Under Section 42.26(a)(3), the Appraisal Review Board is required to determine the appraised value of the property by considering the median level of appraisal of comparable properties. Based on the comparable evidence presented, the petitioner requests a reduction in appraised value from <strong>$${data.currentAssessment.toLocaleString()}</strong> to <strong>$${data.fairAssessment.toLocaleString()}</strong>, a reduction of <strong>$${data.potentialReduction.toLocaleString()}</strong>, resulting in estimated annual tax savings of approximately <strong>$${data.estimatedSavings.toLocaleString()}</strong>.</p>
+    <p>Based on the comparable evidence presented, the petitioner requests a reduction in appraised value from <strong>$${data.currentAssessment.toLocaleString()}</strong> to <strong>$${data.fairAssessment.toLocaleString()}</strong>, a reduction of <strong>$${data.potentialReduction.toLocaleString()}</strong>, resulting in estimated annual tax savings of approximately <strong>$${data.estimatedSavings.toLocaleString()}</strong>.</p>
   `;
 }
 
@@ -590,36 +601,43 @@ async function sendFortBendEmail(
   await getResend().emails.send({
     from: "Overtaxed <hello@getovertaxed.com>",
     to: email,
-    subject: `Property Tax Protest Package — ${data.address} — Fort Bend County`,
+    subject: `Your protest package is ready — save $${data.estimatedSavings.toLocaleString()}/year on property taxes`,
     html: `
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; color: #1a1a2e;">
-        <h1 style="font-size: 22px; font-weight: 700; margin-bottom: 8px;">Your protest package is ready</h1>
-        <p style="color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to protest your property tax for <strong>${data.address}</strong> with the Fort Bend Central Appraisal District.</p>
+      <div style="background: #f7f6f3; padding: 32px 16px;">
+        <div style="max-width: 600px; margin: 0 auto;">
+          <div style="background: #1a6b5a; padding: 20px 24px; border-radius: 12px 12px 0 0;">
+            <span style="color: white; font-size: 18px; font-weight: 800; letter-spacing: -0.5px;">overtaxed</span>
+          </div>
+          <div style="background: #ffffff; padding: 28px 24px; border: 1px solid #e2e2e0; border-top: none; border-radius: 0 0 12px 12px;">
+            <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #1a1a1a;">Your protest package is ready</h1>
+        <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to protest your property tax for <strong>${data.address}</strong> with the Fort Bend Central Appraisal District.</p>
         
-        <div style="background: #f0fdf4; border: 2px solid #16a34a; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
-          <p style="margin: 0 0 4px 0; font-size: 14px; color: #166534;"><strong>Estimated Annual Savings: $${data.estimatedSavings.toLocaleString()}</strong></p>
-          <p style="margin: 0; font-size: 13px; color: #166534;">Current: $${data.currentAssessment.toLocaleString()} → Fair: $${data.fairAssessment.toLocaleString()} (${data.overAssessedPct}% over-appraised)</p>
+        <div style="background: #e8f4f0; border: 2px solid #1a6b5a; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
+          <p style="margin: 0 0 4px 0; font-size: 14px; color: #1a6b5a;"><strong>Estimated Annual Savings: $${data.estimatedSavings.toLocaleString()}</strong></p>
+          <p style="margin: 0; font-size: 13px; color: #1a6b5a;">Current: $${data.currentAssessment.toLocaleString()} → Fair: $${data.fairAssessment.toLocaleString()} (${data.overAssessedPct}% over-appraised)</p>
         </div>
         
         <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;">
-          <p style="margin: 0; font-size: 13px; color: #92400e;"><strong>⏰ Deadline:</strong> File your protest once you receive your appraisal notice (usually by May 15 or 30 days after your notice, whichever is later). Don't wait!</p>
+          <p style="margin: 0; font-size: 13px; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>⏰ Deadline:</strong> File your protest once you receive your appraisal notice (usually by May 15 or 30 days after your notice, whichever is later). Don't wait!</p>
         </div>
         
-        <p style="font-size: 14px; margin-bottom: 8px;"><strong>Your protest package includes:</strong></p>
-        <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px;">
+        <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Your protest package includes:</strong></p>
+        <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <li>${data.comps.length} comparable properties with appraised values</li>
-          <li>Written "Uniform & Equal" argument citing Texas Tax Code §42.26</li>
+          <li>Written "Uniform & Equal" argument citing Texas Tax Code §41.41(a)(2) &amp; §42.26(a)</li>
           <li>Step-by-step FBCAD online filing instructions</li>
           <li>Hearing script — exactly what to say</li>
           <li>FBCAD contact information and portal links</li>
         </ul>
         
-        <p style="margin-bottom: 16px; font-size: 14px;">Your protest package PDF is attached. You can also access it online:</p>
-        <a href="${accessLink}" style="display: inline-block; background: #1a1a2e; color: #fff; padding: 12px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px;">View Protest Package</a>
+        <p style="margin-bottom: 16px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Your protest package PDF is attached. You can also access it online:</p>
+        <a href="${accessLink}" style="display: block; width: 100%; text-align: center; background: #1a6b5a; color: #fff; padding: 14px 28px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px;">View Your Appeal Package</a>
         
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
-        <p style="color: #999; font-size: 11px;">This link expires in 30 days. For questions, reply to this email.</p>
-        <p style="color: #999; font-size: 11px;">Overtaxed · hello@getovertaxed.com</p>
+        <p style="color: #999; font-size: 11px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">This link expires in 30 days. For questions, reply to this email.</p>
+        <p style="color: #999; font-size: 11px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Overtaxed · hello@getovertaxed.com</p>
+          </div>
+        </div>
       </div>
     `,
     attachments: [
