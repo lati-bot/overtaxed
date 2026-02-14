@@ -60,10 +60,12 @@ function Photo({
   src,
   alt,
   caption,
+  maxWidth,
 }: {
   src: string;
   alt: string;
   caption?: string;
+  maxWidth?: number;
 }) {
   return (
     <RevealSection
@@ -74,6 +76,8 @@ function Photo({
       <div
         style={{
           width: "100%",
+          maxWidth: maxWidth ? maxWidth : undefined,
+          margin: maxWidth ? "0 auto" : undefined,
           overflow: "hidden",
           borderRadius: 2,
           border: "1px solid #D9CEBC",
@@ -211,7 +215,7 @@ export default function HannahPage() {
           <div
             style={{
               textAlign: "center",
-              marginBottom: 80,
+              marginBottom: 56,
               opacity: mounted ? 1 : 0,
               transform: mounted ? "translateY(0)" : "translateY(16px)",
               transition: "opacity 1.4s ease 800ms, transform 1.4s ease 800ms",
@@ -244,6 +248,17 @@ export default function HannahPage() {
             </h1>
           </div>
 
+          {/* ══════ Hero Photo ══════ */}
+          <div
+            style={{
+              opacity: mounted ? 1 : 0,
+              transform: mounted ? "translateY(0)" : "translateY(16px)",
+              transition: "opacity 1.6s ease 1.2s, transform 1.6s ease 1.2s",
+            }}
+          >
+            <Photo src="/hannah/photo1.jpg" alt="Tomi and Hannah" />
+          </div>
+
           {/* Divider */}
           <div
             style={{
@@ -252,7 +267,7 @@ export default function HannahPage() {
               background: COLORS.accent,
               margin: "0 auto 72px",
               opacity: mounted ? 0.6 : 0,
-              transition: "opacity 1.2s ease 1.4s",
+              transition: "opacity 1.2s ease 1.8s",
             }}
           />
 
@@ -261,12 +276,11 @@ export default function HannahPage() {
           {/* — Opening — */}
           <RevealSection>
             <div style={letterBlockStyle}>
-              <p style={{ ...paraStyle, marginBottom: 36 }}>My love,</p>
+              <p style={{ ...paraStyle, marginBottom: 36 }}>Hannah,</p>
 
               <p style={paraStyle}>
-                Everyone sees that you&apos;re beautiful. That&apos;s the easy
-                part — the part the world gets for free. But what I see is so
-                much more than that, and I don&apos;t think I say it enough.
+                Everyone sees that you&apos;re beautiful. But what I see goes
+                way past that, and I don&apos;t think I tell you enough.
               </p>
             </div>
           </RevealSection>
@@ -277,8 +291,8 @@ export default function HannahPage() {
                 You are the most understanding person I&apos;ve ever known. You
                 actually try to see things from where I&apos;m standing — not
                 because you have to, but because that&apos;s just who you are.
-                And sometimes I wonder if you even know that I notice. I do.
-                Every time.
+                And I wonder sometimes if you even know that I notice. I do.
+                Every single time.
               </p>
             </div>
           </RevealSection>
@@ -290,7 +304,7 @@ export default function HannahPage() {
                 The health stuff, the fitness, staying on me about my sleep — I
                 act like it&apos;s annoying but honestly, nobody in my life has
                 ever cared that specifically about me. That&apos;s not a small
-                thing. That&apos;s love in its most real form.
+                thing.
               </p>
             </div>
           </RevealSection>
@@ -300,16 +314,15 @@ export default function HannahPage() {
               <p style={paraStyle}>
                 And yes — I know I used to tell you to stop buying me things all
                 the time. But I think you&apos;ve taken a little too long of a
-                break now. I&apos;m ready for you to resume. Whenever
-                you&apos;re ready.
+                break now.
+              </p>
+              <p style={{ ...paraStyle, marginTop: 20 }}>
+                I&apos;m ready for you to resume. Whenever you&apos;re ready.
               </p>
             </div>
           </RevealSection>
 
-          {/* — Photo moment 1 — */}
-          <Photo src="/hannah/photo1.jpg" alt="Tomi and Hannah" />
-
-          {/* — The memory — */}
+          {/* — Section break — */}
           <RevealSection>
             <div
               style={{
@@ -317,15 +330,16 @@ export default function HannahPage() {
                 height: 1,
                 background: COLORS.accent,
                 opacity: 0.5,
-                margin: "0 0 56px",
+                margin: "24px 0 56px",
               }}
             />
           </RevealSection>
 
+          {/* — The memory — */}
           <RevealSection>
             <div style={letterBlockStyle}>
               <p style={paraStyle}>
-                I still remember that night — December 2017. The party at my
+                I still think about that night — December 2017. The party at my
                 place in DeKalb. You&apos;d been ignoring my messages for weeks
                 after we first met, and I honestly didn&apos;t think you&apos;d
                 show up.
@@ -338,9 +352,9 @@ export default function HannahPage() {
               <p
                 style={{
                   ...paraStyle,
-                  fontSize: "clamp(24px, 5.5vw, 32px)",
+                  fontSize: "clamp(26px, 6vw, 36px)",
                   fontWeight: 400,
-                  lineHeight: 1.5,
+                  lineHeight: 1.4,
                   color: COLORS.text,
                 }}
               >
@@ -364,19 +378,29 @@ export default function HannahPage() {
           <RevealSection>
             <div style={letterBlockStyle}>
               <p style={paraStyle}>
-                We&apos;ve never really been separated since that night.
+                We&apos;ve never really been apart since that night.
               </p>
             </div>
           </RevealSection>
 
+          {/* — Their phrase — */}
           <RevealSection>
-            <div style={letterBlockStyle}>
+            <div
+              style={{
+                textAlign: "center",
+                margin: "48px 0 56px",
+              }}
+            >
               <p
                 style={{
-                  ...paraStyle,
+                  fontFamily: SERIF,
+                  fontSize: "clamp(28px, 7vw, 42px)",
                   fontStyle: "italic",
-                  color: COLORS.muted,
-                  fontSize: "clamp(17px, 3.8vw, 20px)",
+                  fontWeight: 300,
+                  color: COLORS.accent,
+                  lineHeight: 1.3,
+                  margin: 0,
+                  letterSpacing: "0.02em",
                 }}
               >
                 Maybe — maybe not.
@@ -384,12 +408,27 @@ export default function HannahPage() {
             </div>
           </RevealSection>
 
+          {/* — Photo: laughing together — */}
+          <Photo src="/hannah/photo2.jpg" alt="Tomi and Hannah laughing" />
+
+          {/* — Emotional peak — */}
           <RevealSection>
-            <div style={letterBlockStyle}>
+            <div
+              style={{
+                ...letterBlockStyle,
+                textAlign: "center",
+                margin: "48px 0",
+              }}
+            >
               <p
                 style={{
-                  ...paraStyle,
+                  fontFamily: SERIF,
+                  fontSize: "clamp(24px, 5.5vw, 32px)",
                   fontWeight: 400,
+                  lineHeight: 1.5,
+                  color: COLORS.text,
+                  letterSpacing: "0.01em",
+                  margin: 0,
                 }}
               >
                 You still make me blush, Hannah.
@@ -397,10 +436,10 @@ export default function HannahPage() {
             </div>
           </RevealSection>
 
-          {/* — Photo moment 2 — */}
-          <Photo src="/hannah/photo2.jpg" alt="Tomi and Hannah" />
+          {/* — Photo: the kiss — */}
+          <Photo src="/hannah/photo3.jpg" alt="Hannah kissing Tomi on the cheek" />
 
-          {/* — The future — */}
+          {/* — Section break — */}
           <RevealSection>
             <div
               style={{
@@ -408,17 +447,18 @@ export default function HannahPage() {
                 height: 1,
                 background: COLORS.accent,
                 opacity: 0.5,
-                margin: "0 0 56px",
+                margin: "24px 0 56px",
               }}
             />
           </RevealSection>
 
+          {/* — The future — */}
           <RevealSection>
             <div style={letterBlockStyle}>
               <p style={paraStyle}>
-                I feel so lucky to have you. Not for what you do or what you
-                give me — just for who you are. You&apos;re my sunshine. My
-                favorite person in the entire world.
+                You know what gets me? After all this time, I still look forward
+                to coming home to you. That never got old. I don&apos;t think it
+                ever will.
               </p>
             </div>
           </RevealSection>
@@ -427,10 +467,8 @@ export default function HannahPage() {
             <div style={letterBlockStyle}>
               <p style={paraStyle}>
                 I don&apos;t have a list of things I want to change or fix or
-                ask for. I just want more of this. More time together, more
-                places to explore, more of the world — with you. Maybe one day
-                with our kids running around somewhere warm, wondering how their
-                parents met at a house party in DeKalb, Illinois.
+                ask for. I just want more of this. More time with you, more
+                places to explore, more of the world together.
               </p>
             </div>
           </RevealSection>
@@ -438,8 +476,32 @@ export default function HannahPage() {
           <RevealSection>
             <div style={letterBlockStyle}>
               <p style={paraStyle}>
-                I&apos;m really happy I get to celebrate love with you. Not just
-                today — every day.
+                Maybe one day with our kids running around somewhere warm,
+                wondering how their parents met at a house party in DeKalb,
+                Illinois.
+              </p>
+            </div>
+          </RevealSection>
+
+          {/* — Meme baby — */}
+          <Photo
+            src="/hannah/photo5.jpg"
+            alt="Our future kid, probably"
+            caption="first born, inshallah"
+            maxWidth={260}
+          />
+
+          {/* — Photo: travel — */}
+          <Photo
+            src="/hannah/photo4.jpg"
+            alt="Tomi and Hannah traveling"
+          />
+
+          <RevealSection>
+            <div style={letterBlockStyle}>
+              <p style={paraStyle}>
+                I&apos;m really happy I get to do life with you. Not just today
+                — every day.
               </p>
             </div>
           </RevealSection>
@@ -457,7 +519,7 @@ export default function HannahPage() {
                   margin: 0,
                 }}
               >
-                Forever yours,
+                All my love,
               </p>
               <p
                 style={{
@@ -488,6 +550,20 @@ export default function HannahPage() {
               <p
                 style={{
                   fontFamily: SANS,
+                  fontSize: 10,
+                  letterSpacing: "0.25em",
+                  textTransform: "uppercase",
+                  color: COLORS.darkMuted,
+                  textAlign: "center",
+                  marginBottom: 6,
+                  marginTop: 0,
+                }}
+              >
+                The Soundtrack
+              </p>
+              <p
+                style={{
+                  fontFamily: SANS,
                   fontSize: 11,
                   letterSpacing: "0.22em",
                   textTransform: "uppercase",
@@ -495,6 +571,7 @@ export default function HannahPage() {
                   textAlign: "center",
                   marginBottom: 28,
                   marginTop: 0,
+                  opacity: 0.6,
                 }}
               >
                 Press Play
@@ -538,7 +615,7 @@ export default function HannahPage() {
                   margin: 0,
                 }}
               >
-                2026
+                Chicago, 2026
               </p>
             </div>
           </RevealSection>
