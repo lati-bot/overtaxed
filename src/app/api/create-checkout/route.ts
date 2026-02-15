@@ -80,6 +80,9 @@ export async function POST(request: NextRequest) {
       cancelUrl = `${origin}/results?pin=${propertyId}`;
     }
 
+    const timeWindow = Math.floor(Date.now() / (5 * 60 * 1000)); // 5-minute windows
+    const idempotencyKey = `checkout-${propertyId}-${timeWindow}`;
+
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
       line_items: [
@@ -102,6 +105,8 @@ export async function POST(request: NextRequest) {
       client_reference_id: clientReferenceId,
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
+    }, {
+      idempotencyKey,
     });
 
     return NextResponse.json({ url: session.url });

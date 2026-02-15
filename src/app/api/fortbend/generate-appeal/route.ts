@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { Resend } from "resend";
-import crypto from "crypto";
+import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escapeHtml } from "@/lib/security";
 import { CosmosClient } from "@azure/cosmos";
 
 // Lazy initialization
@@ -172,8 +172,8 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
     <tr>
       <td class="comp-num">${i + 1}</td>
       <td>
-        <div class="comp-address">${c.address}</div>
-        <div class="comp-acct">Acct: ${c.acct}</div>
+        <div class="comp-address">${escapeHtml(c.address)}</div>
+        <div class="comp-acct">Acct: ${escapeHtml(c.acct)}</div>
       </td>
       <td class="right">${c.sqft.toLocaleString()}</td>
       <td class="right">${c.yearBuilt || "—"}</td>
@@ -188,7 +188,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Property Tax Protest — Uniform & Equal — ${data.address}</title>
+  <title>Property Tax Protest — Uniform & Equal — ${escapeHtml(data.address)}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     @page { size: Letter; margin: 0.6in 0.65in; }
@@ -296,11 +296,11 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
     <!-- Title Block -->
     <div class="title-block">
       <div class="appeal-type">Subject Property</div>
-      <div class="property-address">${data.address}</div>
+      <div class="property-address">${escapeHtml(data.address)}</div>
       <div class="property-meta">
-        <span><strong>Account:</strong> ${data.acct}</span>
-        <span><strong>City:</strong> ${data.city}, TX</span>
-        <span><strong>Neighborhood:</strong> ${data.neighborhoodCode}</span>
+        <span><strong>Account:</strong> ${escapeHtml(data.acct)}</span>
+        <span><strong>City:</strong> ${escapeHtml(data.city)}, TX</span>
+        <span><strong>Neighborhood:</strong> ${escapeHtml(data.neighborhoodCode)}</span>
         ${data.yearBuilt ? `<span><strong>Year Built:</strong> ${data.yearBuilt}</span>` : ""}
         <span><strong>Building SF:</strong> ${data.sqft.toLocaleString()}</span>
         ${data.beds ? `<span><strong>Beds:</strong> ${data.beds}</span>` : ""}
@@ -336,7 +336,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
           ${data.yearBuilt ? `<tr><td>Year Built</td><td>${data.yearBuilt}</td></tr>` : ""}
           ${data.beds ? `<tr><td>Bedrooms</td><td>${data.beds}</td></tr>` : ""}
           ${data.baths ? `<tr><td>Bathrooms</td><td>${data.baths}</td></tr>` : ""}
-          <tr><td>Neighborhood Code</td><td>${data.neighborhoodCode}</td></tr>
+          <tr><td>Neighborhood Code</td><td>${escapeHtml(data.neighborhoodCode)}</td></tr>
           ${data.neighborhoodDesc ? `<tr><td>Neighborhood</td><td>${data.neighborhoodDesc}</td></tr>` : ""}
           <tr><td>Current $/Sq Ft</td><td>$${data.perSqft.toFixed(2)}</td></tr>
         </table>
@@ -368,7 +368,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
     <!-- Comparable Properties -->
     <div class="section">
       <div class="section-title">Comparable Properties Evidence</div>
-      <p style="font-size: 10px; color: #555; margin-bottom: 10px;">The following ${data.comps.length} comparable properties are located within the same appraisal neighborhood (${data.neighborhoodCode}) and demonstrate that the subject property is appraised at a rate significantly above comparable properties on a per-square-foot basis.</p>
+      <p style="font-size: 10px; color: #555; margin-bottom: 10px;">The following ${data.comps.length} comparable properties are located within the same appraisal neighborhood (${escapeHtml(data.neighborhoodCode)}) and demonstrate that the subject property is appraised at a rate significantly above comparable properties on a per-square-foot basis.</p>
       
       <table class="comps-table">
         <thead>
@@ -385,8 +385,8 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
           <tr class="subject-row">
             <td class="comp-num">★</td>
             <td>
-              <div class="comp-address">${data.address} (SUBJECT)</div>
-              <div class="comp-acct">Acct: ${data.acct}</div>
+              <div class="comp-address">${escapeHtml(data.address)} (SUBJECT)</div>
+              <div class="comp-acct">Acct: ${escapeHtml(data.acct)}</div>
             </td>
             <td class="right">${data.sqft.toLocaleString()}</td>
             <td class="right">${data.yearBuilt || "—"}</td>
@@ -433,7 +433,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
           <div class="step-number">1</div>
           <div class="step-content">
             <div class="step-title">Wait for Your Appraisal Notice</div>
-            <div class="step-desc">FBCAD mails appraisal notices in <strong>late March to early April</strong>. Your notice will include a <strong>PIN number</strong> needed for online filing. Your property account: <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${data.acct}</strong>.</div>
+            <div class="step-desc">FBCAD mails appraisal notices in <strong>late March to early April</strong>. Your notice will include a <strong>PIN number</strong> needed for online filing. Your property account: <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${escapeHtml(data.acct)}</strong>.</div>
           </div>
         </div>
         <div class="step">
@@ -492,9 +492,9 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
       <div class="section-title">📝 What to Say — Hearing Script</div>
       <p style="font-size: 10px; color: #555; margin-bottom: 10px;">If you go to an ARB hearing, here's what to say. Keep it simple and factual:</p>
       <div style="background: #f8f9fa; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 16px 18px; font-size: 10.5px; line-height: 1.7; color: #333; font-family: 'Georgia', serif;">
-        <p style="margin-bottom: 8px;">"I am protesting the appraised value of my property at <strong>${data.address}</strong>, Account ${data.acct}, on the grounds of <strong>unequal appraisal</strong>."</p>
+        <p style="margin-bottom: 8px;">"I am protesting the appraised value of my property at <strong>${escapeHtml(data.address)}</strong>, Account ${escapeHtml(data.acct)}, on the grounds of <strong>unequal appraisal</strong>."</p>
         <p style="margin-bottom: 8px;">"My property is currently appraised at <strong>$${data.currentAssessment.toLocaleString()}</strong>, which comes to <strong>$${data.perSqft.toFixed(2)} per square foot</strong>."</p>
-        <p style="margin-bottom: 8px;">"I've identified ${data.comps.length} comparable properties in the same neighborhood (${data.neighborhoodCode}) with similar characteristics. The median appraised value of these comparable properties is <strong>$${data.compMedianPerSqft.toFixed(2)} per square foot</strong> — my property is appraised <strong>${data.overAssessedPct}% higher</strong> than comparable properties."</p>
+        <p style="margin-bottom: 8px;">"I've identified ${data.comps.length} comparable properties in the same neighborhood (${escapeHtml(data.neighborhoodCode)}) with similar characteristics. The median appraised value of these comparable properties is <strong>$${data.compMedianPerSqft.toFixed(2)} per square foot</strong> — my property is appraised <strong>${data.overAssessedPct}% higher</strong> than comparable properties."</p>
         <p style="margin-bottom: 8px;">"Under Texas Tax Code §41.41(a)(2), I have the right to protest on grounds of unequal appraisal, and under §42.26(a), my appraised value must not exceed the median of comparable properties. I am requesting my appraised value be reduced to <strong>$${data.fairAssessment.toLocaleString()}</strong>, which reflects the median per-square-foot value of comparable properties in my neighborhood."</p>
         <p style="margin-bottom: 0;">"I have provided ${data.comps.length} comparable properties with their addresses, account numbers, and appraised values as supporting evidence."</p>
       </div>
@@ -537,7 +537,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
     <!-- Footer -->
     <div class="footer">
       <p><strong>Disclaimer:</strong> This document provides comparable property data and analysis to support a property tax protest based on unequal appraisal under Texas Tax Code §41.41(a)(2) and §42.26(a). It does not constitute legal advice. All appraisal data is sourced from Fort Bend Central Appraisal District (FBCAD) public records. Filing deadlines and procedures are subject to change — verify current deadlines at fbcad.org before filing.</p>
-      <p style="margin-top: 6px;">Generated by Overtaxed · ${today} · Account: ${data.acct}</p>
+      <p style="margin-top: 6px;">Generated by Overtaxed · ${today} · Account: ${escapeHtml(data.acct)}</p>
     </div>
   </div>
 </body>
@@ -546,7 +546,7 @@ function generateFortBendPdfHtml(data: FortBendPropertyData): string {
 
 function generateFortBendBrief(data: FortBendPropertyData): string {
   return `
-    <p>The subject property at <strong>${data.address}</strong> (FBCAD Account: ${data.acct}), located in appraisal neighborhood ${data.neighborhoodCode}, is currently appraised at <strong>$${data.currentAssessment.toLocaleString()}</strong>, which equates to <strong>$${data.perSqft.toFixed(2)} per square foot</strong> of building area.</p>
+    <p>The subject property at <strong>${escapeHtml(data.address)}</strong> (FBCAD Account: ${escapeHtml(data.acct)}), located in appraisal neighborhood ${escapeHtml(data.neighborhoodCode)}, is currently appraised at <strong>$${data.currentAssessment.toLocaleString()}</strong>, which equates to <strong>$${data.perSqft.toFixed(2)} per square foot</strong> of building area.</p>
     
     <p>An analysis of ${data.comps.length} comparable properties within the same appraisal neighborhood demonstrates that the subject property is appraised at a rate <strong>${data.overAssessedPct}% above the comparable median</strong> of $${data.compMedianPerSqft.toFixed(2)} per square foot. This constitutes an unequal appraisal Under <strong>Texas Tax Code §41.41(a)(2)</strong>, a property owner has the right to protest the appraised value on grounds that the property is unequally appraised. Under <strong>§42.26(a)</strong>, the appraised value of property must not exceed the median appraised value of a reasonable number of comparable properties appropriately adjusted.</p>
     
@@ -610,7 +610,7 @@ async function sendFortBendEmail(
           </div>
           <div style="background: #ffffff; padding: 28px 24px; border: 1px solid #e2e2e0; border-top: none; border-radius: 0 0 12px 12px;">
             <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #1a1a1a;">Your protest package is ready</h1>
-        <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to protest your property tax for <strong>${data.address}</strong> with the Fort Bend Central Appraisal District.</p>
+        <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to protest your property tax for <strong>${escapeHtml(data.address)}</strong> with the Fort Bend Central Appraisal District.</p>
         
         <div style="background: #e8f4f0; border: 2px solid #1a6b5a; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
           <p style="margin: 0 0 4px 0; font-size: 14px; color: #1a6b5a;"><strong>Estimated Annual Savings: $${data.estimatedSavings.toLocaleString()}</strong></p>
@@ -654,40 +654,15 @@ async function sendFortBendEmail(
 // ──────────────────────────────────────────────────────────────────
 
 function generateAccessToken(sessionId: string, acct: string): string {
-  const data = `fortbend:${acct}:${sessionId}`;
-  const encoded = Buffer.from(data).toString("base64url");
-  const hash = crypto
-    .createHmac("sha256", process.env.TOKEN_SIGNING_SECRET || process.env.STRIPE_SECRET_KEY!)
-    .update(data)
-    .digest("base64url");
-  return `${encoded}.${hash}`;
+  return _genToken(`fortbend:${acct}:${sessionId}`);
 }
 
 function verifyAccessToken(token: string): { acct: string; sessionId: string } | null {
-  try {
-    const [encoded, hash] = token.split(".");
-    if (!encoded || !hash) return null;
-
-    const decoded = Buffer.from(encoded, "base64url").toString();
-    const parts = decoded.split(":");
-    if (parts.length < 3 || parts[0] !== "fortbend") return null;
-
-    // Recalculate expected hash
-    const data = `fortbend:${parts[1]}:${parts[2]}`;
-    const expectedHash = crypto
-      .createHmac("sha256", process.env.TOKEN_SIGNING_SECRET || process.env.STRIPE_SECRET_KEY!)
-      .update(data)
-      .digest("base64url");
-
-    // Constant-time comparison
-    if (!crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(expectedHash))) {
-      return null;
-    }
-
-    return { acct: parts[1], sessionId: parts[2] };
-  } catch {
-    return null;
-  }
+  const data = _verToken(token);
+  if (!data) return null;
+  const parts = data.split(":");
+  if (parts.length < 3 || parts[0] !== "fortbend") return null;
+  return { acct: parts[1], sessionId: parts[2] };
 }
 
 // ──────────────────────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { Resend } from "resend";
-import crypto from "crypto";
+import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escapeHtml } from "@/lib/security";
 
 // Lazy initialization
 let stripe: Stripe | null = null;
@@ -370,7 +370,7 @@ function generatePdfHtml(data: PropertyData): string {
     <tr>
       <td class="comp-num">${i + 1}</td>
       <td>
-        <div class="comp-address">${c.address}</div>
+        <div class="comp-address">${escapeHtml(c.address)}</div>
         <div class="comp-pin">${formattedCompPin}</div>
       </td>
       <td class="right">${c.classCode}</td>
@@ -403,7 +403,7 @@ function generatePdfHtml(data: PropertyData): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Board of Review Appeal — Lack of Uniformity — ${data.address}</title>
+  <title>Board of Review Appeal — Lack of Uniformity — ${escapeHtml(data.address)}</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
     @page { size: Letter; margin: 0.6in 0.65in; }
@@ -527,11 +527,11 @@ function generatePdfHtml(data: PropertyData): string {
     <!-- Title Block -->
     <div class="title-block">
       <div class="appeal-type">Subject Property</div>
-      <div class="property-address">${data.address}</div>
+      <div class="property-address">${escapeHtml(data.address)}</div>
       <div class="property-meta">
         <span><strong>PIN:</strong> ${formattedPin}</span>
-        <span><strong>Township:</strong> ${data.township}</span>
-        <span><strong>Neighborhood:</strong> ${data.neighborhood}</span>
+        <span><strong>Township:</strong> ${escapeHtml(data.township)}</span>
+        <span><strong>Neighborhood:</strong> ${escapeHtml(data.neighborhood)}</span>
         <span><strong>Class:</strong> ${data.classCode} — ${data.classDescription}</span>
       </div>
     </div>
@@ -557,7 +557,7 @@ function generatePdfHtml(data: PropertyData): string {
     
     <!-- Deadline Warning -->
     <div style="background: #fef3c7; border: 2px solid #f59e0b; border-radius: 8px; padding: 14px 18px; font-size: 11px; line-height: 1.6; margin-bottom: 20px;">
-      <p style="margin: 0;"><strong>⏰ Deadline:</strong> The Board of Review opens each township for approximately 30 days. Your township (<strong>${data.township}</strong>) must be open to file. Check <a href="https://www.cookcountyboardofreview.com" style="color: #2563eb;">cookcountyboardofreview.com</a> for your township's dates. Once your township opens, file immediately — you cannot file after it closes.</p>
+      <p style="margin: 0;"><strong>⏰ Deadline:</strong> The Board of Review opens each township for approximately 30 days. Your township (<strong>${escapeHtml(data.township)}</strong>) must be open to file. Check <a href="https://www.cookcountyboardofreview.com" style="color: #2563eb;">cookcountyboardofreview.com</a> for your township's dates. Once your township opens, file immediately — you cannot file after it closes.</p>
     </div>
     
     <!-- Assessment Breakdown -->
@@ -570,7 +570,7 @@ function generatePdfHtml(data: PropertyData): string {
           <tr><td>Land Sq Ft</td><td>${data.landSqft.toLocaleString()}</td></tr>
           <tr><td>Bedrooms / Baths</td><td>${data.beds} bed / ${data.fbath} full${data.hbath ? ` / ${data.hbath} half` : ""}</td></tr>
           <tr><td>Year Built</td><td>${data.yearBuilt || "N/A"}</td></tr>
-          <tr><td>Exterior</td><td>${data.extWall}</td></tr>
+          <tr><td>Exterior</td><td>${escapeHtml(data.extWall)}</td></tr>
           <tr><td>Rooms</td><td>${data.rooms}</td></tr>
         </table>
       </div>
@@ -600,7 +600,7 @@ function generatePdfHtml(data: PropertyData): string {
     <!-- Comparable Properties -->
     <div class="section">
       <div class="section-title">Comparable Properties Evidence</div>
-      <p style="font-size: 10px; color: #555; margin-bottom: 10px;">The following ${data.comps.length} comparable properties are located within the same assessment neighborhood (${data.neighborhood}), share the same or similar property classification, and demonstrate that the subject property is assessed at a rate significantly above comparable properties on a per-square-foot basis.</p>
+      <p style="font-size: 10px; color: #555; margin-bottom: 10px;">The following ${data.comps.length} comparable properties are located within the same assessment neighborhood (${escapeHtml(data.neighborhood)}), share the same or similar property classification, and demonstrate that the subject property is assessed at a rate significantly above comparable properties on a per-square-foot basis.</p>
       
       <!-- Subject property row first -->
       <table class="comps-table">
@@ -623,13 +623,13 @@ function generatePdfHtml(data: PropertyData): string {
           <tr class="subject-row">
             <td class="comp-num">★</td>
             <td>
-              <div class="comp-address">${data.address} (SUBJECT)</div>
+              <div class="comp-address">${escapeHtml(data.address)} (SUBJECT)</div>
               <div class="comp-pin">${formattedPin}</div>
             </td>
             <td class="right">${data.classCode}</td>
             <td class="right">${data.sqft.toLocaleString()}</td>
             <td class="right">${data.beds}/${data.fbath}${data.hbath ? `.${data.hbath}` : ""}</td>
-            <td class="right">${data.extWall}</td>
+            <td class="right">${escapeHtml(data.extWall)}</td>
             <td class="right">${data.yearBuilt || "—"}</td>
             <td class="right">$${data.currentBldg.toLocaleString()}</td>
             <td class="right">$${data.currentLand.toLocaleString()}</td>
@@ -692,7 +692,7 @@ function generatePdfHtml(data: PropertyData): string {
           <div class="step-number">1</div>
           <div class="step-content">
             <div class="step-title">Check if Your Township is Open</div>
-            <div class="step-desc">Go to <span class="step-link">cookcountyboardofreview.com</span> and check the homepage. Your township (<strong>${data.township}</strong>) must show as "OPEN" to file. Each township opens for approximately 30 days after the Assessor closes.</div>
+            <div class="step-desc">Go to <span class="step-link">cookcountyboardofreview.com</span> and check the homepage. Your township (<strong>${escapeHtml(data.township)}</strong>) must show as "OPEN" to file. Each township opens for approximately 30 days after the Assessor closes.</div>
           </div>
         </div>
         <div class="step">
@@ -708,7 +708,7 @@ function generatePdfHtml(data: PropertyData): string {
             <div class="step-title">Fill Out Page 1</div>
             <div class="step-desc">
               • <strong>Type of Appeal:</strong> Select <strong>"Property Over-Assessed"</strong><br/>
-              • <strong>Property Index Number:</strong> Enter <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${data.pin}</strong> (the system will auto-format it with dashes)<br/>
+              • <strong>Property Index Number:</strong> Enter <strong style="font-family: monospace; background: #f0f0f0; padding: 1px 4px; border-radius: 3px;">${escapeHtml(data.pin)}</strong> (the system will auto-format it with dashes)<br/>
               • <strong>"Are you a registered Board of Review Attorney?"</strong> → Click <strong>"No"</strong><br/>
               • Complete the reCAPTCHA ("I'm not a robot")<br/>
               • Click <strong>"Next"</strong>
@@ -771,9 +771,9 @@ function generatePdfHtml(data: PropertyData): string {
       <p style="font-size: 10px; color: #555; margin-bottom: 10px;">Copy the text below and paste it into the "Notes" field on Page 2 of the Board of Review appeal form:</p>
       <div style="background: #f8f9fa; border: 2px dashed #cbd5e1; border-radius: 8px; padding: 16px 18px; font-size: 10px; line-height: 1.7; color: #333; font-family: 'Georgia', serif;">
         <p style="margin-bottom: 8px;">I am filing this appeal on the grounds of LACK OF UNIFORMITY.</p>
-        <p style="margin-bottom: 8px;">My property at ${data.address} (PIN: ${formattedPin}), Class ${data.classCode}, is currently assessed at $${data.currentAssessment.toLocaleString()} total ($${data.perSqft.toFixed(2)}/sq ft of building area).</p>
-        <p style="margin-bottom: 8px;">An analysis of ${data.comps.length} comparable properties in Assessment Neighborhood ${data.neighborhood} shows a median assessment of $${data.compMedianPerSqft.toFixed(2)}/sq ft — my property is assessed ${data.overAssessedPct}% above comparable properties.</p>
-        <p style="margin-bottom: 8px;">Comparable PINs (all Class ${data.classCode}, Neighborhood ${data.neighborhood}):</p>
+        <p style="margin-bottom: 8px;">My property at ${escapeHtml(data.address)} (PIN: ${formattedPin}), Class ${data.classCode}, is currently assessed at $${data.currentAssessment.toLocaleString()} total ($${data.perSqft.toFixed(2)}/sq ft of building area).</p>
+        <p style="margin-bottom: 8px;">An analysis of ${data.comps.length} comparable properties in Assessment Neighborhood ${escapeHtml(data.neighborhood)} shows a median assessment of $${data.compMedianPerSqft.toFixed(2)}/sq ft — my property is assessed ${data.overAssessedPct}% above comparable properties.</p>
+        <p style="margin-bottom: 8px;">Comparable PINs (all Class ${data.classCode}, Neighborhood ${escapeHtml(data.neighborhood)}):</p>
         <p style="margin-bottom: 8px; font-family: monospace; font-size: 9px;">${data.comps.map(c => c.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5")).join(", ")}</p>
         <p style="margin-bottom: 0;">I request a reduction to $${data.fairAssessment.toLocaleString()} based on comparable property assessments. Full evidence package with property details, assessment history, and comparable analysis is uploaded as supporting documentation.</p>
       </div>
@@ -820,9 +820,9 @@ function generateBrief(data: PropertyData): string {
   const sameClass = data.comps.filter(c => c.classCode === data.classCode).length;
   
   return `
-    <p>The subject property at <strong>${data.address}</strong> (PIN: ${formattedPin}), classified as Class ${data.classCode} (${data.classDescription}), is currently assessed at <strong>$${data.currentAssessment.toLocaleString()}</strong>, which equates to <strong>$${data.perSqft.toFixed(2)} per square foot</strong> of building area.</p>
+    <p>The subject property at <strong>${escapeHtml(data.address)}</strong> (PIN: ${formattedPin}), classified as Class ${data.classCode} (${data.classDescription}), is currently assessed at <strong>$${data.currentAssessment.toLocaleString()}</strong>, which equates to <strong>$${data.perSqft.toFixed(2)} per square foot</strong> of building area.</p>
     
-    <p>An analysis of ${data.comps.length} comparable properties within Assessment Neighborhood ${data.neighborhood}${sameClass > 0 ? `, ${sameClass} of which share the same Class ${data.classCode} classification,` : ""} demonstrates that the subject property is assessed at a rate <strong>${data.overAssessedPct}% above the comparable median</strong> of $${data.compMedianPerSqft.toFixed(2)} per square foot. This constitutes a lack of uniformity in violation of Article IX, Section 4 of the Illinois Constitution, which requires that taxes upon real property be levied uniformly by valuation. Pursuant to 35 ILCS 200/16-70 et seq., the Board of Review has authority to revise and correct assessments to achieve uniformity.</p>
+    <p>An analysis of ${data.comps.length} comparable properties within Assessment Neighborhood ${escapeHtml(data.neighborhood)}${sameClass > 0 ? `, ${sameClass} of which share the same Class ${data.classCode} classification,` : ""} demonstrates that the subject property is assessed at a rate <strong>${data.overAssessedPct}% above the comparable median</strong> of $${data.compMedianPerSqft.toFixed(2)} per square foot. This constitutes a lack of uniformity in violation of Article IX, Section 4 of the Illinois Constitution, which requires that taxes upon real property be levied uniformly by valuation. Pursuant to 35 ILCS 200/16-70 et seq., the Board of Review has authority to revise and correct assessments to achieve uniformity.</p>
     
     <p>Based on the comparable evidence presented, the petitioner requests a reduction in assessed value from <strong>$${data.currentAssessment.toLocaleString()}</strong> to <strong>$${data.fairAssessment.toLocaleString()}</strong>, a reduction of <strong>$${data.reduction.toLocaleString()}</strong>, which would result in estimated annual tax savings of approximately <strong>$${data.savings.toLocaleString()}</strong>.</p>
   `;
@@ -877,7 +877,7 @@ async function sendEmail(
           </div>
           <div style="background: #ffffff; padding: 28px 24px; border: 1px solid #e2e2e0; border-top: none; border-radius: 0 0 12px 12px;">
             <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #1a1a1a;">Your Board of Review appeal package is ready</h1>
-            <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to file your property tax appeal for <strong>${data.address}</strong> with the Cook County Board of Review.</p>
+            <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to file your property tax appeal for <strong>${escapeHtml(data.address)}</strong> with the Cook County Board of Review.</p>
             
             <div style="background: #e8f4f0; border: 2px solid #1a6b5a; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
               <p style="margin: 0 0 4px 0; font-size: 14px; color: #1a6b5a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Estimated Annual Savings: $${data.savings.toLocaleString()}</strong></p>
@@ -917,40 +917,15 @@ async function sendEmail(
 }
 
 function generateAccessToken(sessionId: string, pin: string): string {
-  const data = `${pin}:${sessionId}`;
-  const encoded = Buffer.from(data).toString("base64url");
-  const hash = crypto
-    .createHmac("sha256", process.env.TOKEN_SIGNING_SECRET || process.env.STRIPE_SECRET_KEY!)
-    .update(data)
-    .digest("base64url");
-  return `${encoded}.${hash}`;
+  return _genToken(`${pin}:${sessionId}`);
 }
 
 function verifyAccessToken(token: string): { pin: string; sessionId: string } | null {
-  try {
-    const [encoded, hash] = token.split(".");
-    if (!encoded || !hash) return null;
-
-    const decoded = Buffer.from(encoded, "base64url").toString();
-    const [pin, sessionId] = decoded.split(":");
-    if (!pin || !sessionId) return null;
-
-    // Recalculate expected hash
-    const data = `${pin}:${sessionId}`;
-    const expectedHash = crypto
-      .createHmac("sha256", process.env.TOKEN_SIGNING_SECRET || process.env.STRIPE_SECRET_KEY!)
-      .update(data)
-      .digest("base64url");
-
-    // Constant-time comparison
-    if (!crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(expectedHash))) {
-      return null;
-    }
-
-    return { pin, sessionId };
-  } catch {
-    return null;
-  }
+  const data = _verToken(token);
+  if (!data) return null;
+  const parts = data.split(":");
+  if (parts.length < 2) return null;
+  return { pin: parts[0], sessionId: parts[1] };
 }
 
 export async function GET(request: NextRequest) {
