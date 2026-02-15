@@ -48,11 +48,14 @@ const JURISDICTION_ROUTES: Record<string, { param: string; field: string }> = {
 
 // Rotating placeholder addresses from covered areas
 const PLACEHOLDER_ADDRESSES = [
-  "Try: 4521 Oak Lawn Ave, Dallas, TX",
-  "Try: 1847 Maple Dr, Naperville, IL",
-  "Try: 3210 Westheimer Rd, Houston, TX",
-  "Try: 802 Barton Springs Rd, Austin, TX",
-  "Try: 5100 Legacy Dr, Plano, TX",
+  "Try any address in Oak Lawn, Dallas",
+  "Try any address in The Heights, Houston",
+  "Try any address in Hyde Park, Austin",
+  "Try any address in Frisco, north of Dallas",
+  "Try any address in Sugar Land, Houston area",
+  "Try any address in Naperville, west of Chicago",
+  "Try any address in Arlington, Fort Worth area",
+  "Try any address in Cedar Park, Austin area",
 ];
 
 // [MUST FIX #2] Title case helper — converts "4521 OAKDALE ST" → "4521 Oakdale St"
