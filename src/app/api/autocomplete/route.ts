@@ -20,7 +20,8 @@ export async function GET(request: NextRequest) {
   
   try {
     const cleaned = query.trim().toUpperCase();
-    const sanitized = cleaned.replace(/'/g, "''");
+    // Sanitize for SoQL - remove all special characters except spaces, letters, numbers
+    const sanitized = cleaned.replace(/[^a-zA-Z0-9\s]/g, '');
     
     // Build search query - match addresses starting with the input
     const whereClause = encodeURIComponent(`upper(property_address) like upper('${sanitized}%')`);

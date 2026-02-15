@@ -627,18 +627,36 @@ async function sendWilliamsonEmail(
 // ──────────────────────────────────────────────────────────────────
 
 function generateAccessToken(sessionId: string, acct: string): string {
-  const data = `${sessionId}:williamson:${acct}:${Date.now()}`;
-  const hash = crypto.createHash("sha256").update(data + process.env.STRIPE_SECRET_KEY).digest("hex");
-  return `${Buffer.from(`williamson:${acct}:${sessionId}`).toString("base64url")}.${hash.slice(0, 16)}`;
+  const data = `williamson:${acct}:${sessionId}`;
+  const encoded = Buffer.from(data).toString("base64url");
+  const hash = crypto
+    .createHmac("sha256", process.env.TOKEN_SIGNING_SECRET || process.env.STRIPE_SECRET_KEY!)
+    .update(data)
+    .digest("base64url");
+  return `${encoded}.${hash}`;
 }
 
 function verifyAccessToken(token: string): { acct: string; sessionId: string } | null {
   try {
-    const [encoded] = token.split(".");
-    if (!encoded) return null;
+    const [encoded, hash] = token.split(".");
+    if (!encoded || !hash) return null;
+
     const decoded = Buffer.from(encoded, "base64url").toString();
     const parts = decoded.split(":");
     if (parts.length < 3 || parts[0] !== "williamson") return null;
+
+    // Recalculate expected hash
+    const data = `williamson:${parts[1]}:${parts[2]}`;
+    const expectedHash = crypto
+      .createHmac("sha256", process.env.TOKEN_SIGNING_SECRET || process.env.STRIPE_SECRET_KEY!)
+      .update(data)
+      .digest("base64url");
+
+    // Constant-time comparison
+    if (!crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(expectedHash))) {
+      return null;
+    }
+
     return { acct: parts[1], sessionId: parts[2] };
   } catch {
     return null;
@@ -664,6 +682,9 @@ export async function GET(request: NextRequest) {
       if (session.payment_status !== "paid") {
         return NextResponse.json({ error: "Payment not completed" }, { status: 400 });
       }
+      if (session.metadata?.processed === "true") {
+        return NextResponse.json({ error: "This session has already been processed" }, { status: 400 });
+      }
     } catch {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
@@ -679,6 +700,9 @@ export async function GET(request: NextRequest) {
       const session = await getStripe().checkout.sessions.retrieve(sessionId);
       if (session.payment_status !== "paid") {
         return NextResponse.json({ error: "Payment not completed" }, { status: 400 });
+      }
+      if (session.metadata?.processed === "true") {
+        return NextResponse.json({ error: "This session has already been processed" }, { status: 400 });
       }
       const clientRef = session.client_reference_id;
       const email = session.customer_details?.email;
@@ -740,6 +764,9 @@ export async function POST(request: NextRequest) {
     if (session.payment_status !== "paid") {
       return NextResponse.json({ error: "Payment not completed" }, { status: 400 });
     }
+    if (session.metadata?.processed === "true") {
+      return NextResponse.json({ error: "This session has already been processed" }, { status: 400 });
+    }
   } catch {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
@@ -751,6 +778,15 @@ export async function POST(request: NextRequest) {
 
   const html = generateWilliamsonPdfHtml(propertyData);
   const pdfBuffer = await generatePdf(html);
+
+  // Mark session as processed
+  try {
+    await getStripe().checkout.sessions.update(tokenData.sessionId, {
+      metadata: { processed: "true" },
+    });
+  } catch (e) {
+    console.error("[POST] Failed to mark session as processed:", e);
+  }
 
   return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {
