@@ -39,11 +39,13 @@ export async function POST(request: NextRequest) {
       clientReferenceId = `fortbend:${propertyId}`;
     } else if (jurisdiction === "rockwall") {
       clientReferenceId = `rockwall:${propertyId}`;
+    } else if (jurisdiction === "bexar") {
+      clientReferenceId = `bexar:${propertyId}`;
     } else {
       clientReferenceId = propertyId;
     }
 
-    const isTexas = jurisdiction === "houston" || jurisdiction === "dallas" || jurisdiction === "austin" || jurisdiction === "collin" || jurisdiction === "tarrant" || jurisdiction === "denton" || jurisdiction === "williamson" || jurisdiction === "fortbend" || jurisdiction === "rockwall";
+    const isTexas = jurisdiction === "houston" || jurisdiction === "dallas" || jurisdiction === "austin" || jurisdiction === "collin" || jurisdiction === "tarrant" || jurisdiction === "denton" || jurisdiction === "williamson" || jurisdiction === "fortbend" || jurisdiction === "rockwall" || jurisdiction === "bexar";
     const countyName = jurisdiction === "houston" ? "Harris County" 
       : jurisdiction === "dallas" ? "Dallas County" 
       : jurisdiction === "austin" ? "Travis County"
@@ -53,6 +55,7 @@ export async function POST(request: NextRequest) {
       : jurisdiction === "williamson" ? "Williamson County"
       : jurisdiction === "fortbend" ? "Fort Bend County"
       : jurisdiction === "rockwall" ? "Rockwall County"
+      : jurisdiction === "bexar" ? "Bexar County"
       : "Cook County";
 
     const origin = request.headers.get("origin") || "https://www.getovertaxed.com";
@@ -76,6 +79,8 @@ export async function POST(request: NextRequest) {
       cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=fortbend`;
     } else if (jurisdiction === "rockwall") {
       cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=rockwall`;
+    } else if (jurisdiction === "bexar") {
+      cancelUrl = `${origin}/results?acct=${propertyId}&jurisdiction=bexar`;
     } else {
       cancelUrl = `${origin}/results?pin=${propertyId}`;
     }

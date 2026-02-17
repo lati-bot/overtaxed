@@ -74,7 +74,7 @@ export default function ResultsContent() {
   const pin = searchParams.get("pin");
   const acct = searchParams.get("acct");
   const jurisdiction = searchParams.get("jurisdiction");
-  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin" && jurisdiction !== "collin" && jurisdiction !== "tarrant" && jurisdiction !== "denton" && jurisdiction !== "williamson" && jurisdiction !== "fortbend" && jurisdiction !== "rockwall");
+  const isHouston = jurisdiction === "houston" || (!!acct && jurisdiction !== "dallas" && jurisdiction !== "austin" && jurisdiction !== "collin" && jurisdiction !== "tarrant" && jurisdiction !== "denton" && jurisdiction !== "williamson" && jurisdiction !== "fortbend" && jurisdiction !== "rockwall" && jurisdiction !== "bexar");
   const isDallas = jurisdiction === "dallas";
   const isAustin = jurisdiction === "austin";
   const isCollin = jurisdiction === "collin";
@@ -82,10 +82,11 @@ export default function ResultsContent() {
   const isDenton = jurisdiction === "denton";
   const isWilliamson = jurisdiction === "williamson";
   const isFortBend = jurisdiction === "fortbend";
+  const isBexar = jurisdiction === "bexar";
   const isRockwall = jurisdiction === "rockwall";
-  const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend || isRockwall;
-  const marketLabel = isRockwall ? "RCAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "DCAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
-  const jurisdictionValue = isRockwall ? "rockwall" : isFortBend ? "fortbend" : isWilliamson ? "williamson" : isDenton ? "denton" : isTarrant ? "tarrant" : isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
+  const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend || isRockwall || isBexar;
+  const marketLabel = isBexar ? "BCAD" : isRockwall ? "RCAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "DCAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
+  const jurisdictionValue = isBexar ? "bexar" : isRockwall ? "rockwall" : isFortBend ? "fortbend" : isWilliamson ? "williamson" : isDenton ? "denton" : isTarrant ? "tarrant" : isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
 
   useEffect(() => {
     setMounted(true);
@@ -338,6 +339,54 @@ export default function ResultsContent() {
             compCount: (fp.comps || []).length,
           },
           neighborhoodStats: fp.neighborhoodStats || null,
+        });
+        setAnalysisAvailable(true);
+      } else if (isBexar) {
+        // Bexar County flow — use Bexar lookup API
+        const bexarAcct = searchPin || acct;
+        if (!bexarAcct) {
+          setError("Missing account number");
+          return;
+        }
+        const response = await fetch(`/api/bexar/lookup?acct=${bexarAcct}`);
+        const data = await response.json();
+        
+        if (!response.ok) {
+          setError(data.error || "Property not found");
+          return;
+        }
+        
+        const bp = data.property;
+        setProperty({
+          pin: bp.acct,
+          address: bp.address,
+          city: bp.city || "SAN ANTONIO",
+          zip: bp.zipcode || "",
+          township: "",
+          neighborhood: bp.neighborhoodCode || "",
+          characteristics: {
+            class: "",
+            buildingSqFt: bp.sqft,
+            landSqFt: null,
+            yearBuilt: bp.yearBuilt && bp.yearBuilt > 0 ? bp.yearBuilt : null,
+            bedrooms: null,
+            fullBaths: null,
+            halfBaths: null,
+          },
+          assessment: {
+            year: "2025",
+            mailedTotal: bp.currentAssessment,
+            mailedBuilding: bp.improvementVal || 0,
+            mailedLand: bp.landVal || 0,
+            certifiedTotal: null,
+            boardTotal: null,
+          },
+          analysis: {
+            fairAssessment: bp.status === "over" ? bp.fairAssessment : bp.currentAssessment,
+            potentialSavings: bp.status === "over" ? bp.estimatedSavings : 0,
+            compCount: (bp.comps || []).length,
+          },
+          neighborhoodStats: bp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
       } else if (isTarrant) {
@@ -647,7 +696,7 @@ export default function ResultsContent() {
                 <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">–</span>
                 <span>
                   <span className="font-medium text-[#1a1a1a]">Not in our coverage area?</span>{" "}
-                  We cover Cook County IL, Harris, Dallas, Travis, Collin, Tarrant, Denton, Williamson, Fort Bend &amp; Rockwall counties in TX. More coming soon.
+                  We cover Cook County IL, Harris, Dallas, Travis, Collin, Tarrant, Denton, Williamson, Fort Bend, Bexar &amp; Rockwall counties in TX. More coming soon.
                 </span>
               </li>
               <li className="flex items-start gap-2.5">
@@ -795,7 +844,9 @@ export default function ResultsContent() {
                   {property.city}, {isTexas ? "TX" : `IL ${property.zip}`}
                 </p>
                 <p className={`text-sm ${textMuted} mt-1`}>
-                  {isRockwall
+                  {isBexar
+                    ? `Account: ${property.pin} • Bexar County`
+                    : isRockwall
                     ? `Account: ${property.pin} • Rockwall County`
                     : isFortBend
                     ? `Account: ${property.pin} • Fort Bend County`
@@ -970,7 +1021,7 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2">
                         <span className="flex-shrink-0">✓</span>
-                        <span>Step-by-step {isRockwall ? "RCAD Online Protest" : isFortBend ? "FBCAD Online Protest" : isWilliamson ? "WCAD Online Protest" : isDenton ? "DCAD E-File" : isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
+                        <span>Step-by-step {isBexar ? "BCAD Online Protest" : isRockwall ? "RCAD Online Protest" : isFortBend ? "FBCAD Online Protest" : isWilliamson ? "WCAD Online Protest" : isDenton ? "DCAD E-File" : isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal" : isDallas ? "DCAD uFile" : isHouston ? "HCAD iFile" : "filing"} instructions</span>
                       </div>
                     </div>
                   </div>
@@ -1209,7 +1260,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-semibold">File &amp; Save</div>
                   <p className={`text-sm ${textSecondary} mt-1`}>
-                    Follow our guide to file {isFortBend ? "your protest with FBCAD" : isWilliamson ? "your protest with WCAD" : isDenton ? "your protest with DCAD" : isTarrant ? "your protest with TAD" : isCollin ? "your protest with CCAD" : isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
+                    Follow our guide to file {isBexar ? "your protest with BCAD" : isFortBend ? "your protest with FBCAD" : isWilliamson ? "your protest with WCAD" : isDenton ? "your protest with DCAD" : isTarrant ? "your protest with TAD" : isCollin ? "your protest with CCAD" : isAustin ? "your protest with TCAD" : isDallas ? "your protest with DCAD" : isHouston ? "your protest with HCAD" : "with the Assessor or Board of Review"}. Most homeowners complete it in under 30 minutes.
                   </p>
                 </div>
               </div>
@@ -1409,7 +1460,9 @@ export default function ResultsContent() {
 
         {/* Disclaimer */}
         <p className="mt-4 text-xs text-[#999] text-center">
-          {isFortBend
+          {isBexar
+            ? "Appraisal data from Bexar County Appraisal District (BCAD). Tax bill estimates use an average Bexar County rate of ~2.1% and may vary by taxing jurisdiction."
+            : isFortBend
             ? "Appraisal data from Fort Bend Central Appraisal District (FBCAD). Tax bill estimates use an average Fort Bend County rate of ~2.2% and may vary by taxing jurisdiction."
             : isWilliamson
             ? "Appraisal data from Williamson Central Appraisal District (WCAD). Tax bill estimates use an average Williamson County rate of ~2.1% and may vary by taxing jurisdiction."

@@ -45,11 +45,12 @@ function SuccessPage() {
   const [isDenton, setIsDenton] = useState(false);
   const [isWilliamson, setIsWilliamson] = useState(false);
   const [isFortBend, setIsFortBend] = useState(false);
+  const [isBexar, setIsBexar] = useState(false);
   const [isRockwall, setIsRockwall] = useState(false);
-  const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend || isRockwall;
+  const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend || isRockwall || isBexar;
 
   // Detect jurisdiction from token or session to avoid waterfall requests
-  function detectJurisdiction(accessToken: string | null): "cook" | "houston" | "dallas" | "austin" | "collin" | "tarrant" | "denton" | "williamson" | "fortbend" | "rockwall" | null {
+  function detectJurisdiction(accessToken: string | null): "cook" | "houston" | "dallas" | "austin" | "collin" | "tarrant" | "denton" | "williamson" | "fortbend" | "rockwall" | "bexar" | null {
     if (!accessToken) return null;
     try {
       const [encoded] = accessToken.split(".");
@@ -63,6 +64,7 @@ function SuccessPage() {
       if (decoded.startsWith("denton:")) return "denton";
       if (decoded.startsWith("williamson:")) return "williamson";
       if (decoded.startsWith("fortbend:")) return "fortbend";
+      if (decoded.startsWith("bexar:")) return "bexar";
       if (decoded.startsWith("rockwall:")) return "rockwall";
       return "cook";
     } catch {
@@ -137,6 +139,7 @@ function SuccessPage() {
           denton: "/api/denton/generate-appeal",
           williamson: "/api/williamson/generate-appeal",
           fortbend: "/api/fortbend/generate-appeal",
+          bexar: "/api/bexar/generate-appeal",
           rockwall: "/api/rockwall/generate-appeal",
         };
 
@@ -147,7 +150,7 @@ function SuccessPage() {
 
         const result = await tryEndpoint(endpoint, sessionId, accessToken);
         if (result.ok && result.data) {
-          const txJurisdictions = ["houston", "dallas", "austin", "collin", "tarrant", "denton", "williamson", "fortbend", "rockwall"] as const;
+          const txJurisdictions = ["houston", "dallas", "austin", "collin", "tarrant", "denton", "williamson", "fortbend", "bexar", "rockwall"] as const;
           if (txJurisdictions.includes(targetJurisdiction as any)) {
             setProperty(mapTexasProperty(result.data.property, targetJurisdiction as any));
             if (targetJurisdiction === "houston") setIsHouston(true);
@@ -158,6 +161,7 @@ function SuccessPage() {
             else if (targetJurisdiction === "denton") setIsDenton(true);
             else if (targetJurisdiction === "williamson") setIsWilliamson(true);
             else if (targetJurisdiction === "fortbend") setIsFortBend(true);
+            else if (targetJurisdiction === "bexar") setIsBexar(true);
             else if (targetJurisdiction === "rockwall") setIsRockwall(true);
           } else {
             setProperty(result.data.property);
@@ -182,7 +186,7 @@ function SuccessPage() {
     
     setDownloading(true);
     try {
-      const endpoint = isRockwall ? "/api/rockwall/generate-appeal" : isFortBend ? "/api/fortbend/generate-appeal" : isWilliamson ? "/api/williamson/generate-appeal" : isDenton ? "/api/denton/generate-appeal" : isTarrant ? "/api/tarrant/generate-appeal" : isCollin ? "/api/collin/generate-appeal" : isAustin ? "/api/austin/generate-appeal" : isDallas ? "/api/dallas/generate-appeal" : isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
+      const endpoint = isBexar ? "/api/bexar/generate-appeal" : isRockwall ? "/api/rockwall/generate-appeal" : isFortBend ? "/api/fortbend/generate-appeal" : isWilliamson ? "/api/williamson/generate-appeal" : isDenton ? "/api/denton/generate-appeal" : isTarrant ? "/api/tarrant/generate-appeal" : isCollin ? "/api/collin/generate-appeal" : isAustin ? "/api/austin/generate-appeal" : isDallas ? "/api/dallas/generate-appeal" : isHouston ? "/api/houston/generate-appeal" : "/api/generate-appeal";
       const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -268,7 +272,9 @@ function SuccessPage() {
             {isTexas ? "Your Protest Package is Ready!" : "Your Appeal Package is Ready!"}
           </h1>
           <p className="text-gray-600">
-            {isRockwall
+            {isBexar
+              ? "Everything you need to protest your property tax with Bexar County"
+              : isRockwall
               ? "Everything you need to protest your property tax with Rockwall County"
               : isFortBend
               ? "Everything you need to protest your property tax with Fort Bend County"
@@ -297,7 +303,9 @@ function SuccessPage() {
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{property.address}</h2>
               <p className="text-gray-500">
-                {isRockwall
+                {isBexar
+                  ? `${property.city}, TX · Bexar County`
+                  : isRockwall
                   ? `${property.city}, TX · Rockwall County`
                   : isFortBend
                   ? `${property.city}, TX · Fort Bend County`
@@ -432,7 +440,9 @@ function SuccessPage() {
                 <div>
                   <div className="font-medium text-gray-900">Wait for your appraisal notice</div>
                   <p className="text-sm text-gray-600">
-                    {isRockwall
+                    {isBexar
+                      ? "BCAD mails notices in April. Your protest package is ready to go once you receive it."
+                      : isRockwall
                       ? "RCAD mails notices in late March/early April. Your protest package is ready to go once you receive it."
                       : isFortBend
                       ? "FBCAD mails notices in late March/early April. Your protest package is ready to go once you receive it."
@@ -457,10 +467,12 @@ function SuccessPage() {
                 <div className="w-8 h-8 bg-gray-900 text-white rounded-full flex items-center justify-center flex-shrink-0 font-semibold text-sm">2</div>
                 <div>
                   <div className="font-medium text-gray-900">
-                    {isRockwall ? "File your protest via RCAD" : isFortBend ? "File your protest via FBCAD" : isWilliamson ? "File your protest via WCAD" : isDenton ? "File your protest via DCAD E-File" : isTarrant ? "File your protest via TAD.org" : isCollin ? "File your protest via CCAD Online Portal" : isAustin ? "File your protest via TCAD Portal" : isDallas ? "File your protest via DCAD uFile" : "File your protest via iFile"}
+                    {isBexar ? "File your protest via BCAD Online" : isRockwall ? "File your protest via RCAD" : isFortBend ? "File your protest via FBCAD" : isWilliamson ? "File your protest via WCAD" : isDenton ? "File your protest via DCAD E-File" : isTarrant ? "File your protest via TAD.org" : isCollin ? "File your protest via CCAD Online Portal" : isAustin ? "File your protest via TCAD Portal" : isDallas ? "File your protest via DCAD uFile" : "File your protest via iFile"}
                   </div>
                   <p className="text-sm text-gray-600">
-                    {isRockwall
+                    {isBexar
+                      ? 'Go to bcadonline.org, log in with your account and PIN, select "Unequal Appraisal", and upload this PDF as evidence.'
+                      : isRockwall
                       ? 'Go to rockwallcad.com, click "Online Protest", log in or create an account, select "Unequal Appraisal", and upload this PDF as evidence.'
                       : isFortBend
                       ? 'Go to fbcad.org, click "Online Protest", log in or create an account, select "Unequal Appraisal", and upload this PDF as evidence.'
@@ -480,12 +492,12 @@ function SuccessPage() {
                     }
                   </p>
                   <a 
-                    href={isRockwall ? "https://www.rockwallcad.com" : isFortBend ? "https://www.fbcad.org" : isWilliamson ? "https://www.wcad.org" : isDenton ? "https://appeals.dentoncad.com" : isTarrant ? "https://www.tad.org/login" : isCollin ? "https://onlineportal.collincad.org" : isAustin ? "https://www.traviscad.org/portal" : isDallas ? "https://www.dallascad.org" : "https://hcad.org/hcad-online-services/ifile-protest/"}
+                    href={isBexar ? "https://bcadonline.org" : isRockwall ? "https://www.rockwallcad.com" : isFortBend ? "https://www.fbcad.org" : isWilliamson ? "https://www.wcad.org" : isDenton ? "https://appeals.dentoncad.com" : isTarrant ? "https://www.tad.org/login" : isCollin ? "https://onlineportal.collincad.org" : isAustin ? "https://www.traviscad.org/portal" : isDallas ? "https://www.dallascad.org" : "https://hcad.org/hcad-online-services/ifile-protest/"}
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-green-600 hover:underline mt-1"
                   >
-                    {isRockwall ? "RCAD Online Protest" : isFortBend ? "FBCAD Online Protest" : isWilliamson ? "WCAD Online Protest" : isDenton ? "DCAD E-File Protest" : isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal Protest" : isDallas ? "DCAD uFile Protest" : "HCAD iFile Protest"}
+                    {isBexar ? "BCAD Online Protest" : isRockwall ? "RCAD Online Protest" : isFortBend ? "FBCAD Online Protest" : isWilliamson ? "WCAD Online Protest" : isDenton ? "DCAD E-File Protest" : isTarrant ? "TAD Online Protest" : isCollin ? "CCAD Online Portal" : isAustin ? "TCAD Portal Protest" : isDallas ? "DCAD uFile Protest" : "HCAD iFile Protest"}
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                     </svg>
@@ -497,7 +509,9 @@ function SuccessPage() {
                 <div>
                   <div className="font-medium text-gray-900">Check for a settlement offer</div>
                   <p className="text-sm text-gray-600">
-                    {isRockwall
+                    {isBexar
+                      ? "BCAD may send a settlement offer. If it's fair, accept it. If not, proceed to your ARB hearing."
+                      : isRockwall
                       ? "RCAD may send a settlement offer. If it's fair, accept it. If not, proceed to your ARB hearing."
                       : isFortBend
                       ? "FBCAD may send a settlement offer. If it's fair, accept it. If not, proceed to your ARB hearing."
