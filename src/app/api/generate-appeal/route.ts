@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { Resend } from "resend";
 import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escapeHtml } from "@/lib/security";
+import { generateCookQuickStartHtml, type CookQuickStartData } from "@/lib/quick-start-guide-cook";
+import { generateCookEvidenceHtml, type CookEvidenceData } from "@/lib/evidence-packet-cook";
 
 // Lazy initialization
 let stripe: Stripe | null = null;
@@ -855,10 +857,69 @@ async function generatePdf(html: string): Promise<Buffer> {
   return Buffer.from(arrayBuffer);
 }
 
+function buildCookQuickStartData(data: PropertyData): CookQuickStartData {
+  const formattedPin = data.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5");
+  const notesForFiling = `
+    <p>I am filing this appeal on the grounds of LACK OF UNIFORMITY.</p>
+    <p>My property at ${escapeHtml(data.address)} (PIN: ${formattedPin}), Class ${data.classCode}, is currently assessed at $${data.currentAssessment.toLocaleString()} total ($${data.perSqft.toFixed(2)}/sq ft of building area).</p>
+    <p>An analysis of ${data.comps.length} comparable properties in Assessment Neighborhood ${escapeHtml(data.neighborhood)} shows a median assessment of $${data.compMedianPerSqft.toFixed(2)}/sq ft — my property is assessed ${data.overAssessedPct}% above comparable properties.</p>
+    <p>Comparable PINs (all Class ${data.classCode}, Neighborhood ${escapeHtml(data.neighborhood)}):</p>
+    <p style="font-family: monospace; font-size: 9px;">${data.comps.map(c => c.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5")).join(", ")}</p>
+    <p>I request a reduction to $${data.fairAssessment.toLocaleString()} based on comparable property assessments. Full evidence package with property details, assessment history, and comparable analysis is uploaded as supporting documentation.</p>
+  `;
+  return {
+    address: data.address,
+    pin: data.pin,
+    township: data.township,
+    currentAssessment: data.currentAssessment,
+    fairAssessment: data.fairAssessment,
+    estimatedSavings: data.savings,
+    overAssessedPct: data.overAssessedPct,
+    perSqft: data.perSqft,
+    compMedianPerSqft: data.compMedianPerSqft,
+    compCount: data.comps.length,
+    notesForFiling,
+  };
+}
+
+function buildCookEvidenceData(data: PropertyData): CookEvidenceData {
+  return {
+    pin: data.pin,
+    address: data.address,
+    township: data.township,
+    neighborhood: data.neighborhood,
+    classCode: data.classCode,
+    classDescription: data.classDescription,
+    sqft: data.sqft,
+    totalSqft: data.totalSqft,
+    landSqft: data.landSqft,
+    beds: data.beds,
+    fbath: data.fbath,
+    hbath: data.hbath,
+    yearBuilt: data.yearBuilt,
+    extWall: data.extWall,
+    rooms: data.rooms,
+    currentBldg: data.currentBldg,
+    currentLand: data.currentLand,
+    currentAssessment: data.currentAssessment,
+    fairAssessment: data.fairAssessment,
+    reduction: data.reduction,
+    savings: data.savings,
+    perSqft: data.perSqft,
+    fairPerSqft: data.fairPerSqft,
+    overAssessedPct: data.overAssessedPct,
+    compMedianPerSqft: data.compMedianPerSqft,
+    compAvgPerSqft: data.compAvgPerSqft,
+    comps: data.comps,
+    assessmentHistory: data.assessmentHistory,
+  };
+}
+
 async function sendEmail(
   email: string, 
   pin: string, 
-  pdfBuffer: Buffer, 
+  quickStartPdf: Buffer,
+  evidencePdf: Buffer, 
   data: PropertyData,
   accessToken: string
 ): Promise<void> {
@@ -884,13 +945,10 @@ async function sendEmail(
               <p style="margin: 0; font-size: 13px; color: #1a6b5a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Current: $${data.currentAssessment.toLocaleString()} → Fair: $${data.fairAssessment.toLocaleString()} (${data.overAssessedPct}% over-assessed)</p>
             </div>
             
-            <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Your appeal package includes:</strong></p>
+            <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Two PDFs attached:</strong></p>
             <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-              <li>${data.comps.length} comparable properties with full assessment details</li>
-              <li>Written uniformity argument citing the Illinois Constitution</li>
-              <li>Assessment history and breakdown</li>
-              <li>Step-by-step Board of Review filing instructions</li>
-              <li>Pre-written notes you can copy & paste into the filing form</li>
+              <li><strong>Quick Start Guide</strong> — step-by-step filing instructions + notes to copy-paste</li>
+              <li><strong>Evidence Packet</strong> — ${data.comps.length} comps, uniformity brief, assessment history (upload this to the Board of Review)</li>
             </ul>
             
             <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;">
@@ -909,8 +967,12 @@ async function sendEmail(
     `,
     attachments: [
       {
-        filename: `appeal-package-${formattedPin}.pdf`,
-        content: pdfBuffer.toString("base64"),
+        filename: `quick-start-guide-${formattedPin}.pdf`,
+        content: quickStartPdf.toString("base64"),
+      },
+      {
+        filename: `evidence-packet-${formattedPin}.pdf`,
+        content: evidencePdf.toString("base64"),
       },
     ],
   });
@@ -981,8 +1043,13 @@ export async function GET(request: NextRequest) {
       const token = generateAccessToken(sessionId, pin);
       // Send email in background
       if (email) {
-        generatePdf(generatePdfHtml(propertyData)).then(pdfBuffer => {
-          sendEmail(email, pin, pdfBuffer, propertyData, token).catch(console.error);
+        const quickStartData = buildCookQuickStartData(propertyData);
+        const evidenceData = buildCookEvidenceData(propertyData);
+        Promise.all([
+          generatePdf(generateCookQuickStartHtml(quickStartData)),
+          generatePdf(generateCookEvidenceHtml(evidenceData)),
+        ]).then(([quickStartPdf, evidencePdf]) => {
+          sendEmail(email, pin, quickStartPdf, evidencePdf, propertyData, token).catch(console.error);
         }).catch(console.error);
       }
       return NextResponse.json({ success: true, property: propertyData, token, email: email || null });
@@ -1033,7 +1100,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Property not found" }, { status: 404 });
   }
 
-  const html = generatePdfHtml(propertyData);
+  const evidenceData = buildCookEvidenceData(propertyData);
+  const html = generateCookEvidenceHtml(evidenceData);
   const pdfBuffer = await generatePdf(html);
 
   // Mark session as processed
