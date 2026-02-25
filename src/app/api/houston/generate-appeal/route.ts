@@ -3,6 +3,8 @@ import Stripe from "stripe";
 import { Resend } from "resend";
 import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escapeHtml } from "@/lib/security";
 import { CosmosClient } from "@azure/cosmos";
+import { generateQuickStartGuideHtml, type QuickStartData } from "@/lib/quick-start-guide";
+import { generateHoustonEvidenceHtml, type HoustonEvidenceData } from "@/lib/evidence-packet-houston";
 
 // Lazy initialization
 let stripe: Stripe | null = null;
@@ -570,10 +572,32 @@ async function generatePdf(html: string): Promise<Buffer> {
 // Email
 // ──────────────────────────────────────────────────────────────────
 
+function buildQuickStartData(data: HoustonPropertyData): QuickStartData {
+  return {
+    address: data.address,
+    acct: data.acct,
+    city: data.city,
+    state: data.state,
+    county: "Harris",
+    filingUrl: "hcad.org",
+    filingBody: "HCAD",
+    filingPortal: "iFile",
+    deadline: "May 15",
+    currentAssessment: data.currentAssessment,
+    fairAssessment: data.fairAssessment,
+    estimatedSavings: data.estimatedSavings,
+    overAssessedPct: data.overAssessedPct,
+    perSqft: data.perSqft,
+    compMedianPerSqft: data.compMedianPerSqft,
+    compCount: data.comps.length,
+  };
+}
+
 async function sendHoustonEmail(
   email: string,
   acct: string,
-  pdfBuffer: Buffer,
+  quickStartPdf: Buffer,
+  evidencePdf: Buffer,
   data: HoustonPropertyData,
   accessToken: string
 ): Promise<void> {
@@ -602,16 +626,21 @@ async function sendHoustonEmail(
               <p style="margin: 0; font-size: 13px; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>⏰ Deadline:</strong> File your protest once you receive your appraisal notice (usually by May 15 or 30 days after your notice, whichever is later). Don't wait!</p>
             </div>
             
-            <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Your protest package includes:</strong></p>
+            <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Two PDFs attached — here's how to use them:</strong></p>
+            
+            <div style="background: #f0fdf4; border: 1px solid #1a6b5a; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📋 Quick Start Guide</strong> — Read this first. 3 steps, 2 pages. Tells you exactly what to do.</p>
+              <p style="margin: 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📎 Evidence Packet</strong> — Upload this to HCAD when you file. It's your proof.</p>
+            </div>
+            
             <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
               <li>${data.comps.length} comparable properties with appraised values</li>
               <li>Written "Uniform & Equal" argument citing Texas Tax Code §41.41(a)(2) &amp; §42.26(a)</li>
-              <li>Step-by-step iFile and ARB hearing instructions</li>
-              <li>Hearing script — exactly what to say</li>
+              <li>Step-by-step filing instructions + hearing script</li>
               <li>iSettle guidance — how to evaluate HCAD's offer</li>
             </ul>
             
-            <p style="margin-bottom: 16px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Your protest package PDF is attached. You can also access it online:</p>
+            <p style="margin-bottom: 16px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Both PDFs are attached below. You can also access everything online:</p>
             <a href="${accessLink}" style="display: block; width: 100%; text-align: center; background: #1a6b5a; color: #fff; padding: 14px 28px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px;">View Your Appeal Package</a>
             
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
@@ -623,8 +652,12 @@ async function sendHoustonEmail(
     `,
     attachments: [
       {
-        filename: `protest-package-${acct}.pdf`,
-        content: pdfBuffer.toString("base64"),
+        filename: `quick-start-guide-${acct}.pdf`,
+        content: quickStartPdf.toString("base64"),
+      },
+      {
+        filename: `evidence-packet-${acct}.pdf`,
+        content: evidencePdf.toString("base64"),
       },
     ],
   });
@@ -702,8 +735,12 @@ export async function GET(request: NextRequest) {
       // Generate PDF and send email before returning
       if (email) {
         try {
-          const pdfBuffer = await generatePdf(generateHoustonPdfHtml(propertyData));
-          await sendHoustonEmail(email, acct, pdfBuffer, propertyData, token);
+          const quickStartData = buildQuickStartData(propertyData);
+          const [quickStartPdf, evidencePdf] = await Promise.all([
+            generatePdf(generateQuickStartGuideHtml(quickStartData)),
+            generatePdf(generateHoustonEvidenceHtml(propertyData)),
+          ]);
+          await sendHoustonEmail(email, acct, quickStartPdf, evidencePdf, propertyData, token);
         } catch (emailErr) {
           console.error("Email send error:", emailErr);
           // Don't fail the response — email is best-effort
@@ -754,7 +791,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Property not found" }, { status: 404 });
   }
 
-  const html = generateHoustonPdfHtml(propertyData);
+  const html = generateHoustonEvidenceHtml(propertyData);
   const pdfBuffer = await generatePdf(html);
 
   // Mark session as processed
@@ -769,7 +806,7 @@ export async function POST(request: NextRequest) {
   return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="protest-package-${tokenData.acct}.pdf"`,
+      "Content-Disposition": `attachment; filename="evidence-packet-${tokenData.acct}.pdf"`,
     },
   });
 }
