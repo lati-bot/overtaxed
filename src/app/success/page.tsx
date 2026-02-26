@@ -226,7 +226,7 @@ function SuccessPage() {
 
   if (error) {
     // Determine user-friendly message based on error type
-    const isSessionError = error.includes("Not a") || error.includes("Session") || error.includes("Payment");
+    const isSessionError = error.includes("Not a") || error.includes("Session") || error.includes("Payment") || error.includes("not found") || error.includes("not completed");
     const friendlyTitle = isSessionError ? "We couldn't load your appeal package" : "Something went wrong";
     const friendlyMessage = isSessionError
       ? "This checkout link may have expired or already been used. Check your email for a direct link to your package, or contact us for help."
