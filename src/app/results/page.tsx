@@ -1,5 +1,21 @@
 import { Suspense } from "react";
+import { Metadata } from "next";
 import ResultsContent from "./results-content";
+
+export const metadata: Metadata = {
+  title: "Your Property Tax Appeal Results | Overtaxed",
+  description: "See how much you could save on property taxes. Get your protest package for $49.",
+  openGraph: {
+    title: "Your Property Tax Appeal Results | Overtaxed",
+    description: "See how much you could save on property taxes. Get your protest package for $49.",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Your Property Tax Appeal Results | Overtaxed",
+    description: "See how much you could save on property taxes. Get your protest package for $49.",
+  },
+};
 
 export default function ResultsPage() {
   return (

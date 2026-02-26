@@ -1,0 +1,18 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f7f6f3"/>
+  <rect x="0" y="0" width="1200" height="8" fill="#1a6b5a"/>
+  <!-- Brand mark -->
+  <rect x="80" y="80" width="24" height="24" rx="5" fill="#1a6b5a"/>
+  <text x="116" y="100" font-family="system-ui, -apple-system, sans-serif" font-size="28" font-weight="500" fill="#1a1a1a">overtaxed</text>
+  <!-- Main headline -->
+  <text x="80" y="280" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="400" fill="#1a1a1a" letter-spacing="-1">Property Tax Appeal</text>
+  <text x="80" y="370" font-family="system-ui, -apple-system, sans-serif" font-size="72" font-weight="400" fill="#1a1a1a" letter-spacing="-1">Packages</text>
+  <!-- Price badge -->
+  <rect x="80" y="410" width="160" height="60" rx="12" fill="#1a6b5a"/>
+  <text x="160" y="450" font-family="system-ui, -apple-system, sans-serif" font-size="36" font-weight="600" fill="white" text-anchor="middle">$49</text>
+  <text x="260" y="450" font-family="system-ui, -apple-system, sans-serif" font-size="22" fill="#999">flat fee · no surprises</text>
+  <!-- Coverage -->
+  <text x="80" y="540" font-family="system-ui, -apple-system, sans-serif" font-size="20" fill="#999">10 Texas counties + Cook County, IL · 5M+ properties</text>
+  <!-- URL -->
+  <text x="80" y="580" font-family="system-ui, -apple-system, sans-serif" font-size="20" font-weight="500" fill="#1a6b5a">getovertaxed.com</text>
+</svg>
