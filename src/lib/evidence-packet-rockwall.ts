@@ -48,7 +48,10 @@ export function generateRockwallEvidenceHtml(data: RockwallEvidenceData): string
         <div class="comp-address">${escapeHtml(c.address)}</div>
         <div class="comp-acct">Acct: ${escapeHtml(c.acct)}</div>
       </td>
+      <td class="right">${c.sqft.toLocaleString()}</td>
+      <td class="right">${c.yearBuilt || "—"}</td>
       <td class="right">$${c.assessedVal.toLocaleString()}</td>
+      <td class="right highlight">$${c.perSqft.toFixed(2)}</td>
     </tr>`).join("");
 
   return `<!DOCTYPE html>
@@ -239,7 +242,10 @@ export function generateRockwallEvidenceHtml(data: RockwallEvidenceData): string
           <tr>
             <th>#</th>
             <th>Address / Account</th>
+            <th class="right">Bldg SF</th>
+            <th class="right">Year Built</th>
             <th class="right">Appraised Value</th>
+            <th class="right">$/SF</th>
           </tr>
         </thead>
         <tbody>
@@ -249,7 +255,10 @@ export function generateRockwallEvidenceHtml(data: RockwallEvidenceData): string
               <div class="comp-address">${escapeHtml(data.address)} (SUBJECT)</div>
               <div class="comp-acct">Acct: ${escapeHtml(data.acct)}</div>
             </td>
+            <td class="right">${data.sqft.toLocaleString()}</td>
+            <td class="right">${data.yearBuilt || "—"}</td>
             <td class="right" style="color: #b45309; font-weight: 700;">$${data.currentAssessment.toLocaleString()}</td>
+            <td class="right" style="color: #b45309; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>
           </tr>
           ${compsHtml}
         </tbody>

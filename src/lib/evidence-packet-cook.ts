@@ -77,10 +77,7 @@ export function generateCookEvidenceHtml(data: CookEvidenceData): string {
         <div class="comp-address">${escapeHtml(c.address)}</div>
         <div class="comp-pin">${fPin}</div>
       </td>
-      <td class="right">${c.classCode}</td>
       <td class="right">${c.sqft.toLocaleString()}</td>
-      <td class="right">${c.beds}/${c.fbath}${c.hbath ? `.${c.hbath}` : ""}</td>
-      <td class="right">${escapeHtml(c.extWall)}</td>
       <td class="right">${c.yearBuilt || "—"}</td>
       <td class="right">$${c.assessmentTotal.toLocaleString()}</td>
       <td class="right highlight">$${c.perSqft.toFixed(2)}</td>
@@ -286,10 +283,7 @@ export function generateCookEvidenceHtml(data: CookEvidenceData): string {
           <tr>
             <th>#</th>
             <th>Address / PIN</th>
-            <th class="right">Class</th>
             <th class="right">Bldg SF</th>
-            <th class="right">Bed/Bath</th>
-            <th class="right">Ext.</th>
             <th class="right">Year</th>
             <th class="right">Total Asmt</th>
             <th class="right">$/SF</th>
@@ -302,10 +296,7 @@ export function generateCookEvidenceHtml(data: CookEvidenceData): string {
               <div class="comp-address">${escapeHtml(data.address)} (SUBJECT)</div>
               <div class="comp-pin">${formattedPin}</div>
             </td>
-            <td class="right">${data.classCode}</td>
             <td class="right">${data.sqft.toLocaleString()}</td>
-            <td class="right">${data.beds}/${data.fbath}${data.hbath ? `.${data.hbath}` : ""}</td>
-            <td class="right">${escapeHtml(data.extWall)}</td>
             <td class="right">${data.yearBuilt || "—"}</td>
             <td class="right">$${data.currentAssessment.toLocaleString()}</td>
             <td class="right" style="color: #b45309; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>
