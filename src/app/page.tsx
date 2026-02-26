@@ -385,10 +385,51 @@ export default function Home() {
     placeholder: address ? undefined : PLACEHOLDER_ADDRESSES[placeholderIdx],
   };
 
+  // JSON-LD structured data
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "name": "Overtaxed",
+        "url": "https://getovertaxed.com",
+        "logo": "https://getovertaxed.com/og-image.png",
+        "description": "Property tax appeal packages for homeowners.",
+      },
+      {
+        "@type": "Product",
+        "name": "Property Tax Appeal Package",
+        "description": "Complete filing package with comparable properties, professional evidence brief, and step-by-step filing instructions.",
+        "brand": { "@type": "Organization", "name": "Overtaxed" },
+        "offers": {
+          "@type": "Offer",
+          "price": "49.00",
+          "priceCurrency": "USD",
+          "availability": "https://schema.org/InStock",
+          "url": "https://getovertaxed.com",
+        },
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          { "@type": "Question", "name": "Do I need a lawyer to appeal?", "acceptedAnswer": { "@type": "Answer", "text": "No. Individual homeowners can file appeals themselves. We give you everything you need — comparable properties, evidence brief, and step-by-step instructions." } },
+          { "@type": "Question", "name": "What if my appeal doesn't work?", "acceptedAnswer": { "@type": "Answer", "text": "There's no penalty for appealing. If your assessment isn't reduced, you've lost nothing but the filing time." } },
+          { "@type": "Question", "name": "When can I file?", "acceptedAnswer": { "@type": "Answer", "text": "In Texas, protest after receiving your appraisal notice (usually late March). Deadline is May 15 or 30 days after your notice. In Cook County, IL, appeals open by township on a rotating schedule." } },
+          { "@type": "Question", "name": "Why is this so much cheaper?", "acceptedAnswer": { "@type": "Answer", "text": "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." } },
+          { "@type": "Question", "name": "What areas do you cover?", "acceptedAnswer": { "@type": "Answer", "text": "5M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), San Antonio (Bexar), Austin (Travis, Williamson), Rockwall County, and Cook County, IL." } },
+        ],
+      },
+    ],
+  };
+
   if (!mounted) return <div className="min-h-screen bg-[#f7f6f3]" />;
 
   return (
     <div className="min-h-screen bg-[#f7f6f3] text-[#1a1a1a]" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-[#f7f6f3]/90 backdrop-blur-xl border-b border-black/[0.04]">

@@ -13,22 +13,30 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Overtaxed — Lower Your Property Tax",
-  description: "Find out if you're overpaying property tax. We compare your home to similar properties assessed lower and build your appeal case. Covers DFW, Houston, Austin, and Chicago. $49 flat fee.",
+  title: "Overtaxed — Property Tax Appeal Packages for $49",
+  description: "Fight your property tax assessment with professional comparable data, evidence packets, and filing guides. 10 Texas counties + Cook County IL. $49 flat fee.",
+  metadataBase: new URL("https://getovertaxed.com"),
   icons: {
     icon: "/favicon.svg",
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Lower Your Property Tax",
-    description: "Find out if you're overpaying property tax. We compare your home to similar properties assessed lower and build your appeal case. Covers DFW, Houston, Austin, and Chicago. $49 flat fee.",
+    title: "Overtaxed — Property Tax Appeal Packages for $49",
+    description: "Fight your property tax assessment with professional comparable data, evidence packets, and filing guides. 10 Texas counties + Cook County IL. $49 flat fee.",
     siteName: "Overtaxed",
     type: "website",
+    url: "https://getovertaxed.com",
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Overtaxed — Property Tax Appeal Packages for $49" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Lower Your Property Tax",
-    description: "Find out if you're overpaying property tax. We compare your home to similar properties assessed lower and build your appeal case. Covers DFW, Houston, Austin, and Chicago. $49 flat fee.",
+    title: "Overtaxed — Property Tax Appeal Packages for $49",
+    description: "Fight your property tax assessment with professional comparable data, evidence packets, and filing guides. 10 Texas counties + Cook County IL. $49 flat fee.",
+    images: ["/og-image.png"],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
