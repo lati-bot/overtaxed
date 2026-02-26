@@ -118,7 +118,7 @@ async function getTarrantPropertyData(acct: string): Promise<TarrantPropertyData
       yearBuilt: c.yearBuilt || c.year_built || undefined,
       qualityGrade: c.quality_grade || undefined,
       condition: c.condition || undefined,
-    }));
+    })).filter((c: any) => c.assessedVal > 0 && c.perSqft > 0 && c.sqft > 0);
 
     const compPerSqfts = comps.map(c => c.perSqft).filter(v => v > 0).sort((a, b) => a - b);
     const compMedianPerSqft = compPerSqfts.length > 0
