@@ -109,7 +109,7 @@ async function getRockwallPropertyData(acct: string): Promise<RockwallPropertyDa
       assessedVal: c.assessed_val || 0,
       perSqft: c.psf || 0,
       yearBuilt: c.yearBuilt || undefined,
-    }));
+    })).filter((c: any) => c.assessedVal > 0 && c.perSqft > 0 && c.sqft > 0);
 
     // Comp stats — use appraised values (no sqft data)
     const compValues = comps.map(c => c.assessedVal).filter(v => v > 0).sort((a, b) => a - b);
