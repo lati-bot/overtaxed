@@ -5,6 +5,7 @@ import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escap
 import { CosmosClient } from "@azure/cosmos";
 import { QuickStartData, generateQuickStartGuideHtml } from "@/lib/quick-start-guide";
 import { BexarEvidenceData, generateBexarEvidenceHtml } from "@/lib/evidence-packet-bexar";
+import { generateCoverLetterHtml, type CoverLetterData } from "@/lib/cover-letter";
 
 // Lazy initialization
 let stripe: Stripe | null = null;
@@ -568,6 +569,25 @@ function buildQuickStartData(data: BexarPropertyData): QuickStartData {
   };
 }
 
+function buildCoverLetterData(data: BexarPropertyData): CoverLetterData {
+  return {
+    ownerName: "Property Owner",
+    address: data.address,
+    acct: data.acct,
+    county: "Bexar",
+    state: "TX",
+    filingBody: "BCAD",
+    filingBodyFull: "Bexar Appraisal District",
+    currentAssessment: data.currentAssessment,
+    fairAssessment: data.fairAssessment,
+    overAssessedPct: data.overAssessedPct,
+    compCount: data.comps.length,
+    compMedianPerSqft: data.compMedianPerSqft,
+    perSqft: data.perSqft,
+    taxYear: "2025",
+  };
+}
+
 // ──────────────────────────────────────────────────────────────────
 // PDF Generation via Browserless
 // ──────────────────────────────────────────────────────────────────
@@ -608,6 +628,7 @@ async function sendBexarEmail(
   acct: string,
   quickStartPdf: Buffer,
   evidencePdf: Buffer,
+  coverLetterPdf: Buffer,
   data: BexarPropertyData,
   accessToken: string
 ): Promise<void> {
@@ -636,10 +657,11 @@ async function sendBexarEmail(
           <p style="margin: 0; font-size: 13px; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>⏰ Deadline:</strong> File your protest by May 15 (or 30 days after your notice, whichever is later). Don't wait!</p>
         </div>
         
-        <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Two PDFs attached — here's how to use them:</strong></p>
+        <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Three PDFs attached — here's how to use them:</strong></p>
             
             <div style="background: #f0fdf4; border: 1px solid #1a6b5a; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
               <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📋 Quick Start Guide</strong> — Read this first. 3 steps, 2 pages. Tells you exactly what to do.</p>
+              <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>✉️ Cover Letter</strong> — Formal protest letter, pre-filled and ready to sign.</p>
               <p style="margin: 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📎 Evidence Packet</strong> — Upload this to BCAD when you file. It's your proof.</p>
             </div>
         <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
@@ -664,6 +686,10 @@ async function sendBexarEmail(
       {
         filename: `quick-start-guide-${acct}.pdf`,
         content: quickStartPdf.toString("base64"),
+      },
+      {
+        filename: `cover-letter-${acct}.pdf`,
+        content: coverLetterPdf.toString("base64"),
       },
       {
         filename: `evidence-packet-${acct}.pdf`,
@@ -744,11 +770,12 @@ export async function GET(request: NextRequest) {
       if (email) {
         try {
           const quickStartData = buildQuickStartData(propertyData);
-          const [quickStartPdf, evidencePdf] = await Promise.all([
+          const [quickStartPdf, evidencePdf, coverLetterPdf] = await Promise.all([
             generatePdf(generateQuickStartGuideHtml(quickStartData)),
             generatePdf(generateBexarEvidenceHtml(propertyData)),
+            generatePdf(generateCoverLetterHtml(buildCoverLetterData(propertyData))),
           ]);
-          await sendBexarEmail(email, acct, quickStartPdf, evidencePdf, propertyData, token);
+          await sendBexarEmail(email, acct, quickStartPdf, evidencePdf, coverLetterPdf, propertyData, token);
         } catch (emailErr) {
           console.error("Email send error:", emailErr);
         }

@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escapeHtml } from "@/lib/security";
 import { generateCookQuickStartHtml, type CookQuickStartData } from "@/lib/quick-start-guide-cook";
 import { generateCookEvidenceHtml, type CookEvidenceData } from "@/lib/evidence-packet-cook";
+import { generateCoverLetterHtml, type CoverLetterData } from "@/lib/cover-letter";
 
 // Lazy initialization
 let stripe: Stripe | null = null;
@@ -915,11 +916,31 @@ function buildCookEvidenceData(data: PropertyData): CookEvidenceData {
   };
 }
 
+function buildCoverLetterData(data: PropertyData): CoverLetterData {
+  return {
+    ownerName: "Property Owner",
+    address: data.address,
+    acct: data.pin,
+    county: "Cook",
+    state: "IL",
+    filingBody: "CCAO",
+    filingBodyFull: "Cook County Assessor's Office",
+    currentAssessment: data.currentAssessment,
+    fairAssessment: data.fairAssessment,
+    overAssessedPct: data.overAssessedPct,
+    compCount: data.comps.length,
+    compMedianPerSqft: data.compMedianPerSqft,
+    perSqft: data.perSqft,
+    taxYear: "2025",
+  };
+}
+
 async function sendEmail(
   email: string, 
   pin: string, 
   quickStartPdf: Buffer,
-  evidencePdf: Buffer, 
+  evidencePdf: Buffer,
+  coverLetterPdf: Buffer,
   data: PropertyData,
   accessToken: string
 ): Promise<void> {
@@ -945,11 +966,13 @@ async function sendEmail(
               <p style="margin: 0; font-size: 13px; color: #1a6b5a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Current: $${data.currentAssessment.toLocaleString()} → Fair: $${data.fairAssessment.toLocaleString()} (${data.overAssessedPct}% over-assessed)</p>
             </div>
             
-            <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Two PDFs attached:</strong></p>
-            <ul style="font-size: 14px; color: #555; margin-bottom: 24px; padding-left: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-              <li><strong>Quick Start Guide</strong> — step-by-step filing instructions + notes to copy-paste</li>
-              <li><strong>Evidence Packet</strong> — ${data.comps.length} comps, uniformity brief, assessment history (upload this to the Board of Review)</li>
-            </ul>
+            <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Three PDFs attached:</strong></p>
+            
+            <div style="background: #f0fdf4; border: 1px solid #1a6b5a; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
+              <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📋 Quick Start Guide</strong> — step-by-step filing instructions + notes to copy-paste</p>
+              <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>✉️ Cover Letter</strong> — Formal protest letter, pre-filled and ready to sign.</p>
+              <p style="margin: 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📎 Evidence Packet</strong> — ${data.comps.length} comps, uniformity brief, assessment history (upload this to the Board of Review)</p>
+            </div>
             
             <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;">
               <p style="margin: 0; font-size: 13px; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📸 Don't forget:</strong> The Board of Review requires a photo of the front of your property (Rule #17). Take a clear photo with your phone before you file.</p>
@@ -969,6 +992,10 @@ async function sendEmail(
       {
         filename: `quick-start-guide-${formattedPin}.pdf`,
         content: quickStartPdf.toString("base64"),
+      },
+      {
+        filename: `cover-letter-${formattedPin}.pdf`,
+        content: coverLetterPdf.toString("base64"),
       },
       {
         filename: `evidence-packet-${formattedPin}.pdf`,
@@ -1048,8 +1075,9 @@ export async function GET(request: NextRequest) {
         Promise.all([
           generatePdf(generateCookQuickStartHtml(quickStartData)),
           generatePdf(generateCookEvidenceHtml(evidenceData)),
-        ]).then(([quickStartPdf, evidencePdf]) => {
-          sendEmail(email, pin, quickStartPdf, evidencePdf, propertyData, token).catch(console.error);
+          generatePdf(generateCoverLetterHtml(buildCoverLetterData(propertyData))),
+        ]).then(([quickStartPdf, evidencePdf, coverLetterPdf]) => {
+          sendEmail(email, pin, quickStartPdf, evidencePdf, coverLetterPdf, propertyData, token).catch(console.error);
         }).catch(console.error);
       }
       return NextResponse.json({ success: true, property: propertyData, token, email: email || null });

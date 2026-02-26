@@ -58,7 +58,6 @@ export function generateDallasEvidenceHtml(data: DallasEvidenceData): string {
         <div class="comp-acct">Acct: ${escapeHtml(c.acct)}</div>
       </td>
       <td class="right">${c.sqft.toLocaleString()}</td>
-      <td class="right">${c.beds || "—"}</td>
       <td class="right">${c.yearBuilt || "—"}</td>
       <td class="right">$${c.assessedVal.toLocaleString()}</td>
       <td class="right highlight">$${c.perSqft.toFixed(2)}</td>
@@ -263,7 +262,6 @@ export function generateDallasEvidenceHtml(data: DallasEvidenceData): string {
             <th>#</th>
             <th>Address / Account</th>
             <th class="right">Bldg SF</th>
-            <th class="right">Beds</th>
             <th class="right">Year Built</th>
             <th class="right">Appraised Value</th>
             <th class="right">$/SF</th>
@@ -277,7 +275,6 @@ export function generateDallasEvidenceHtml(data: DallasEvidenceData): string {
               <div class="comp-acct">Acct: ${escapeHtml(data.acct)}</div>
             </td>
             <td class="right">${data.sqft.toLocaleString()}</td>
-            <td class="right">${data.beds || "—"}</td>
             <td class="right">${data.yearBuilt || "—"}</td>
             <td class="right">$${data.currentAssessment.toLocaleString()}</td>
             <td class="right" style="color: #b45309; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>

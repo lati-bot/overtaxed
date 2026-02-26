@@ -52,7 +52,6 @@ export function generateTarrantEvidenceHtml(data: TarrantEvidenceData): string {
       </td>
       <td class="right">${c.sqft.toLocaleString()}</td>
       <td class="right">${c.yearBuilt || "—"}</td>
-      <td class="right">${c.qualityGrade ? escapeHtml(c.qualityGrade) : "—"}</td>
       <td class="right">$${c.assessedVal.toLocaleString()}</td>
       <td class="right highlight">$${c.perSqft.toFixed(2)}</td>
     </tr>`).join("");
@@ -256,7 +255,6 @@ export function generateTarrantEvidenceHtml(data: TarrantEvidenceData): string {
             <th>Address / Account</th>
             <th class="right">Bldg SF</th>
             <th class="right">Year Built</th>
-            <th class="right">Quality</th>
             <th class="right">Appraised Value</th>
             <th class="right">$/SF</th>
           </tr>
@@ -270,7 +268,6 @@ export function generateTarrantEvidenceHtml(data: TarrantEvidenceData): string {
             </td>
             <td class="right">${data.sqft.toLocaleString()}</td>
             <td class="right">${data.yearBuilt || "—"}</td>
-            <td class="right">${data.qualityGrade ? escapeHtml(data.qualityGrade) : "—"}</td>
             <td class="right">$${data.currentAssessment.toLocaleString()}</td>
             <td class="right" style="color: #b45309; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>
           </tr>

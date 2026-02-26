@@ -5,6 +5,7 @@ import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escap
 import { CosmosClient } from "@azure/cosmos";
 import { generateQuickStartGuideHtml, type QuickStartData } from "@/lib/quick-start-guide";
 import { generateHoustonEvidenceHtml, type HoustonEvidenceData } from "@/lib/evidence-packet-houston";
+import { generateCoverLetterHtml, type CoverLetterData } from "@/lib/cover-letter";
 
 // Lazy initialization
 let stripe: Stripe | null = null;
@@ -593,11 +594,31 @@ function buildQuickStartData(data: HoustonPropertyData): QuickStartData {
   };
 }
 
+function buildCoverLetterData(data: HoustonPropertyData): CoverLetterData {
+  return {
+    ownerName: "Property Owner",
+    address: data.address,
+    acct: data.acct,
+    county: "Harris",
+    state: "TX",
+    filingBody: "HCAD",
+    filingBodyFull: "Harris County Appraisal District",
+    currentAssessment: data.currentAssessment,
+    fairAssessment: data.fairAssessment,
+    overAssessedPct: data.overAssessedPct,
+    compCount: data.comps.length,
+    compMedianPerSqft: data.compMedianPerSqft,
+    perSqft: data.perSqft,
+    taxYear: "2025",
+  };
+}
+
 async function sendHoustonEmail(
   email: string,
   acct: string,
   quickStartPdf: Buffer,
   evidencePdf: Buffer,
+  coverLetterPdf: Buffer,
   data: HoustonPropertyData,
   accessToken: string
 ): Promise<void> {
@@ -626,10 +647,11 @@ async function sendHoustonEmail(
               <p style="margin: 0; font-size: 13px; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>⏰ Deadline:</strong> File your protest once you receive your appraisal notice (usually by May 15 or 30 days after your notice, whichever is later). Don't wait!</p>
             </div>
             
-            <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Two PDFs attached — here's how to use them:</strong></p>
+            <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Three PDFs attached — here's how to use them:</strong></p>
             
             <div style="background: #f0fdf4; border: 1px solid #1a6b5a; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
               <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📋 Quick Start Guide</strong> — Read this first. 3 steps, 2 pages. Tells you exactly what to do.</p>
+              <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>✉️ Cover Letter</strong> — Formal protest letter, pre-filled and ready to sign.</p>
               <p style="margin: 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📎 Evidence Packet</strong> — Upload this to HCAD when you file. It's your proof.</p>
             </div>
             
@@ -640,7 +662,7 @@ async function sendHoustonEmail(
               <li>iSettle guidance — how to evaluate HCAD's offer</li>
             </ul>
             
-            <p style="margin-bottom: 16px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Both PDFs are attached below. You can also access everything online:</p>
+            <p style="margin-bottom: 16px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">All three PDFs are attached below. You can also access everything online:</p>
             <a href="${accessLink}" style="display: block; width: 100%; text-align: center; background: #1a6b5a; color: #fff; padding: 14px 28px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px;">View Your Appeal Package</a>
             
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
@@ -654,6 +676,10 @@ async function sendHoustonEmail(
       {
         filename: `quick-start-guide-${acct}.pdf`,
         content: quickStartPdf.toString("base64"),
+      },
+      {
+        filename: `cover-letter-${acct}.pdf`,
+        content: coverLetterPdf.toString("base64"),
       },
       {
         filename: `evidence-packet-${acct}.pdf`,
@@ -736,11 +762,13 @@ export async function GET(request: NextRequest) {
       if (email) {
         try {
           const quickStartData = buildQuickStartData(propertyData);
-          const [quickStartPdf, evidencePdf] = await Promise.all([
+          const coverLetterData = buildCoverLetterData(propertyData);
+          const [quickStartPdf, evidencePdf, coverLetterPdf] = await Promise.all([
             generatePdf(generateQuickStartGuideHtml(quickStartData)),
             generatePdf(generateHoustonEvidenceHtml(propertyData)),
+            generatePdf(generateCoverLetterHtml(coverLetterData)),
           ]);
-          await sendHoustonEmail(email, acct, quickStartPdf, evidencePdf, propertyData, token);
+          await sendHoustonEmail(email, acct, quickStartPdf, evidencePdf, coverLetterPdf, propertyData, token);
         } catch (emailErr) {
           console.error("Email send error:", emailErr);
           // Don't fail the response — email is best-effort

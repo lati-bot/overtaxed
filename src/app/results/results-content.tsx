@@ -50,6 +50,14 @@ interface PropertyData {
   } | null;
 }
 
+interface CompProperty {
+  acct: string;
+  address: string;
+  sqft: number;
+  assessedVal: number;
+  perSqft: number;
+}
+
 interface MultipleResults {
   pin: string;
   address: string;
@@ -69,6 +77,7 @@ export default function ResultsContent() {
   const [uploadInProgress, setUploadInProgress] = useState<boolean>(false);
   const [mounted, setMounted] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [comps, setComps] = useState<CompProperty[]>([]);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
@@ -86,6 +95,9 @@ export default function ResultsContent() {
   const isRockwall = jurisdiction === "rockwall";
   const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend || isRockwall || isBexar;
   const marketLabel = isBexar ? "BCAD" : isRockwall ? "RCAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "DCAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
+  const cadName = isBexar ? "BCAD" : isRockwall ? "Rockwall CAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "Denton CAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isHouston ? "HCAD" : "Cook County Assessor";
+  const countyName = isBexar ? "Bexar County" : isRockwall ? "Rockwall County" : isFortBend ? "Fort Bend County" : isWilliamson ? "Williamson County" : isDenton ? "Denton County" : isTarrant ? "Tarrant County" : isCollin ? "Collin County" : isAustin ? "Travis County" : isDallas ? "Dallas County" : isHouston ? "Harris County" : "Cook County";
+  const avgTaxRate = isBexar ? "2.1" : isWilliamson ? "2.1" : "2.2";
   const jurisdictionValue = isBexar ? "bexar" : isRockwall ? "rockwall" : isFortBend ? "fortbend" : isWilliamson ? "williamson" : isDenton ? "denton" : isTarrant ? "tarrant" : isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
 
   useEffect(() => {
@@ -149,6 +161,7 @@ export default function ResultsContent() {
           neighborhoodStats: cp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(cp.comps || []);
       } else if (isDenton) {
         // Denton County flow — use Denton lookup API
         const dentonAcct = searchPin || acct;
@@ -197,6 +210,7 @@ export default function ResultsContent() {
           neighborhoodStats: dp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(dp.comps || []);
       } else if (isWilliamson) {
         // Williamson County flow — use Williamson lookup API
         const williamsonAcct = searchPin || acct;
@@ -245,6 +259,7 @@ export default function ResultsContent() {
           neighborhoodStats: wp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(wp.comps || []);
       } else if (isRockwall) {
         // Rockwall County flow — use Rockwall lookup API
         const rockwallAcct = searchPin || acct;
@@ -293,6 +308,7 @@ export default function ResultsContent() {
           neighborhoodStats: rp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(rp.comps || []);
       } else if (isFortBend) {
         // Fort Bend County flow — use Fort Bend lookup API
         const fortbendAcct = searchPin || acct;
@@ -341,6 +357,7 @@ export default function ResultsContent() {
           neighborhoodStats: fp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(fp.comps || []);
       } else if (isBexar) {
         // Bexar County flow — use Bexar lookup API
         const bexarAcct = searchPin || acct;
@@ -389,6 +406,7 @@ export default function ResultsContent() {
           neighborhoodStats: bp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(bp.comps || []);
       } else if (isTarrant) {
         // Tarrant County flow — use Tarrant lookup API
         const tarrantAcct = searchPin || acct;
@@ -439,6 +457,7 @@ export default function ResultsContent() {
           neighborhoodStats: tp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(tp.comps || []);
       } else if (isAustin) {
         // Austin flow — use Austin lookup API
         const austinAcct = searchPin || acct;
@@ -487,6 +506,7 @@ export default function ResultsContent() {
           neighborhoodStats: ap.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(ap.comps || []);
       } else if (isDallas) {
         // Dallas flow — use Dallas lookup API
         const dallasAcct = searchPin || acct;
@@ -535,6 +555,7 @@ export default function ResultsContent() {
           neighborhoodStats: dp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(dp.comps || []);
       } else if (isHouston) {
         // Houston flow — use Houston lookup API
         const houstonAcct = searchPin || acct;
@@ -584,6 +605,7 @@ export default function ResultsContent() {
           neighborhoodStats: hp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(hp.comps || []);
       } else {
         // Cook County flow — existing logic
         const params = new URLSearchParams();
@@ -878,6 +900,9 @@ export default function ResultsContent() {
                     ~${estimatedMarketValue.toLocaleString()} market value
                   </div>
                 )}
+                <div className={`text-xs ${textMuted} mt-1`}>
+                  Based on 2025 certified appraisal data from {cadName}
+                </div>
               </div>
             </div>
             
@@ -942,6 +967,9 @@ export default function ResultsContent() {
                 <div className={`flex-1 w-full rounded-xl p-4 bg-[#f5f0e8] border border-[#e8dcc8]`}>
                   <div className={`text-xs font-medium uppercase tracking-wide text-[#8a7d6b]`}>Est. Annual Tax Bill</div>
                   <div className={`text-2xl sm:text-3xl font-bold mt-1 text-[#1a1a1a]`}>${estimatedTaxBill.toLocaleString()}</div>
+                  <div className="text-[10px] text-[#8a7d6b]/70 mt-1">
+                    Estimate based on average {countyName} tax rate of ~{isTexas ? avgTaxRate : "2.0"}%. Your actual bill may vary by taxing jurisdiction.
+                  </div>
                 </div>
                 <div className="hidden sm:flex items-center">
                   <svg className={`w-6 h-6 text-[#999]`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -990,16 +1018,13 @@ export default function ResultsContent() {
                 <span className="text-lg flex-shrink-0">⏰</span>
                 <div>
                   <span className={`text-sm font-medium text-[#8a7d6b]`}>
-                    {isTexas 
-                      ? "2026 protest season opens soon — get your analysis ready now" 
-                      : "Filing deadlines vary by township — check yours before it closes"
+                    {isHouston 
+                      ? "HCAD is mailing 2026 notices now. Protest deadline: May 15, 2026 (or 30 days after your notice)."
+                      : isTexas
+                      ? "Appraisal notices typically mail mid-April. Protest deadline: May 15, 2026 (or 30 days after your notice)."
+                      : "Appeals open by township on a rotating schedule. Check cookcountyboardofreview.com for your township's deadline."
                     }
                   </span>
-                  {isTexas && (
-                    <span className={`text-sm text-[#8a7d6b]/60`}>
-                      {" "}• Notices arrive late March — filing early gets the best results
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -1072,6 +1097,14 @@ export default function ResultsContent() {
                     <span> • Pays for itself in {estimatedSavings >= 588 ? "1 month" : estimatedSavings >= 98 ? `${Math.ceil(49 / (estimatedSavings / 12))} months` : "under a year"}</span>
                   )}
                 </p>
+                <div className="mt-3 flex items-center gap-2 justify-center sm:justify-start">
+                  <div className="inline-flex items-center gap-1.5 bg-[#faf3e0] border border-[#e8d5a8] text-[#8a7d6b] px-3 py-1.5 rounded-full text-xs font-medium">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    </svg>
+                    100% Money-Back Guarantee
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1194,6 +1227,112 @@ export default function ResultsContent() {
           </div>
         )}
 
+        {/* Comparable Properties Preview */}
+        {comps.length > 0 && hasAnalysis && estimatedSavings > 0 && (
+          <div className="mt-3 rounded-2xl bg-white border border-black/[0.06] overflow-hidden">
+            <div className="p-5 sm:p-6 md:p-8 pb-0 sm:pb-0 md:pb-0">
+              <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-1">COMPARABLE PROPERTIES</div>
+              <p className="text-sm text-[#666] mb-4">
+                These nearby homes support a lower {isTexas ? "appraised value" : "assessment"} for your property.
+              </p>
+            </div>
+            <div className="px-5 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
+              {/* Comp cards */}
+              <div className="space-y-3">
+                {comps.slice(0, 3).map((comp, i) => (
+                  <div key={comp.acct || i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-xl bg-[#f7f6f3] border border-black/[0.04]">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-[#1a1a1a] text-sm truncate">{comp.address}</div>
+                      <div className="text-xs text-[#999] mt-0.5">
+                        {comp.sqft > 0 && <span>{comp.sqft.toLocaleString()} sq ft</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
+                      <div className="text-right">
+                        <div className="text-xs text-[#999]">{isTexas ? "Appraised" : "Assessed"}</div>
+                        <div className="font-semibold text-sm text-[#1a1a1a]">${comp.assessedVal.toLocaleString()}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-[#999]">$/sq ft</div>
+                        <div className="font-semibold text-sm text-[#1a6b5a]">${comp.perSqft.toFixed(0)}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Blurred teaser rows */}
+              {comps.length > 3 && (
+                <div className="relative mt-3">
+                  <div className="space-y-3 select-none pointer-events-none" style={{ filter: "blur(6px)" }} aria-hidden="true">
+                    {comps.slice(3, 5).map((comp, i) => (
+                      <div key={`blur-${i}`} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-xl bg-[#f7f6f3] border border-black/[0.04]">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-[#1a1a1a] text-sm">123 Example Street</div>
+                          <div className="text-xs text-[#999] mt-0.5">2,100 sq ft</div>
+                        </div>
+                        <div className="flex items-center gap-4 sm:gap-6">
+                          <div className="text-right">
+                            <div className="text-xs text-[#999]">{isTexas ? "Appraised" : "Assessed"}</div>
+                            <div className="font-semibold text-sm text-[#1a1a1a]">$350,000</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-[#999]">$/sq ft</div>
+                            <div className="font-semibold text-sm text-[#1a6b5a]">$167</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-xl px-5 py-3 shadow-sm border border-black/[0.06] text-center">
+                      <div className="text-sm font-medium text-[#1a1a1a]">
+                        {Math.max(comps.length - 3, 2)} more comparables in your appeal packet
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* CTA */}
+              <button
+                onClick={async () => {
+                  if (checkoutLoading) return;
+                  setCheckoutLoading(true);
+                  try {
+                    const res = await fetch("/api/create-checkout", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        propertyId: property.pin,
+                        jurisdiction: jurisdictionValue,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (data.url) {
+                      window.location.href = data.url;
+                    } else {
+                      alert("Failed to start checkout. Please try again.");
+                      setCheckoutLoading(false);
+                    }
+                  } catch {
+                    alert("Failed to start checkout. Please try again.");
+                    setCheckoutLoading(false);
+                  }
+                }}
+                disabled={checkoutLoading}
+                className={`mt-5 w-full px-6 py-3.5 rounded-xl font-semibold text-base transition-all bg-[#1a6b5a] text-white ${checkoutLoading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'}`}
+              >
+                {checkoutLoading ? "Processing..." : `Get Your Full Appeal Packet — $49`}
+              </button>
+              <p className="mt-3 text-center text-xs text-[#999]">
+                🛡️ 100% money-back guarantee if you&apos;re not satisfied
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Neighborhood Stats (Houston) */}
         {isTexas && property.neighborhoodStats && (
           <div className="mt-3 rounded-2xl bg-white border border-black/[0.06] p-5 sm:p-6 md:p-8">
@@ -1221,7 +1360,7 @@ export default function ResultsContent() {
               )}
             </div>
             <p className="mt-3 text-sm text-[#999]">
-              Based on {property.neighborhoodStats.overAssessedCount.toLocaleString()} over-appraised properties in your neighborhood. Median appraisal: ${property.neighborhoodStats.medianPerSqft}/sqft.
+              Based on {property.neighborhoodStats.totalProperties.toLocaleString()} residential properties in your neighborhood. Source: {cadName} 2025 certified data.
             </p>
           </div>
         )}
@@ -1321,6 +1460,10 @@ export default function ResultsContent() {
                     <span className={`text-[#1a6b5a]`}>✓</span>
                     <span className={`font-medium text-[#1a6b5a]`}>Ready in 5 minutes</span>
                   </div>
+                  <div className="flex items-start gap-2">
+                    <span className={`text-[#1a6b5a]`}>✓</span>
+                    <span className={`font-medium text-[#1a6b5a]`}>100% money-back guarantee</span>
+                  </div>
                 </div>
               </div>
 
@@ -1392,6 +1535,12 @@ export default function ResultsContent() {
                 </div>
               </div>
               <div className="last:border-b-0">
+                <div className="text-base font-medium text-[#1a1a1a] py-4 px-6">What if I&apos;m not satisfied?</div>
+                <div className="text-sm text-[#666] px-6 pb-4">
+                  We offer a 100% money-back guarantee. If you&apos;re not happy with your filing package for any reason, email us at hello@getovertaxed.com and we&apos;ll refund your $49 — no questions asked.
+                </div>
+              </div>
+              <div className="last:border-b-0">
                 <div className="text-base font-medium text-[#1a1a1a] py-4 px-6">What&apos;s included in the $49 filing package?</div>
                 <div className="text-sm text-[#666] px-6 pb-4">
                   A complete, ready-to-file package: {compCount} comparable properties with detailed analysis (addresses, values, $/sqft), a professional {isTexas ? "hearing script you can read word-for-word at your hearing" : "evidence brief for the Board of Review"}, and step-by-step instructions with screenshots showing exactly where to click. Everything is delivered instantly to your email as a downloadable PDF.
@@ -1453,6 +1602,9 @@ export default function ResultsContent() {
               </button>
               <p className="mt-3 text-xs text-[#666]">
                 🔒 Secure payment • Instant delivery • One-time filing fee
+              </p>
+              <p className="mt-1 text-xs text-[#666]">
+                🛡️ 100% money-back guarantee — not satisfied? We&apos;ll refund every penny.
               </p>
             </div>
           </div>
