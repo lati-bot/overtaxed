@@ -125,8 +125,9 @@ function SuccessPage() {
 
     const fetchData = async () => {
       try {
-        // Detect jurisdiction from token to route directly (no waterfall)
-        const detected = detectJurisdiction(accessToken);
+        // Detect jurisdiction from token, URL param, or fall back to Cook County
+        const urlJurisdiction = searchParams.get("jurisdiction");
+        const detected = detectJurisdiction(accessToken) || urlJurisdiction;
 
         // Map jurisdiction to endpoint
         const jurisdictionEndpoints: Record<string, string> = {
@@ -226,7 +227,7 @@ function SuccessPage() {
 
   if (error) {
     // Determine user-friendly message based on error type
-    const isSessionError = error.includes("Not a") || error.includes("Session") || error.includes("Payment");
+    const isSessionError = error.includes("Not a") || error.includes("Session") || error.includes("Payment") || error.includes("not found") || error.includes("not completed");
     const friendlyTitle = isSessionError ? "We couldn't load your appeal package" : "Something went wrong";
     const friendlyMessage = isSessionError
       ? "This checkout link may have expired or already been used. Check your email for a direct link to your package, or contact us for help."

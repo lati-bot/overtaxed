@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       client_reference_id: clientReferenceId,
-      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}&jurisdiction=${jurisdiction || "cook"}`,
       cancel_url: cancelUrl,
     }, {
       idempotencyKey,
