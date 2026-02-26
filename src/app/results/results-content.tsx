@@ -50,6 +50,14 @@ interface PropertyData {
   } | null;
 }
 
+interface CompProperty {
+  acct: string;
+  address: string;
+  sqft: number;
+  assessedVal: number;
+  perSqft: number;
+}
+
 interface MultipleResults {
   pin: string;
   address: string;
@@ -69,6 +77,7 @@ export default function ResultsContent() {
   const [uploadInProgress, setUploadInProgress] = useState<boolean>(false);
   const [mounted, setMounted] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [comps, setComps] = useState<CompProperty[]>([]);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
@@ -152,6 +161,7 @@ export default function ResultsContent() {
           neighborhoodStats: cp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(cp.comps || []);
       } else if (isDenton) {
         // Denton County flow — use Denton lookup API
         const dentonAcct = searchPin || acct;
@@ -200,6 +210,7 @@ export default function ResultsContent() {
           neighborhoodStats: dp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(dp.comps || []);
       } else if (isWilliamson) {
         // Williamson County flow — use Williamson lookup API
         const williamsonAcct = searchPin || acct;
@@ -248,6 +259,7 @@ export default function ResultsContent() {
           neighborhoodStats: wp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(wp.comps || []);
       } else if (isRockwall) {
         // Rockwall County flow — use Rockwall lookup API
         const rockwallAcct = searchPin || acct;
@@ -296,6 +308,7 @@ export default function ResultsContent() {
           neighborhoodStats: rp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(rp.comps || []);
       } else if (isFortBend) {
         // Fort Bend County flow — use Fort Bend lookup API
         const fortbendAcct = searchPin || acct;
@@ -344,6 +357,7 @@ export default function ResultsContent() {
           neighborhoodStats: fp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(fp.comps || []);
       } else if (isBexar) {
         // Bexar County flow — use Bexar lookup API
         const bexarAcct = searchPin || acct;
@@ -392,6 +406,7 @@ export default function ResultsContent() {
           neighborhoodStats: bp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(bp.comps || []);
       } else if (isTarrant) {
         // Tarrant County flow — use Tarrant lookup API
         const tarrantAcct = searchPin || acct;
@@ -442,6 +457,7 @@ export default function ResultsContent() {
           neighborhoodStats: tp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(tp.comps || []);
       } else if (isAustin) {
         // Austin flow — use Austin lookup API
         const austinAcct = searchPin || acct;
@@ -490,6 +506,7 @@ export default function ResultsContent() {
           neighborhoodStats: ap.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(ap.comps || []);
       } else if (isDallas) {
         // Dallas flow — use Dallas lookup API
         const dallasAcct = searchPin || acct;
@@ -538,6 +555,7 @@ export default function ResultsContent() {
           neighborhoodStats: dp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(dp.comps || []);
       } else if (isHouston) {
         // Houston flow — use Houston lookup API
         const houstonAcct = searchPin || acct;
@@ -587,6 +605,7 @@ export default function ResultsContent() {
           neighborhoodStats: hp.neighborhoodStats || null,
         });
         setAnalysisAvailable(true);
+        setComps(hp.comps || []);
       } else {
         // Cook County flow — existing logic
         const params = new URLSearchParams();
@@ -1196,6 +1215,109 @@ export default function ResultsContent() {
                   })}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {/* Comparable Properties Preview */}
+        {comps.length > 0 && hasAnalysis && estimatedSavings > 0 && (
+          <div className="mt-3 rounded-2xl bg-white border border-black/[0.06] overflow-hidden">
+            <div className="p-5 sm:p-6 md:p-8 pb-0 sm:pb-0 md:pb-0">
+              <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-1">COMPARABLE PROPERTIES</div>
+              <p className="text-sm text-[#666] mb-4">
+                These nearby homes support a lower {isTexas ? "appraised value" : "assessment"} for your property.
+              </p>
+            </div>
+            <div className="px-5 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
+              {/* Comp cards */}
+              <div className="space-y-3">
+                {comps.slice(0, 3).map((comp, i) => (
+                  <div key={comp.acct || i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-xl bg-[#f7f6f3] border border-black/[0.04]">
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-[#1a1a1a] text-sm truncate">{comp.address}</div>
+                      <div className="text-xs text-[#999] mt-0.5">
+                        {comp.sqft > 0 && <span>{comp.sqft.toLocaleString()} sq ft</span>}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 sm:gap-6 flex-shrink-0">
+                      <div className="text-right">
+                        <div className="text-xs text-[#999]">{isTexas ? "Appraised" : "Assessed"}</div>
+                        <div className="font-semibold text-sm text-[#1a1a1a]">${comp.assessedVal.toLocaleString()}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-[#999]">$/sq ft</div>
+                        <div className="font-semibold text-sm text-[#1a6b5a]">${comp.perSqft.toFixed(0)}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Blurred teaser rows */}
+              {comps.length > 3 && (
+                <div className="relative mt-3">
+                  <div className="space-y-3 select-none pointer-events-none" style={{ filter: "blur(6px)" }} aria-hidden="true">
+                    {comps.slice(3, 5).map((comp, i) => (
+                      <div key={`blur-${i}`} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-xl bg-[#f7f6f3] border border-black/[0.04]">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-[#1a1a1a] text-sm">123 Example Street</div>
+                          <div className="text-xs text-[#999] mt-0.5">2,100 sq ft</div>
+                        </div>
+                        <div className="flex items-center gap-4 sm:gap-6">
+                          <div className="text-right">
+                            <div className="text-xs text-[#999]">{isTexas ? "Appraised" : "Assessed"}</div>
+                            <div className="font-semibold text-sm text-[#1a1a1a]">$350,000</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-xs text-[#999]">$/sq ft</div>
+                            <div className="font-semibold text-sm text-[#1a6b5a]">$167</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-xl px-5 py-3 shadow-sm border border-black/[0.06] text-center">
+                      <div className="text-sm font-medium text-[#1a1a1a]">
+                        {Math.max(comps.length - 3, 2)} more comparables in your appeal packet
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* CTA */}
+              <button
+                onClick={async () => {
+                  if (checkoutLoading) return;
+                  setCheckoutLoading(true);
+                  try {
+                    const res = await fetch("/api/create-checkout", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        propertyId: property.pin,
+                        jurisdiction: jurisdictionValue,
+                      }),
+                    });
+                    const data = await res.json();
+                    if (data.url) {
+                      window.location.href = data.url;
+                    } else {
+                      alert("Failed to start checkout. Please try again.");
+                      setCheckoutLoading(false);
+                    }
+                  } catch {
+                    alert("Failed to start checkout. Please try again.");
+                    setCheckoutLoading(false);
+                  }
+                }}
+                disabled={checkoutLoading}
+                className={`mt-5 w-full px-6 py-3.5 rounded-xl font-semibold text-base transition-all bg-[#1a6b5a] text-white ${checkoutLoading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'}`}
+              >
+                {checkoutLoading ? "Processing..." : `Get Your Full Appeal Packet — $49`}
+              </button>
             </div>
           </div>
         )}
