@@ -82,8 +82,10 @@ export async function GET(request: NextRequest) {
       console.error("[rockwall/lookup] Neighborhood stats error:", err);
     }
 
-    // Format comps
-    const comps = (prop.comps || []).map((c: any) => ({
+    // Format comps — filter out bad data (zero value/sqft)
+    const comps = (prop.comps || [])
+      .filter((c: any) => (c.assessed_val || 0) > 0 && (c.sqft || 0) > 0 && (c.psf || 0) > 1)
+      .map((c: any) => ({
       acct: c.acct,
       address: c.address,
       sqft: c.sqft || 0,
