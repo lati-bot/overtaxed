@@ -836,6 +836,14 @@ export default function ResultsContent() {
   const multiYearSavings = estimatedSavings * multiYearMultiplier;
   const multiYearLabel = isTexas ? "5 years" : "3 years";
 
+  // Per-sqft calculations for neighbor comparison
+  const buildingSqFt = property.characteristics?.buildingSqFt || 0;
+  const yourPerSqft = buildingSqFt > 0 ? Math.round(currentAssessment / buildingSqFt) : 0;
+  const neighborPerSqft = property.neighborhoodStats?.medianPerSqft || (buildingSqFt > 0 && fairAssessment > 0 ? Math.round(fairAssessment / buildingSqFt) : 0);
+  const maxPerSqft = Math.max(yourPerSqft, neighborPerSqft, 1);
+  const assessmentGap = reduction; // currentAssessment - fairAssessment
+  const overAssessedCount = property.neighborhoodStats?.overAssessedCount || 0;
+
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
       <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f7f6f3]/80"} backdrop-blur-xl border-b ${borderColor}`}>
