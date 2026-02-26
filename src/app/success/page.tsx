@@ -125,8 +125,9 @@ function SuccessPage() {
 
     const fetchData = async () => {
       try {
-        // Detect jurisdiction from token to route directly (no waterfall)
-        const detected = detectJurisdiction(accessToken);
+        // Detect jurisdiction from token, URL param, or fall back to Cook County
+        const urlJurisdiction = searchParams.get("jurisdiction");
+        const detected = detectJurisdiction(accessToken) || urlJurisdiction;
 
         // Map jurisdiction to endpoint
         const jurisdictionEndpoints: Record<string, string> = {
