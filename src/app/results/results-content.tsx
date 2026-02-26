@@ -86,6 +86,9 @@ export default function ResultsContent() {
   const isRockwall = jurisdiction === "rockwall";
   const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend || isRockwall || isBexar;
   const marketLabel = isBexar ? "BCAD" : isRockwall ? "RCAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "DCAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
+  const cadName = isBexar ? "BCAD" : isRockwall ? "Rockwall CAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "Denton CAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isHouston ? "HCAD" : "Cook County Assessor";
+  const countyName = isBexar ? "Bexar County" : isRockwall ? "Rockwall County" : isFortBend ? "Fort Bend County" : isWilliamson ? "Williamson County" : isDenton ? "Denton County" : isTarrant ? "Tarrant County" : isCollin ? "Collin County" : isAustin ? "Travis County" : isDallas ? "Dallas County" : isHouston ? "Harris County" : "Cook County";
+  const avgTaxRate = isBexar ? "2.1" : isWilliamson ? "2.1" : "2.2";
   const jurisdictionValue = isBexar ? "bexar" : isRockwall ? "rockwall" : isFortBend ? "fortbend" : isWilliamson ? "williamson" : isDenton ? "denton" : isTarrant ? "tarrant" : isCollin ? "collin" : isAustin ? "austin" : isDallas ? "dallas" : isTexas ? "houston" : "cook_county";
 
   useEffect(() => {
@@ -878,6 +881,9 @@ export default function ResultsContent() {
                     ~${estimatedMarketValue.toLocaleString()} market value
                   </div>
                 )}
+                <div className={`text-xs ${textMuted} mt-1`}>
+                  Based on 2025 certified appraisal data from {cadName}
+                </div>
               </div>
             </div>
             
@@ -942,6 +948,9 @@ export default function ResultsContent() {
                 <div className={`flex-1 w-full rounded-xl p-4 bg-[#f5f0e8] border border-[#e8dcc8]`}>
                   <div className={`text-xs font-medium uppercase tracking-wide text-[#8a7d6b]`}>Est. Annual Tax Bill</div>
                   <div className={`text-2xl sm:text-3xl font-bold mt-1 text-[#1a1a1a]`}>${estimatedTaxBill.toLocaleString()}</div>
+                  <div className="text-[10px] text-[#8a7d6b]/70 mt-1">
+                    Estimate based on average {countyName} tax rate of ~{isTexas ? avgTaxRate : "2.0"}%. Your actual bill may vary by taxing jurisdiction.
+                  </div>
                 </div>
                 <div className="hidden sm:flex items-center">
                   <svg className={`w-6 h-6 text-[#999]`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -990,16 +999,13 @@ export default function ResultsContent() {
                 <span className="text-lg flex-shrink-0">⏰</span>
                 <div>
                   <span className={`text-sm font-medium text-[#8a7d6b]`}>
-                    {isTexas 
-                      ? "2026 protest season opens soon — get your analysis ready now" 
-                      : "Filing deadlines vary by township — check yours before it closes"
+                    {isHouston 
+                      ? "HCAD is mailing 2026 notices now. Protest deadline: May 15, 2026 (or 30 days after your notice)."
+                      : isTexas
+                      ? "Appraisal notices typically mail mid-April. Protest deadline: May 15, 2026 (or 30 days after your notice)."
+                      : "Appeals open by township on a rotating schedule. Check cookcountyboardofreview.com for your township's deadline."
                     }
                   </span>
-                  {isTexas && (
-                    <span className={`text-sm text-[#8a7d6b]/60`}>
-                      {" "}• Notices arrive late March — filing early gets the best results
-                    </span>
-                  )}
                 </div>
               </div>
 
@@ -1221,7 +1227,7 @@ export default function ResultsContent() {
               )}
             </div>
             <p className="mt-3 text-sm text-[#999]">
-              Based on {property.neighborhoodStats.overAssessedCount.toLocaleString()} over-appraised properties in your neighborhood. Median appraisal: ${property.neighborhoodStats.medianPerSqft}/sqft.
+              Based on {property.neighborhoodStats.totalProperties.toLocaleString()} residential properties in your neighborhood. Source: {cadName} 2025 certified data.
             </p>
           </div>
         )}
