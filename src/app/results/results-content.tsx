@@ -959,61 +959,100 @@ export default function ResultsContent() {
             )}
           </div>
 
-          {/* Over-assessed hero + CTA */}
+          {/* Over-assessed hero — unfairness/loss framing */}
           {hasAnalysis && estimatedSavings > 0 && (
             <div className={`p-5 sm:p-6 md:p-8 bg-[#f7f6f3] border-t border-black/[0.06]`}>
-              <div className="inline-flex items-center gap-2 bg-[#e8f4f0] text-[#1a6b5a] font-medium px-4 py-2 rounded-full text-sm">
+              {/* 1. HERO — The Error Frame */}
+              <div className="inline-flex items-center gap-2 bg-[#fef3c7] text-[#b45309] font-medium px-4 py-2 rounded-full text-sm">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
                 </svg>
-                {isTexas ? "You\u2019re Over-Appraised" : "You\u2019re Over-Assessed"}
+                {isTexas ? "Over-Appraised" : "Over-Assessed"}
               </div>
 
-              {/* Tax bill comparison — the hero moment */}
-              <div className="mt-5 flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-                <div className={`flex-1 w-full rounded-xl p-4 bg-[#f5f0e8] border border-[#e8dcc8]`}>
-                  <div className={`text-xs font-medium uppercase tracking-wide text-[#8a7d6b]`}>Est. Annual Tax Bill</div>
-                  <div className={`text-2xl sm:text-3xl font-bold mt-1 text-[#1a1a1a]`}>${estimatedTaxBill.toLocaleString()}</div>
-                  <div className="text-[10px] text-[#8a7d6b]/70 mt-1">
-                    Estimate based on average {countyName} tax rate of ~{isTexas ? avgTaxRate : "2.0"}%. Your actual bill may vary by taxing jurisdiction.
-                  </div>
-                </div>
-                <div className="hidden sm:flex items-center">
-                  <svg className={`w-6 h-6 text-[#999]`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </div>
-                <div className="flex sm:hidden items-center">
-                  <svg className={`w-6 h-6 text-[#999]`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
-                  </svg>
-                </div>
-                <div className={`flex-1 w-full rounded-xl p-4 bg-[#e8f4f0] border border-[#1a6b5a]/15`}>
-                  <div className={`text-xs font-medium uppercase tracking-wide text-[#1a6b5a]`}>After {isTexas ? "Protest" : "Appeal"}</div>
-                  <div className={`text-2xl sm:text-3xl font-bold mt-1 text-[#1a6b5a]`}>${estimatedTaxBillAfter.toLocaleString()}</div>
-                </div>
-              </div>
+              <h2 className="mt-4 text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a1a1a]">
+                Your home is {isTexas ? "over-appraised" : "over-assessed"} by{" "}
+                <span className="text-[#b45309]">${assessmentGap.toLocaleString()}</span>
+              </h2>
 
-              {/* Savings highlight bar */}
-              <div className={`mt-4 rounded-xl p-4 ${isDark ? "bg-black/20" : "bg-white/70"} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}>
-                <div className="flex items-center gap-6 flex-wrap">
-                  <div>
-                    <div className={`text-xs ${textMuted}`}>Annual Savings</div>
-                    <div className={`text-xl font-bold text-[#1a6b5a]`}>${estimatedSavings.toLocaleString()}/yr</div>
+              {yourPerSqft > 0 && neighborPerSqft > 0 && (
+                <p className="mt-2 text-base sm:text-lg text-[#666]">
+                  {cadName} values your home at <strong>${yourPerSqft}/sqft</strong>.{" "}
+                  {compCount} comparable homes average <strong>${neighborPerSqft}/sqft</strong>.
+                </p>
+              )}
+
+              {/* 2. THE MONEY — Cumulative */}
+              <div className="mt-6 rounded-xl bg-white border border-black/[0.06] p-5">
+                <div className="text-sm text-[#666] font-medium">You&apos;re overpaying</div>
+                <div className="text-3xl sm:text-4xl font-bold text-[#1a1a1a] mt-1">
+                  ~${estimatedSavings.toLocaleString()}<span className="text-lg sm:text-xl font-semibold text-[#666]">/year</span>
+                </div>
+                <div className="mt-2 text-base sm:text-lg text-[#b45309] font-semibold">
+                  That&apos;s ${multiYearSavings.toLocaleString()} over {multiYearLabel} if you don&apos;t {isTexas ? "protest" : "appeal"}
+                </div>
+                <div className="mt-3 flex items-center gap-4 flex-wrap text-sm text-[#666]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#1a6b5a]"></span>
+                    Est. tax bill: ${estimatedTaxBill.toLocaleString()}/yr
                   </div>
-                  <div>
-                    <div className={`text-xs ${textMuted}`}>Over {multiYearLabel}</div>
-                    <div className={`text-xl font-bold text-[#1a6b5a]`}>${multiYearSavings.toLocaleString()}</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-[#e8f4f0] border border-[#1a6b5a]"></span>
+                    After {isTexas ? "protest" : "appeal"}: ${estimatedTaxBillAfter.toLocaleString()}/yr
                   </div>
-                  <div>
-                    <div className={`text-xs ${textMuted}`}>Tax Bill Reduction</div>
-                    <div className={`text-xl font-bold text-[#1a6b5a]`}>{taxBillReductionPct}%</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-[#1a6b5a]">↓ {taxBillReductionPct}% reduction</span>
                   </div>
                 </div>
               </div>
 
-              <p className={`mt-3 text-sm text-[#666]`}>
-                Based on {compCount} comparable properties in your neighborhood.
+              {/* 3. NEIGHBOR COMPARISON — the dagger */}
+              {yourPerSqft > 0 && neighborPerSqft > 0 && (
+                <div className="mt-4 rounded-xl bg-white border border-black/[0.06] p-5">
+                  <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-4">YOUR HOME VS. YOUR NEIGHBORS</div>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {/* Your home bar */}
+                    <div className="flex-1">
+                      <div className="flex items-baseline justify-between mb-1.5">
+                        <span className="text-sm font-medium text-[#1a1a1a]">Your home</span>
+                        <span className="text-lg font-bold text-[#b45309]">${yourPerSqft}/sqft</span>
+                      </div>
+                      <div className="w-full bg-[#f7f6f3] rounded-full h-4 overflow-hidden">
+                        <div 
+                          className="h-full bg-[#b45309] rounded-full transition-all duration-700"
+                          style={{ width: `${Math.round((yourPerSqft / maxPerSqft) * 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    {/* Neighbors bar */}
+                    <div className="flex-1">
+                      <div className="flex items-baseline justify-between mb-1.5">
+                        <span className="text-sm font-medium text-[#1a1a1a]">Your neighbors</span>
+                        <span className="text-lg font-bold text-[#1a6b5a]">${neighborPerSqft}/sqft</span>
+                      </div>
+                      <div className="w-full bg-[#f7f6f3] rounded-full h-4 overflow-hidden">
+                        <div 
+                          className="h-full bg-[#1a6b5a] rounded-full transition-all duration-700"
+                          style={{ width: `${Math.round((neighborPerSqft / maxPerSqft) * 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  {overAssessedCount > 0 && (
+                    <p className="mt-3 text-sm text-[#b45309] font-medium">
+                      {overAssessedCount} comparable homes in your neighborhood are assessed lower than yours.
+                    </p>
+                  )}
+                  {overAssessedCount === 0 && compCount > 0 && (
+                    <p className="mt-3 text-sm text-[#b45309] font-medium">
+                      {compCount} comparable homes in your area are assessed lower than yours.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <p className={`mt-4 text-sm text-[#666]`}>
+                Based on {compCount} comparable properties.
                 {isTexas 
                   ? " A successful protest this year establishes a lower baseline for future years."
                   : " Cook County reassesses every 3 years — a reduction now saves you each year until the next reassessment."
@@ -1035,12 +1074,12 @@ export default function ResultsContent() {
                 </div>
               </div>
 
-              {/* CTA */}
+              {/* 4. CTA */}
               <div className={`mt-5 pt-5 border-t border-black/[0.06]`}>
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div>
-                    <div className={`font-semibold text-lg ${isDark ? "text-white" : "text-gray-900"}`}>
-                      Start Your {isTexas ? "Protest" : "Appeal"} — $49
+                    <div className={`font-semibold text-lg text-gray-900`}>
+                      Get everything you need to fix this — $49
                     </div>
                     <div className={`text-sm mt-2 space-y-1 text-[#666]`}>
                       <div className="flex items-start gap-2">
@@ -1094,7 +1133,7 @@ export default function ResultsContent() {
                         Processing...
                       </span>
                     ) : (
-                      `File My ${isTexas ? "Protest" : "Appeal"} — $49`
+                      `Fix This Now — $49`
                     )}
                   </button>
                 </div>
@@ -1125,14 +1164,14 @@ export default function ResultsContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <div className="inline-flex items-center gap-2 bg-[#f5f0e8] text-[#8a7d6b] font-medium px-4 py-2 rounded-full text-sm mb-3">
-                  🎉 {isTexas ? "Fairly Appraised" : "Fairly Assessed"}
+                <div className="inline-flex items-center gap-2 bg-[#e8f4f0] text-[#1a6b5a] font-medium px-4 py-2 rounded-full text-sm mb-3">
+                  ✓ {isTexas ? "Fairly Appraised" : "Fairly Assessed"}
                 </div>
-                <div className="text-lg font-medium text-[#1a1a1a]">
-                  Good news — your {isTexas ? "appraised value" : "assessment"} is in line with similar homes
+                <div className="text-xl font-semibold text-[#1a1a1a]">
+                  Great news — you&apos;re fairly assessed
                 </div>
                 <p className="mt-2 text-[#666]">
-                  Based on comparable properties, no appeal needed!
+                  Your {isTexas ? "appraised value" : "assessment"} is in line with comparable homes in your area. No {isTexas ? "protest" : "appeal"} needed right now.
                 </p>
                 {isTexas && (
                   <p className="mt-3 text-sm text-[#999]">
@@ -1561,11 +1600,11 @@ export default function ResultsContent() {
         {hasAnalysis && estimatedSavings > 0 && (
           <div className="mt-3 rounded-2xl bg-[#e8f4f0] p-8 md:p-12">
             <div className="text-center">
-              <div className="text-2xl md:text-3xl font-normal text-[#1a1a1a]">
-                You could be saving ${estimatedSavings.toLocaleString()}/year
+              <div className="text-2xl md:text-3xl font-bold text-[#1a1a1a]">
+                Don&apos;t overpay ${multiYearSavings.toLocaleString()} over {multiYearLabel}
               </div>
               <p className="text-sm text-[#666] mt-2">
-                That&apos;s ${multiYearSavings.toLocaleString()} over {multiYearLabel}. Your filing package is ready — don&apos;t miss your window.
+                Your home is {isTexas ? "over-appraised" : "over-assessed"} by ${assessmentGap.toLocaleString()}. Get everything you need to fix it.
               </p>
               <button 
                 onClick={async () => {
