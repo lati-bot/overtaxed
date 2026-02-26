@@ -94,7 +94,6 @@ export default function ResultsContent() {
   const isBexar = jurisdiction === "bexar";
   const isRockwall = jurisdiction === "rockwall";
   const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend || isRockwall || isBexar;
-  const marketLabel = isBexar ? "BCAD" : isRockwall ? "RCAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "DCAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isTexas ? "HCAD" : "Cook County";
   const cadName = isBexar ? "BCAD" : isRockwall ? "Rockwall CAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "Denton CAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isHouston ? "HCAD" : "Cook County Assessor";
   const countyName = isBexar ? "Bexar County" : isRockwall ? "Rockwall County" : isFortBend ? "Fort Bend County" : isWilliamson ? "Williamson County" : isDenton ? "Denton County" : isTarrant ? "Tarrant County" : isCollin ? "Collin County" : isAustin ? "Travis County" : isDallas ? "Dallas County" : isHouston ? "Harris County" : "Cook County";
   const avgTaxRate = isBexar ? "2.1" : isWilliamson ? "2.1" : "2.2";
