@@ -116,19 +116,57 @@ function SearchBar({
                       onMouseDown={(e: React.MouseEvent) => { e.preventDefault(); handleSelectSuggestion(suggestion); }}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        {/* [MUST FIX #2] Title case addresses */}
                         <div className="font-medium text-[#1a1a1a]">{toTitleCase(suggestion.address)}</div>
-                        {/* [MUST FIX #1] Uniform teal badge */}
                         <span className={`${JURISDICTION_BADGE} whitespace-nowrap flex-shrink-0`}>
                           {JURISDICTION_LABELS[suggestion.jurisdiction] || suggestion.jurisdiction}
                         </span>
                       </div>
-                      {/* [MUST FIX #2] Title case city */}
                       <div className="text-sm mt-0.5 text-[#777]">
                         {toTitleCase(suggestion.city)}, {suggestion.jurisdiction === "cook_county_il" ? `IL ${(suggestion.zip || "").split('-')[0]}` : "TX"}
                       </div>
                     </button>
                   ))}
+                </div>
+              )}
+              {/* Inline "not found" email capture in dropdown area */}
+              {noMatch && showSuggestions && (
+                <div
+                  ref={suggestionsRef}
+                  className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-2xl z-50 bg-white border border-black/[0.08] p-5"
+                >
+                  {notifySubmitted ? (
+                    <div className="text-center py-2">
+                      <div className="text-[#1a6b5a] mb-2">
+                        <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                      <p className="font-medium text-[#1a1a1a] text-sm">Got it! We&apos;ll email you when we add your area.</p>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="font-medium text-[#1a1a1a] text-sm">
+                        We don&apos;t cover &ldquo;{address.trim().length > 30 ? address.trim().slice(0, 30) + "…" : address.trim()}&rdquo; yet
+                      </p>
+                      <p className="text-xs text-[#999] mt-1 mb-3">Want us to notify you when we expand?</p>
+                      <div className="flex gap-2" onMouseDown={(e: React.MouseEvent) => e.preventDefault()}>
+                        <input
+                          type="email"
+                          placeholder="you@email.com"
+                          value={notifyEmail}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotifyEmail(e.target.value)}
+                          onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter") { e.preventDefault(); handleNotifySubmit(e); } }}
+                          className="flex-1 h-10 px-3 rounded-lg text-sm bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/10"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleNotifySubmit}
+                          disabled={notifyLoading || !notifyEmail.includes("@")}
+                          className="h-10 px-4 rounded-lg text-sm font-medium bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors disabled:opacity-50 whitespace-nowrap"
+                        >
+                          {notifyLoading ? "..." : "Notify Me"}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -151,30 +189,6 @@ function SearchBar({
         </div>
       </form>
 
-      {/* No-match email capture */}
-      {noMatch && (
-        <div className="mt-4 rounded-2xl p-6 bg-white border border-black/[0.08] text-left">
-          {notifySubmitted ? (
-            <div className="text-center py-2">
-              <p className="font-medium text-[#1a1a1a]">You&apos;re on the list</p>
-              <p className="text-sm mt-1 text-[#999]">We&apos;ll email you as soon as your area is covered.</p>
-            </div>
-          ) : (
-            <>
-              <p className="font-medium mb-1 text-[#1a1a1a]">We don&apos;t cover that area yet</p>
-              <p className="text-sm mb-4 text-[#999]">We&apos;re expanding fast. Leave your email and we&apos;ll notify you when we launch in your area.</p>
-              <form onSubmit={handleNotifySubmit} className="flex gap-2">
-                <input type="email" placeholder="you@email.com" value={notifyEmail} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotifyEmail(e.target.value)} required
-                  className="flex-1 h-11 px-4 rounded-xl text-sm bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/10"
-                />
-                <button type="submit" disabled={notifyLoading} className="h-11 px-5 rounded-xl text-sm font-medium bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors disabled:opacity-50">
-                  {notifyLoading ? "..." : "Notify Me"}
-                </button>
-              </form>
-            </>
-          )}
-        </div>
-      )}
     </div>
   );
 }
@@ -243,7 +257,9 @@ export default function Home() {
         ].slice(0, 8);
         setSuggestions(combined);
         setShowSuggestions(true);
-        setNoMatch(combined.length === 0 && address.trim().length >= 5);
+        const isNoMatch = combined.length === 0 && address.trim().length >= 5;
+        setNoMatch(isNoMatch);
+        if (isNoMatch) setShowSuggestions(true);
       } catch { setSuggestions([]); }
     }, 300);
     return () => clearTimeout(timer);
