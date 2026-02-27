@@ -164,6 +164,49 @@ async function getAnalysisFromCosmos(pin: string): Promise<CosmosProperty | null
   }
 }
 
+async function getNeighborhoodStats(nbhd: string): Promise<{
+  totalProperties: number;
+  overAssessedCount: number;
+  overAssessedPct: number;
+  avgReduction: number;
+} | null> {
+  const client = getCosmosClient();
+  if (!client || !nbhd) return null;
+
+  try {
+    const database = client.database(DATABASE_NAME);
+    const container = database.container(CONTAINER_NAME);
+
+    const query = {
+      query: "SELECT c.status, c.estimated_savings FROM c WHERE c.nbhd = @nbhd",
+      parameters: [{ name: "@nbhd", value: nbhd }],
+    };
+
+    const { resources } = await container.items
+      .query(query, { partitionKey: nbhd })
+      .fetchAll();
+
+    if (!resources || resources.length === 0) return null;
+
+    const totalProperties = resources.length;
+    const overAssessed = resources.filter((r: { status: string }) => r.status === "over");
+    const overAssessedCount = overAssessed.length;
+    const overAssessedPct = Math.round((overAssessedCount / totalProperties) * 100);
+    const avgReduction =
+      overAssessedCount > 0
+        ? Math.round(
+            overAssessed.reduce((sum: number, r: { estimated_savings: number }) => sum + (r.estimated_savings || 0), 0) /
+              overAssessedCount
+          )
+        : 0;
+
+    return { totalProperties, overAssessedCount, overAssessedPct, avgReduction };
+  } catch (error) {
+    console.error("Neighborhood stats error:", error);
+    return null;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const address = searchParams.get("address");
@@ -270,9 +313,10 @@ export async function GET(request: NextRequest) {
     }
     
     // Analysis found - return full data
-    const [characteristics, assessments] = await Promise.all([
+    const [characteristics, assessments, neighborhoodStats] = await Promise.all([
       getCharacteristics(parcel.pin),
       getAssessments(parcel.pin),
+      getNeighborhoodStats(analysis.nbhd),
     ]);
     
     const latestAssessment = assessments.find(a => a.mailed_tot) || null;
@@ -321,6 +365,7 @@ export async function GET(request: NextRequest) {
           potentialSavings: analysis.estimated_savings || 0,
           compCount: analysis.comp_count || 0,
         },
+        neighborhoodStats: neighborhoodStats || null,
       },
     });
     

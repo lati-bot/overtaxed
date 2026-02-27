@@ -1166,10 +1166,15 @@ export default function ResultsContent() {
                 </div>
               </div>
 
+              {/* Social proof */}
+              <p className="mt-4 text-center text-xs text-[#999]">
+                Exposed over $355M in potential savings across 4.5M+ properties analyzed
+              </p>
+
               {/* 4. CTA */}
               <div className={`mt-5 pt-5 border-t border-black/[0.06]`}>
                 {isTexas ? (
-                  <div>
+                  <div id="waitlist-form">
                     <p className="text-sm text-[#666] mb-3">
                       Texas 2026 appraisal notices arrive March–April. We&apos;ll email you when your updated appeal package is ready — just $49.
                     </p>
@@ -1453,34 +1458,11 @@ export default function ResultsContent() {
 
               {/* CTA */}
               {isTexas ? (
-                <div className="mt-5">
-                  <p className="text-sm text-[#666] mb-3">
-                    Texas 2026 appraisal notices arrive March–April. We&apos;ll email you when your updated appeal package is ready — just $49.
+                <div className="mt-5 text-center">
+                  <p className="text-sm text-[#666]">
+                    We&apos;ll notify you when 2026 data is ready.{" "}
+                    <a href="#waitlist-form" className="text-[#1a6b5a] font-medium underline underline-offset-2">Sign up above</a> if you haven&apos;t already.
                   </p>
-                  {waitlistSubmitted ? (
-                    <div className="bg-[#e8f4f0] rounded-xl p-4 text-center">
-                      <span className="text-[#1a6b5a] font-medium">✓ You&apos;re on the list!</span>
-                      <p className="text-sm text-[#666] mt-1">We&apos;ll notify you as soon as {countyName} 2026 data is live.</p>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleWaitlistSubmit} className="flex flex-col sm:flex-row gap-3">
-                      <input
-                        type="email"
-                        placeholder="Enter your email"
-                        value={waitlistEmail}
-                        onChange={(e) => setWaitlistEmail(e.target.value)}
-                        required
-                        className="flex-1 px-4 py-3 rounded-xl border border-black/10 text-base focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/30 focus:border-[#1a6b5a]"
-                      />
-                      <button
-                        type="submit"
-                        disabled={waitlistSubmitting}
-                        className={`px-6 py-3 rounded-xl font-semibold text-base transition-all bg-[#1a6b5a] text-white whitespace-nowrap ${waitlistSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'}`}
-                      >
-                        {waitlistSubmitting ? "Submitting..." : "Notify Me When 2026 Data Is Ready"}
-                      </button>
-                    </form>
-                  )}
                 </div>
               ) : (
               <>
@@ -1575,8 +1557,8 @@ export default function ResultsContent() {
           </div>
         )}
 
-        {/* Neighborhood Stats (Houston) */}
-        {isTexas && property.neighborhoodStats && (
+        {/* Neighborhood Stats */}
+        {property.neighborhoodStats && (
           <div className="mt-3 rounded-2xl bg-white border border-black/[0.06] p-5 sm:p-6 md:p-8">
             <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-4">YOUR NEIGHBORHOOD</div>
             <div className="grid grid-cols-3 gap-4 sm:gap-6">
@@ -1602,7 +1584,7 @@ export default function ResultsContent() {
               )}
             </div>
             <p className="mt-3 text-sm text-[#999]">
-              Based on {property.neighborhoodStats.totalProperties.toLocaleString()} residential properties in your neighborhood. Source: {cadName} 2025 certified data.
+              Based on {property.neighborhoodStats.totalProperties.toLocaleString()} residential properties in your neighborhood. Source: {cadName} {isTexas ? "2025 certified" : "assessment"} data.
             </p>
           </div>
         )}
@@ -1630,7 +1612,7 @@ export default function ResultsContent() {
                 <div>
                   <div className="font-semibold">You Get Your Package</div>
                   <p className={`text-sm ${textSecondary} mt-1`}>
-                    Delivered instantly to your email: a {isTexas ? "hearing script" : "written brief"}, comparable properties evidence, and a step-by-step filing guide.
+                    Delivered instantly to your email: a professional evidence brief, comparable properties analysis, and {isTexas ? "a step-by-step filing guide with hearing script" : "a complete appeal guide covering both Assessor and Board of Review filings"}.
                   </p>
                 </div>
               </div>
@@ -1805,32 +1787,9 @@ export default function ResultsContent() {
               {isTexas ? (
                 <div className="mt-4 max-w-lg mx-auto">
                   <p className="text-sm text-[#666] mb-3">
-                    Texas 2026 appraisal notices arrive March–April. We&apos;ll email you when your updated appeal package is ready — just $49.
+                    We&apos;ll notify you when 2026 data is ready.{" "}
+                    <a href="#waitlist-form" className="text-[#1a6b5a] font-medium underline underline-offset-2">Sign up above</a> if you haven&apos;t already.
                   </p>
-                  {waitlistSubmitted ? (
-                    <div className="bg-white/60 rounded-xl p-4">
-                      <span className="text-[#1a6b5a] font-medium">✓ You&apos;re on the list!</span>
-                      <p className="text-sm text-[#666] mt-1">We&apos;ll notify you as soon as {countyName} 2026 data is live.</p>
-                    </div>
-                  ) : (
-                    <form onSubmit={handleWaitlistSubmit} className="flex flex-col sm:flex-row gap-3">
-                      <input
-                        type="email"
-                        placeholder="Enter your email"
-                        value={waitlistEmail}
-                        onChange={(e) => setWaitlistEmail(e.target.value)}
-                        required
-                        className="flex-1 px-4 py-3 rounded-xl border border-black/10 text-base focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/30 focus:border-[#1a6b5a]"
-                      />
-                      <button
-                        type="submit"
-                        disabled={waitlistSubmitting}
-                        className={`px-6 py-3 rounded-xl font-semibold text-base transition-all bg-[#1a6b5a] text-white whitespace-nowrap ${waitlistSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'}`}
-                      >
-                        {waitlistSubmitting ? "Submitting..." : "Notify Me When 2026 Data Is Ready"}
-                      </button>
-                    </form>
-                  )}
                   <p className="mt-3 text-xs text-[#666]">
                     🛡️ 100% money-back guarantee — not satisfied? We&apos;ll refund every penny.
                   </p>
