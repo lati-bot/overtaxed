@@ -55,7 +55,24 @@ export async function POST(request: NextRequest) {
         endpoint = `${baseUrl}/api/houston/generate-appeal`;
       } else if (clientRef.startsWith("dallas:")) {
         endpoint = `${baseUrl}/api/dallas/generate-appeal`;
+      } else if (clientRef.startsWith("austin:")) {
+        endpoint = `${baseUrl}/api/austin/generate-appeal`;
+      } else if (clientRef.startsWith("collin:")) {
+        endpoint = `${baseUrl}/api/collin/generate-appeal`;
+      } else if (clientRef.startsWith("tarrant:")) {
+        endpoint = `${baseUrl}/api/tarrant/generate-appeal`;
+      } else if (clientRef.startsWith("denton:")) {
+        endpoint = `${baseUrl}/api/denton/generate-appeal`;
+      } else if (clientRef.startsWith("williamson:")) {
+        endpoint = `${baseUrl}/api/williamson/generate-appeal`;
+      } else if (clientRef.startsWith("fortbend:")) {
+        endpoint = `${baseUrl}/api/fortbend/generate-appeal`;
+      } else if (clientRef.startsWith("rockwall:")) {
+        endpoint = `${baseUrl}/api/rockwall/generate-appeal`;
+      } else if (clientRef.startsWith("bexar:")) {
+        endpoint = `${baseUrl}/api/bexar/generate-appeal`;
       } else {
+        // Cook County (no prefix — just the PIN)
         endpoint = `${baseUrl}/api/generate-appeal`;
       }
 
