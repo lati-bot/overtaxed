@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { MetroConfig } from "@/lib/metros";
 import MetroSearch from "@/components/MetroSearch";
+import FAQAccordion from "@/components/FAQAccordion";
 
 function CheckIcon() {
   return (
@@ -120,14 +121,7 @@ export default function MetroPageClient({ metro }: { metro: MetroConfig }) {
       <section className="bg-white border-y border-black/[0.06]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-16">
           <h2 className="text-2xl font-bold text-[#1a1a1a] text-center mb-8">Frequently Asked Questions</h2>
-          <div className="space-y-6">
-            {metro.faqs.map((faq, i) => (
-              <div key={i} className="border-b border-black/[0.06] pb-6 last:border-0 last:pb-0">
-                <h3 className="font-semibold text-[#1a1a1a] text-lg mb-2">{faq.question}</h3>
-                <p className="text-[#666] leading-relaxed">{faq.answer}</p>
-              </div>
-            ))}
-          </div>
+          <FAQAccordion items={metro.faqs.map(faq => ({ q: faq.question, a: faq.answer }))} />
         </div>
       </section>
 

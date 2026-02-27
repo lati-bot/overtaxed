@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import FAQAccordion from "@/components/FAQAccordion";
 
 interface AutocompleteResult {
   pin?: string;
@@ -672,25 +673,18 @@ export default function Home() {
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">FAQ</p>
           <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Common questions</h2>
           
-          <div className="space-y-8 sm:space-y-10">
-            {[
-              { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves. We give you everything you need — comparable properties, evidence brief, and step-by-step instructions." },
-              { q: "What if my appeal doesn't work?", a: "There's no penalty for appealing. If your assessment isn't reduced, you've lost nothing but the filing time." },
-              { q: "When can I file?", a: "In Texas, protest after receiving your appraisal notice (usually late March). Deadline is May 15 or 30 days after your notice. In Cook County, IL, appeals open by township on a rotating schedule." },
-              { q: "Why is this so much cheaper?", a: "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." },
-              { q: "What areas do you cover?", a: "5M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), San Antonio (Bexar), Austin (Travis, Williamson), Rockwall County, and Cook County, IL. More coming." },
-              { q: "Can protesting property taxes raise my value?", a: "No. By Texas law, your assessed value can only stay the same or go down during a protest. The appraisal district cannot raise your value as a result of your protest. There is zero risk." },
-              { q: "How much does the average homeowner save?", a: "Most successful protests save between $500 and $1,500 per year. In Harris County, the median DIY reduction is around $20,640 in assessed value. Your savings depend on your property and local tax rate." },
-              { q: "What is the uniform and equal argument?", a: "Texas law requires that properties be assessed equally. If similar homes in your area are assessed lower than yours, you can argue your assessment should be reduced to match — even if your market value is accurate." },
-              { q: "Should I protest every year?", a: "Yes. Property values and assessments change annually, and appraisal districts may raise your value each year. Filing a protest keeps your assessment in check and ensures you're not overpaying." },
-              { q: "What's the difference between market value and assessed value?", a: "Market value is what your home would sell for on the open market. Assessed value is the value your county uses to calculate your property taxes. The assessed value may be lower due to homestead caps or prior protests." },
-            ].map((item, i) => (
-              <div key={i} className="border-b border-black/[0.06] pb-8 sm:pb-10">
-                <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{item.q}</h3>
-                <p className="text-[15px] leading-relaxed text-[#666] font-light">{item.a}</p>
-              </div>
-            ))}
-          </div>
+          <FAQAccordion items={[
+            { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves. We give you everything you need — comparable properties, evidence brief, and step-by-step instructions." },
+            { q: "What if my appeal doesn't work?", a: "There's no penalty for appealing. If your assessment isn't reduced, you've lost nothing but the filing time." },
+            { q: "When can I file?", a: "In Texas, protest after receiving your appraisal notice (usually late March). Deadline is May 15 or 30 days after your notice. In Cook County, IL, appeals open by township on a rotating schedule." },
+            { q: "Why is this so much cheaper?", a: "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." },
+            { q: "What areas do you cover?", a: "5M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), San Antonio (Bexar), Austin (Travis, Williamson), Rockwall County, and Cook County, IL. More coming." },
+            { q: "Can protesting property taxes raise my value?", a: "No. By Texas law, your assessed value can only stay the same or go down during a protest. The appraisal district cannot raise your value as a result of your protest. There is zero risk." },
+            { q: "How much does the average homeowner save?", a: "Most successful protests save between $500 and $1,500 per year. In Harris County, the median DIY reduction is around $20,640 in assessed value. Your savings depend on your property and local tax rate." },
+            { q: "What is the uniform and equal argument?", a: "Texas law requires that properties be assessed equally. If similar homes in your area are assessed lower than yours, you can argue your assessment should be reduced to match — even if your market value is accurate." },
+            { q: "Should I protest every year?", a: "Yes. Property values and assessments change annually, and appraisal districts may raise your value each year. Filing a protest keeps your assessment in check and ensures you're not overpaying." },
+            { q: "What's the difference between market value and assessed value?", a: "Market value is what your home would sell for on the open market. Assessed value is the value your county uses to calculate your property taxes. The assessed value may be lower due to homestead caps or prior protests." },
+          ]} />
         </div>
       </section>
 
