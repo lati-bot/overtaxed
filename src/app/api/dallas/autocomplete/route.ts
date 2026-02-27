@@ -31,13 +31,33 @@ export async function GET(request: NextRequest) {
     cleaned = cleaned.replace(/,?\s*(DALLAS|GARLAND|IRVING|MESQUITE|GRAND PRAIRIE|RICHARDSON|PLANO|ARLINGTON|CARROLLTON|FARMERS BRANCH|DESOTO|DUNCANVILLE|LANCASTER|CEDAR HILL|ROWLETT|SACHSE|BALCH SPRINGS|HUTCHINS|WILMER|SEAGOVILLE|SUNNYVALE|COMBINE|COPPELL|ADDISON|COCKRELL HILL|HIGHLAND PARK|UNIVERSITY PARK)\b.*$/i, "");
     cleaned = cleaned.replace(/,?\s*TX\s*\d{0,5}\s*$/i, "").trim();
 
-    // Search by address using STARTSWITH for fast prefix matching
+    // Token-based matching: first token prefix-matches (house number), rest use CONTAINS
+    const tokens = cleaned.split(/\s+/).filter(t => t.length > 0);
+    
+    let whereConditions: string;
+    const parameters: { name: string; value: string }[] = [];
+    
+    if (tokens.length === 0) {
+      return NextResponse.json({ results: [] });
+    } else if (tokens.length === 1) {
+      whereConditions = `STARTSWITH(UPPER(c.address), @t0)`;
+      parameters.push({ name: "@t0", value: tokens[0] });
+    } else {
+      const conditions = tokens.map((token, i) => {
+        parameters.push({ name: `@t${i}`, value: token });
+        return i === 0
+          ? `STARTSWITH(UPPER(c.address), @t${i})`
+          : `CONTAINS(UPPER(c.address), @t${i})`;
+      });
+      whereConditions = conditions.join(" AND ");
+    }
+
     const { resources } = await container.items.query({
       query: `SELECT TOP 8 c.id, c.acct, c.address, c.city, c.neighborhood_code, c.sqft, c.current_assessment, c.estimated_savings
               FROM c 
-              WHERE STARTSWITH(UPPER(c.address), @query)
+              WHERE ${whereConditions}
               AND c.sqft > 0`,
-      parameters: [{ name: "@query", value: cleaned }],
+      parameters,
     }).fetchAll();
 
     const results = resources.map((r: any) => ({

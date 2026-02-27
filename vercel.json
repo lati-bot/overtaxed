@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/follow-up",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/hearing-prep",
+      "schedule": "0 15 * * *"
+    },
+    {
+      "path": "/api/cron/outcome-survey",
+      "schedule": "0 16 * * *"
+    }
+  ]
+}
