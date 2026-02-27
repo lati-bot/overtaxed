@@ -13,6 +13,7 @@ export interface QuickStartData {
   filingBody: string;       // "HCAD", "DCAD", etc.
   filingPortal: string;     // "iFile", "uFile", etc.
   filingAction?: string;    // "Click 'iFile Protest'" — county-specific portal action
+  portalScreenshotDataUri?: string; // Base64 data URI of filing portal screenshot
   deadline: string;         // "May 15"
   currentAssessment: number;
   fairAssessment: number;
@@ -176,6 +177,24 @@ export function generateQuickStartGuideHtml(data: QuickStartData): string {
       font-weight: 600;
     }
 
+    .portal-screenshot {
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .portal-screenshot img {
+      max-width: 100%;
+      max-height: 180px;
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+    }
+
+    .portal-screenshot-caption {
+      font-size: 10px;
+      color: #888;
+      margin-top: 6px;
+    }
+
     .reassurance {
       text-align: center;
       font-size: 13px;
@@ -306,7 +325,11 @@ export function generateQuickStartGuideHtml(data: QuickStartData): string {
               <span class="filing-box-label">Upload:</span>
               <span class="filing-box-value">Evidence packet from Overtaxed</span>
             </div>
-          </div>
+          </div>${data.portalScreenshotDataUri ? `
+          <div class="portal-screenshot">
+            <img src="${data.portalScreenshotDataUri}" alt="${data.filingBody} filing portal" />
+            <div class="portal-screenshot-caption">Screenshot: ${data.filingBody} online filing portal</div>
+          </div>` : ''}
         </div>
       </div>
 
