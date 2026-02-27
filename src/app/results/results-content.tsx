@@ -659,6 +659,25 @@ export default function ResultsContent() {
           setProperty(data.property);
           setAnalysisAvailable(data.analysisAvailable !== false);
           setUploadInProgress(data.uploadInProgress === true);
+
+          // Fetch comps for Cook County if analysis is available
+          if (data.analysisAvailable && data.property?.pin) {
+            try {
+              const compsRes = await fetch(`/api/comps?pin=${data.property.pin}&details=true`);
+              const compsData = await compsRes.json();
+              if (compsData.found && compsData.comps && compsData.comps.length > 0) {
+                setComps(compsData.comps.map((c: { pin: string; address?: string; sqft: number; current_assessment?: number; perSqft?: number }) => ({
+                  acct: c.pin,
+                  address: c.address && c.address !== "N/A" ? c.address : `PIN ${c.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5")}`,
+                  sqft: c.sqft || 0,
+                  assessedVal: c.current_assessment || 0,
+                  perSqft: c.perSqft || (c.sqft && c.current_assessment ? c.current_assessment / c.sqft : 0),
+                })));
+              }
+            } catch {
+              // Non-critical — comps are optional preview
+            }
+          }
         }
       }
     } catch {
