@@ -1,83 +1,72 @@
-# Nextdoor Copy Templates — Property Tax Appeals 2026
+# Nextdoor Posts — Tax Protest Season 2026
 
-## How to Post
-- Post in your **neighborhood feed** (not a paid ad)
-- Category: **Recommendations** or **General**
-- Keep it neighborly — Nextdoor is hyper-local and anti-spam
-- Post 1 per neighborhood, don't cross-post to 10 groups at once
-- Best time: weekday mornings (Tue-Thu 8-10 AM) when homeowners browse
+Post in neighborhood feed under Recommendations or General.
+One per neighborhood. Don't carpet bomb. Weekday mornings work best (Tue-Thu 8-10 AM).
 
 ---
 
-## Template 1: The Helpful Neighbor (Best for Cold Markets)
+## Template 1: The "just discovered this" post
 
-**Subject:** Got your property tax notice? Here's what I did.
+**Subject:** Got your property tax notice? Mine went up again
 
-Just got my 2026 appraisal notice and it went up again 🙄 
+Opened my mail yesterday and of course my appraisal went up. Happens every year right?
 
-I found a site that compares your home's assessed value against similar properties in your neighborhood and builds an appeal packet for you. It's $49 (flat fee, not a percentage like those big companies).
+Looked into it and apparently you can protest it — and most people who do actually get a reduction? Wish I knew this years ago.
 
-It took me like 5 minutes — you search your address, see if you're over-assessed, and if so they give you everything you need to file a protest: evidence packet with comps, a cover letter, and step-by-step instructions.
+I ended up using this site getovertaxed.com that compares your house against similar ones nearby. If you're over-assessed it puts together an appeal packet for you. Cost me $49 which felt worth it vs spending a weekend researching comps myself.
 
-Website is getovertaxed.com if anyone wants to check. They cover [COUNTY NAME] and the deadline is May 15.
-
-Has anyone else protested before? Curious how it went.
+Deadline to file is May 15 with [CAD NAME]. Has anyone here done this before? Trying to figure out if it's worth going to the hearing or if the phone option works fine.
 
 ---
 
-## Template 2: The Tax Season PSA
+## Template 2: The deadline reminder
 
-**Subject:** Reminder: May 15 deadline to protest your property taxes
+**Subject:** May 15 deadline to protest property taxes — don't miss it
 
-Hey neighbors — friendly reminder that if your 2026 appraisal went up, you have until **May 15** to file a protest with [CAD NAME].
+Just a heads up for anyone whose appraisal went up this year — you have until May 15 to file a protest with [CAD NAME].
 
-Most people don't realize you can do this yourself — you don't need a lawyer or one of those companies that take 30-40% of your savings.
+You don't need to hire those companies that take a percentage of your savings. You can do it yourself or use something like getovertaxed.com ($49 flat fee, they pull all the comparable properties for you).
 
-I used getovertaxed.com to pull together my evidence. $49 flat fee, they compare your home against similar properties and build the whole packet. Took a few minutes.
-
-Even if you only save $500/year, that's $2,500+ over 5 years. Worth a shot.
+Even saving $500/year adds up to $2,500+ over 5 years. Takes maybe 20 minutes to file.
 
 ---
 
-## Template 3: The Question Format (High Engagement)
+## Template 3: The question
 
-**Subject:** Anyone protested their property taxes in [COUNTY]?
+**Subject:** Has anyone protested their property taxes here?
 
-My appraisal jumped this year and I'm thinking about filing a protest. Has anyone in [NEIGHBORHOOD] done it before?
+Thinking about protesting my appraisal this year. Value jumped and it doesn't feel right compared to other houses on my street.
 
-I've been looking into it and found that most homes in our area are assessed higher than comparable properties. There's a site (getovertaxed.com) that shows you the comparison for free — you only pay $49 if you want the full appeal packet.
+Found a site that lets you check for free if you're over-assessed (getovertaxed.com) — you only pay if you want the full evidence packet.
 
-Would love to hear from anyone who's been through the process. Worth it?
-
----
-
-## Template 4: The Results Post (Use After You Have Testimonials)
-
-**Subject:** Saved $[X] on property taxes — here's how
-
-Just got my protest results back and they lowered my assessed value by $[X]! That's about $[Y]/year in tax savings.
-
-The whole process took maybe 30 minutes total:
-1. Got my evidence packet from getovertaxed.com ($49)
-2. Filed online through [CAD portal]
-3. Got the reduction without even going to a hearing
-
-If your appraisal went up this year, definitely worth looking into. Deadline is May 15.
+Anyone been through the process in [COUNTY]? Trying to decide if it's worth it or if they just deny everyone.
 
 ---
 
-## County-Specific Notes
+## Template 4: After you have real results
 
-| Market | CAD Name | Nextdoor Neighborhoods | Key Angle |
-|--------|----------|----------------------|-----------|
-| Houston | HCAD | Heights, Katy, Sugar Land, Pearland, Cypress | "HCAD is notorious for over-assessing" |
-| Dallas | DCAD | Highland Park, Frisco, Plano, Richardson | "DFW values jumped 10-15% this year" |
-| Austin | TCAD | Mueller, Zilker, Cedar Park, Round Rock | "Austin appraisals are out of control" |
-| San Antonio | BCAD | Alamo Heights, Stone Oak, Helotes | "Bexar County quietly raised values again" |
-| Chicago | Cook County | Lakeview, Lincoln Park, Oak Park, Evanston | "Cook County reassessment hitting hard" |
+**Subject:** Protested my property taxes and it actually worked
 
-## Tips
-- Reply to every comment — Nextdoor rewards engagement
-- If someone asks "is this an ad?" be honest: "I used them and wanted to share"
-- Don't post the same template in multiple neighborhoods — neighbors talk
-- Best ROI: post Template 1 in 2-3 neighborhoods, wait for comments, then post Template 3 a week later in different ones
+Got my results back — they lowered my value by $[X]. That's like $[Y] less in taxes per year.
+
+Whole thing was way less painful than I expected:
+- Got my evidence from getovertaxed.com ($49)
+- Filed online through [CAD portal]  
+- Did the hearing over the phone, took 10 minutes
+
+If your appraisal went up this year, seriously just do it. May 15 deadline.
+
+---
+
+## Which to use where
+
+| Market | CAD | Neighborhood vibe | Best template |
+|--------|-----|-------------------|---------------|
+| Houston | HCAD | Heights, Katy, Sugar Land, Pearland | Template 1 or 3 |
+| Dallas | DCAD | Highland Park, Frisco, Plano | Template 1 or 2 |
+| Austin | TCAD | Mueller, Zilker, Cedar Park | Template 3 (Austin loves to complain about taxes) |
+| San Antonio | BCAD | Alamo Heights, Stone Oak | Template 2 |
+| Chicago | Cook Co | Lakeview, Lincoln Park, Oak Park | Template 1 |
+
+## If someone says "is this an ad?"
+Just be straight: "I used them and thought it was worth sharing. The protest advice is good regardless of what tool you use." Don't get weird about it.

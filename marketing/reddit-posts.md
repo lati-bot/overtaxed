@@ -1,129 +1,100 @@
-# Reddit Post Drafts — Property Tax Protest Season 2026
+# Reddit Posts — Tax Protest Season 2026
 
-**Target subreddits:** r/houston, r/dallas, r/austin, r/personalfinance, r/realestate
-**Timing:** Post when appraisal notices start mailing (late March / early April 2026)
-**Tone:** Helpful neighbor, not salesy. Lead with value, mention Overtaxed naturally.
+Post when notices start mailing (late March / early April).
+Use a personal account. Don't be the guy who only posts links.
+Engage in comments like a normal person.
 
 ---
 
 ## r/houston
 
-**Title:** PSA: Harris County appraisal notices are hitting mailboxes — here's how to protest (step by step)
+**Title:** your HCAD notice probably went up again. here's what to do about it
 
-Hey Houston — it's that time of year. If your appraised value went up (again), you have until **May 15** to file a protest with HCAD. ~70% of people who protest get a reduction, so it's worth the 20 minutes.
+So my appraised value jumped like 12% this year which is insane because literally nothing changed about my house. Looked into it and apparently ~70% of people who protest get a reduction? I wish I knew that years ago.
 
-**Quick steps:**
-1. Go to hcad.org → iFile → file your protest online (select "Uniform & Equal" as your reason — NOT market value)
-2. You'll need comparable properties that sold for less than your appraisal. HCAD's website has a property search, or you can pull comps from the MLS.
-3. Show up to your informal hearing (or do it by phone/online). Bring your comps printed out.
+Anyway I went through the whole process last year and it's not that bad. You file on hcad.org (iFile system), pick "Uniform & Equal" as your reason — basically saying other similar houses near you are appraised lower, so yours should be too. Then you show up to a phone hearing with some comps and they usually knock it down.
 
-**Pro tips:**
-- "Uniform & Equal" compares your value to *similar homes already on the tax roll*, not market sales. It's usually stronger.
-- You don't need to hire a law firm. The informal hearing is casual — it's just you and an appraiser looking at numbers.
-- Even if you have a homestead exemption, you should still protest. They stack.
+The key thing is Uniform & Equal, not market value. You're not arguing what your house would sell for — you're saying "my neighbor's house is basically the same as mine and they're paying less." Way easier to prove.
 
-I built a tool at getovertaxed.com that pulls comparable properties automatically for $49 — evidence packet + cover letter ready to file. But honestly, even if you DIY it, just make sure you protest. The worst they can say is no, and your value stays the same.
+I ended up using getovertaxed.com to pull my comps because I didn't feel like digging through HCAD's website for hours. $49 and they gave me everything I needed. But you can totally DIY it if you want to put in the time.
 
-Good luck out there 🤘
+Deadline is May 15. Worst case nothing happens and your value stays the same. There's literally no downside.
 
 ---
 
 ## r/dallas
 
-**Title:** DFW property tax notices are out — don't leave money on the table
+**Title:** DFW people — are you protesting your property taxes this year?
 
-Dallas, Collin, Denton, Tarrant, Rockwall — wherever you are, the deadline to protest is **May 15, 2026** (or 30 days after your notice, whichever is later).
+Got my notice last week and yeah, it went up. Again. I'm in Dallas county but this applies to Collin, Tarrant, Denton, Rockwall — basically all of DFW.
 
-If your appraised value jumped, here's what to do:
+For anyone who hasn't done this before: you can protest your appraised value every single year. The deadline is May 15 (or 30 days after your notice drops, whichever is later). You file with your county's appraisal district — DCAD, CCAD, TAD, whatever — most of them let you do it online now.
 
-1. **File a protest** with your county appraisal district (DCAD, CCAD, DCAD-Denton, TAD, or RCAD). Most let you file online.
-2. **Gather comps** — nearby properties with lower appraised values or recent sales below your appraisal.
-3. **Attend the informal hearing** — phone or in-person. Bring your evidence. Be polite. Most reductions happen here.
+What you need is basically just comparable properties. Houses similar to yours that are valued lower. That's it. You bring that to an informal hearing (usually a phone call) and more often than not they'll reduce your value.
 
-**Choosing your protest reason:**
-- **Uniform & Equal** = compare to similar homes on the tax roll (often better)
-- **Market Value** = argue your home isn't worth what they say based on sales data
+I used a site called getovertaxed.com for my comps — 49 bucks, got an evidence packet and cover letter. Saved me a few hours of research. But the main thing is just FILE. Don't let May 15 pass you by.
 
-You don't need a $500 consultant for this. A few good comps and a clear presentation go a long way.
-
-If you want the legwork done for you, I made getovertaxed.com — $49 for a comparable property analysis, evidence packet, and cover letter for any address in DFW. But the main thing is: **file your protest before May 15**.
+Anyone else been through the process? Curious what kind of reductions people are getting in DFW this year.
 
 ---
 
 ## r/austin
 
-**Title:** Travis/Williamson County tax notices are coming — protest guide for 2026
+**Title:** Travis/Williamson county folks — protest your appraisal this year, seriously
 
-Austin homeowners: appraisal notices typically mail in April. If your value went up (and it probably did), you have until **May 15** to protest.
+I know everyone's tired of hearing about Austin home prices but here's the thing: if your appraised value went up, you don't have to just eat it. You file a protest and there's a decent chance they lower it.
 
-Here's the playbook:
-1. File online at traviscad.org (Travis) or wcad.org (Williamson)
-2. Select **Uniform & Equal** as your protest reason
-3. Gather 3-5 comparable properties with lower values than yours
-4. Attend the informal hearing — most reductions happen here without needing a formal hearing
+Filed mine for the first time last year and kicked myself for not doing it sooner. The hearing was literally a 10 minute phone call. The appraiser pulled up my comps, agreed my value was high, and reduced it. That was it.
 
-**Austin-specific notes:**
-- Travis County has been aggressive with valuations. Even modest homes are seeing 10-20% increases.
-- If you haven't filed for your homestead exemption yet, do that too — it's separate from your protest and saves you $100K off your taxable value.
-- The informal hearing is usually a 10-minute phone call. It's not adversarial.
+If you haven't done your homestead exemption either, do that first — that's a separate thing and it knocks $100K off your taxable value.
 
-I put together getovertaxed.com to generate evidence packets automatically ($49) — but honestly, the most important thing is just filing. Don't let the deadline pass.
+For the protest itself you need comparable properties valued lower than yours. I used getovertaxed.com ($49, they pull everything for you) but you can also dig through traviscad.org or wcad.org yourself. 
+
+Deadline is May 15. Do it even if your value only went up a little — there's no penalty for protesting and it takes like 20 min to file.
 
 ---
 
 ## r/personalfinance
 
-**Title:** If you own a home, check if your property tax appraisal went up — protesting takes 20 min and saves hundreds
+**Title:** PSA for homeowners: you can protest your property tax appraisal every year and it takes like 20 minutes
 
-Most homeowners don't realize you can protest your property tax appraisal every year. In most states, the appraisal district sends you a notice of your home's appraised value, and you have a window (usually 30-60 days) to challenge it.
+I feel dumb for not knowing this until recently but you can literally challenge what your county says your house is worth. Every year. And if you win (which happens way more than you'd think) your property taxes go down.
 
-**Why bother?**
-- Average savings from a successful protest: $500-1,500/year depending on your area
-- Success rates are surprisingly high (60-80% in many Texas counties)
-- The downside is literally zero — your value can't go UP from protesting
+In Texas the success rate is something like 60-80%. You basically find comparable homes near you that are valued lower than yours, file a protest, and have a phone call with an appraiser. That's the whole thing.
 
-**How it works:**
-1. Get your appraisal notice (check your county appraisal district website)
-2. File a protest before the deadline
-3. Gather comparable properties that support a lower value
-4. Attend an informal hearing (usually by phone)
+Even modest reductions add up. Getting $20K knocked off your appraised value might save you $500-600/year, which is $2,500-3,000 over 5 years. For 20 minutes of work.
 
-**What makes a strong case:**
-- Comparable properties nearby with lower appraised values ("Uniform & Equal")
-- Recent sales in your area below your appraised value
-- Any condition issues with your property (repairs needed, etc.)
+The catch is there's a deadline — in TX it's May 15, other states vary. Look up your county appraisal district and check.
 
-This applies to Texas, Illinois, and many other states. Check your local appraisal district for deadlines.
+I built getovertaxed.com because I got frustrated doing the research manually, but you don't need any tool — just look up 3-5 similar homes in your area and compare their values to yours. If yours is higher, you have a case.
 
-I'm building tools to make this easier at getovertaxed.com (currently covers TX and Cook County, IL), but regardless of what tools you use, the key insight is: **the appraisal district's value is a starting offer, not a final answer.**
+The key insight I wish someone told me earlier: the appraised value on your notice isn't final. It's a starting number. Treat it that way.
 
 ---
 
 ## r/realestate
 
-**Title:** Property tax protests: underrated strategy that most homeowners skip
+**Title:** do you guys protest your property taxes every year?
 
-Quick PSA for homeowners — property tax protest season is coming up in most states. If you're not protesting your appraisal annually, you're probably overpaying.
+Genuine question because I didn't until recently and it seems like most homeowners just... don't? Even though the success rate is wild.
 
-Some stats from Texas (one of the most protest-friendly states):
-- ~1.5M protests filed annually
-- 60-80% result in a reduction
-- Average reduction: $20,000-40,000 in appraised value
-- That's $500-1,200+ in real tax savings per year
+Texas numbers for context:
+- like 1.5 million protests filed per year
+- 60-80% get a reduction
+- average reduction is 20-40K in appraised value
 
-The key is **comparable evidence**. You need 3-5 properties similar to yours with lower values. Two approaches:
-- **Market Value**: recent sales below your appraised value
-- **Uniform & Equal**: similar homes on the tax roll appraised lower than yours (Texas-specific, but powerful)
+The whole thing is just gathering comparable properties and making a case that your home is valued too high relative to similar ones. In Texas there's this thing called Uniform & Equal where you compare against other homes on the tax roll (not sales prices) which is usually easier to win.
 
-Most people think they need to hire a consultant or attorney. For informal hearings, you really don't. It's a conversation with an appraiser, not a courtroom.
+I've been putting together evidence packets for people at getovertaxed.com ($49/property, covers TX and Cook County IL) and the amount of over-assessment I'm seeing is nuts. Like 30-40% of homes have a solid case for reduction.
 
-If you're in Texas or Cook County, IL — I've been building getovertaxed.com to automate the evidence gathering ($49 per property). But the main takeaway: file your protest every year, even if your value didn't go up much. It's free to file and the worst outcome is no change.
+Anyway — do you all protest? What's been your experience?
 
 ---
 
-*Notes for Tomi:*
-- Adjust timing based on when notices actually mail (late March for Houston, April for most others)
-- Consider posting from a personal account, not a brand account — Reddit hates self-promo
-- Engage genuinely in comments, answer questions, don't just link-drop
-- Could also post in r/RealEstate, r/FirstTimeHomeBuyer, r/tax
-- Each subreddit has different self-promo rules — check before posting
+## Posting Notes
+- Post from a real account with history, not a fresh one
+- Don't post all 5 the same week — space them out over 2-3 weeks
+- Spend time in the comments answering questions. That's where the real value is
+- If someone calls it an ad, don't get defensive: "yeah I built the tool, but the advice about protesting is legit regardless"
+- r/houston and r/dallas are the highest value — protest season is huge there
+- r/personalfinance mods are strict about self-promo. Lead heavy with the advice, mention the site once at most
