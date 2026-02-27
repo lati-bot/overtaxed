@@ -541,6 +541,7 @@ function buildQuickStartData(data: WilliamsonPropertyData): QuickStartData {
     filingUrl: "wcad.org",
     filingBody: "WCAD",
     filingPortal: "Online Protest",
+    filingAction: "Click \"File a Protest\" under Online Services",
     deadline: "May 15",
     currentAssessment: data.currentAssessment,
     fairAssessment: data.fairAssessment,

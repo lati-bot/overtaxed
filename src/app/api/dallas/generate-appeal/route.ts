@@ -602,6 +602,7 @@ function buildQuickStartData(data: DallasPropertyData): QuickStartData {
     filingUrl: "dallascad.org",
     filingBody: "DCAD",
     filingPortal: "uFile",
+    filingAction: "Click \"File a Protest\" or go to ifile.dallascad.org",
     deadline: "May 15",
     currentAssessment: data.currentAssessment,
     fairAssessment: data.fairAssessment,

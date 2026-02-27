@@ -583,6 +583,7 @@ function buildQuickStartData(data: HoustonPropertyData): QuickStartData {
     filingUrl: "hcad.org",
     filingBody: "HCAD",
     filingPortal: "iFile",
+    filingAction: "Click \"iFile Protest\" on the homepage",
     deadline: "May 15",
     currentAssessment: data.currentAssessment,
     fairAssessment: data.fairAssessment,

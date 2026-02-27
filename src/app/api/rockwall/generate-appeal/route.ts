@@ -538,6 +538,7 @@ function buildQuickStartData(data: RockwallPropertyData): QuickStartData {
     filingUrl: "rockwallcad.com",
     filingBody: "RCAD",
     filingPortal: "Online Protest",
+    filingAction: "Click \"File a Protest\" on the homepage",
     deadline: "May 15",
     currentAssessment: data.currentAssessment,
     fairAssessment: data.fairAssessment,

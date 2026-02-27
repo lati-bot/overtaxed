@@ -568,6 +568,7 @@ function buildQuickStartData(data: FortBendPropertyData): QuickStartData {
     filingUrl: "fbcad.org",
     filingBody: "FBCAD",
     filingPortal: "Online Protest",
+    filingAction: "Click \"File a Protest\" on the homepage",
     deadline: "May 15",
     currentAssessment: data.currentAssessment,
     fairAssessment: data.fairAssessment,

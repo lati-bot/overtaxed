@@ -563,6 +563,7 @@ function buildQuickStartData(data: DentonPropertyData): QuickStartData {
     filingUrl: "dentoncad.com",
     filingBody: "DCAD",
     filingPortal: "Online Protest",
+    filingAction: "Click \"Protest\" on the homepage",
     deadline: "May 15",
     currentAssessment: data.currentAssessment,
     fairAssessment: data.fairAssessment,
