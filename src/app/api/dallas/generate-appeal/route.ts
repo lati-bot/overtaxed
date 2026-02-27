@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escapeHtml } from "@/lib/security";
 import { CosmosClient } from "@azure/cosmos";
 import { QuickStartData, generateQuickStartGuideHtml } from "@/lib/quick-start-guide";
+import { getPortalScreenshotDataUri } from "@/lib/portal-screenshots";
 import { DallasEvidenceData, generateDallasEvidenceHtml } from "@/lib/evidence-packet-dallas";
 import { generateCoverLetterHtml, type CoverLetterData } from "@/lib/cover-letter";
 
@@ -611,6 +612,7 @@ function buildQuickStartData(data: DallasPropertyData): QuickStartData {
     perSqft: data.perSqft,
     compMedianPerSqft: data.compMedianPerSqft,
     compCount: data.comps.length,
+    portalScreenshotDataUri: getPortalScreenshotDataUri("Dallas") ?? undefined,
   };
 }
 

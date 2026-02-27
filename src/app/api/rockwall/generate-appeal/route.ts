@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escapeHtml } from "@/lib/security";
 import { CosmosClient } from "@azure/cosmos";
 import { QuickStartData, generateQuickStartGuideHtml } from "@/lib/quick-start-guide";
+import { getPortalScreenshotDataUri } from "@/lib/portal-screenshots";
 import { RockwallEvidenceData, generateRockwallEvidenceHtml } from "@/lib/evidence-packet-rockwall";
 import { generateCoverLetterHtml, type CoverLetterData } from "@/lib/cover-letter";
 
@@ -547,6 +548,7 @@ function buildQuickStartData(data: RockwallPropertyData): QuickStartData {
     perSqft: data.perSqft,
     compMedianPerSqft: data.sqft > 0 ? data.compMedianValue / data.sqft : 0,
     compCount: data.comps.length,
+    portalScreenshotDataUri: getPortalScreenshotDataUri("Rockwall") ?? undefined,
   };
 }
 

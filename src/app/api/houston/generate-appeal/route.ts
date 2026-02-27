@@ -4,6 +4,7 @@ import { Resend } from "resend";
 import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escapeHtml } from "@/lib/security";
 import { CosmosClient } from "@azure/cosmos";
 import { generateQuickStartGuideHtml, type QuickStartData } from "@/lib/quick-start-guide";
+import { getPortalScreenshotDataUri } from "@/lib/portal-screenshots";
 import { generateHoustonEvidenceHtml, type HoustonEvidenceData } from "@/lib/evidence-packet-houston";
 import { generateCoverLetterHtml, type CoverLetterData } from "@/lib/cover-letter";
 
@@ -592,6 +593,7 @@ function buildQuickStartData(data: HoustonPropertyData): QuickStartData {
     perSqft: data.perSqft,
     compMedianPerSqft: data.compMedianPerSqft,
     compCount: data.comps.length,
+    portalScreenshotDataUri: getPortalScreenshotDataUri("Harris") ?? undefined,
   };
 }
 
