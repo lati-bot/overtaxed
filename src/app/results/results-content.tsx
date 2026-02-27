@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { getReassessmentStatus } from "@/lib/cook-township-reassessment";
 
 interface PropertyData {
   pin: string;
@@ -1051,7 +1052,10 @@ export default function ResultsContent() {
               {yourPerSqft > 0 && neighborPerSqft > 0 && (
                 <p className="mt-2 text-base sm:text-lg text-[#666]">
                   {cadName} values your home at <strong>${yourPerSqft}/sqft</strong>.{" "}
-                  {compCount} comparable homes average <strong>${neighborPerSqft}/sqft</strong>.
+                  {isTexas && overAssessedCount > compCount
+                    ? <>Best {compCount} of {overAssessedCount} comparable properties average <strong>${neighborPerSqft}/sqft</strong>.</>
+                    : <>{compCount} comparable homes average <strong>${neighborPerSqft}/sqft</strong>.</>
+                  }
                 </p>
               )}
 
@@ -1133,17 +1137,32 @@ export default function ResultsContent() {
               </p>
 
               {/* Deadline urgency banner */}
-              <div className={`mt-5 rounded-xl p-3.5 flex items-center gap-3 bg-[#faf3e0] border border-[#e8d5a8]`}>
+              <div className={`mt-5 rounded-xl p-3.5 flex items-start gap-3 bg-[#faf3e0] border border-[#e8d5a8]`}>
                 <span className="text-lg flex-shrink-0">⏰</span>
-                <div>
-                  <span className={`text-sm font-medium text-[#8a7d6b]`}>
-                    {isHouston 
-                      ? "HCAD is mailing 2026 notices now. Protest deadline: May 15, 2026 (or 30 days after your notice)."
-                      : isTexas
-                      ? "Appraisal notices typically mail mid-April. Protest deadline: May 15, 2026 (or 30 days after your notice)."
-                      : "Appeals open by township on a rotating schedule. Check cookcountyboardofreview.com for your township's deadline."
-                    }
-                  </span>
+                <div className="text-sm font-medium text-[#8a7d6b]">
+                  {isHouston 
+                    ? "HCAD is mailing 2026 notices now. Protest deadline: May 15, 2026 (or 30 days after your notice)."
+                    : isTexas
+                    ? "Appraisal notices typically mail mid-April. Protest deadline: May 15, 2026 (or 30 days after your notice)."
+                    : (() => {
+                        const reassessment = property.township ? getReassessmentStatus(property.township) : null;
+                        const twp = property.township || "Your";
+                        if (reassessment?.isReassessmentYear) {
+                          return (
+                            <>
+                              <span>{twp} Township is being reassessed this year — this is your best window to appeal. Check the <a href="https://www.cookcountyassessoril.gov/assessment-calendar-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Assessor&apos;s filing calendar</a> for your exact deadline.</span>
+                              <span className="block mt-1.5">After the Assessor&apos;s review, you can appeal again at the <a href="https://www.cookcountyboardofreview.com/dates-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Board of Review</a> — two chances to win.</span>
+                            </>
+                          );
+                        }
+                        return (
+                          <>
+                            <span>{twp} Township isn&apos;t being reassessed this year, but you can still file an appeal. Filing windows open on a rolling schedule — check the <a href="https://www.cookcountyassessoril.gov/assessment-calendar-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Assessor&apos;s filing calendar</a> for dates.</span>
+                            <span className="block mt-1.5">After the Assessor&apos;s review, you can appeal again at the <a href="https://www.cookcountyboardofreview.com/dates-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Board of Review</a> — two chances to win.</span>
+                          </>
+                        );
+                      })()
+                  }
                 </div>
               </div>
 
@@ -1364,59 +1383,7 @@ export default function ResultsContent() {
           )}
         </div>
 
-        {/* Assessment History */}
-        {property.assessmentHistory && property.assessmentHistory.length > 0 && (
-          <div className="mt-3 rounded-2xl bg-white border border-black/[0.06] overflow-hidden">
-            <div className="p-5 sm:p-6 md:p-8 pb-0 sm:pb-0 md:pb-0">
-              <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-4">ASSESSMENT HISTORY</div>
-            </div>
-            <div className="overflow-x-auto px-5 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-black/[0.06]">
-                    <th className="text-left py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Year</th>
-                    <th className="text-right py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Initial</th>
-                    <th className="text-right py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Final</th>
-                    <th className="text-right py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Savings</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {property.assessmentHistory.map((year) => {
-                    const finalValue = year.boardTotal || year.certifiedTotal || year.mailedTotal;
-                    const savedAmount = year.mailedTotal - finalValue;
-                    const savedPercent = savedAmount > 0 ? Math.round((savedAmount / year.mailedTotal) * 100) : 0;
-                    
-                    return (
-                      <tr key={year.year} className="border-b border-black/[0.04] last:border-b-0">
-                        <td className="py-3 font-medium text-[#1a1a1a]">{year.year}</td>
-                        <td className="py-3 text-right text-[#1a1a1a] text-sm">
-                          ${year.mailedTotal.toLocaleString()}
-                        </td>
-                        <td className="py-3 text-right text-[#1a1a1a] text-sm">
-                          ${finalValue.toLocaleString()}
-                        </td>
-                        <td className="py-3 text-right">
-                          {savedAmount > 0 ? (
-                            <span className="font-medium text-[#1a6b5a]">
-                              -${savedAmount.toLocaleString()}
-                              <span className="text-xs ml-1 opacity-70">
-                                (-{savedPercent}%)
-                              </span>
-                            </span>
-                          ) : (
-                            <span className="text-[#999]">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {/* Comparable Properties Preview */}
+        {/* Comparable Properties Preview — before Assessment History for Cook County */}
         {comps.length > 0 && hasAnalysis && estimatedSavings > 0 && (
           <div className="mt-3 rounded-2xl bg-white border border-black/[0.06] overflow-hidden">
             <div className="p-5 sm:p-6 md:p-8 pb-0 sm:pb-0 md:pb-0">
@@ -1552,6 +1519,58 @@ export default function ResultsContent() {
               </p>
               </>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Assessment History — after comps for Cook County */}
+        {property.assessmentHistory && property.assessmentHistory.length > 0 && (
+          <div className="mt-3 rounded-2xl bg-white border border-black/[0.06] overflow-hidden">
+            <div className="p-5 sm:p-6 md:p-8 pb-0 sm:pb-0 md:pb-0">
+              <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-4">ASSESSMENT HISTORY</div>
+            </div>
+            <div className="overflow-x-auto px-5 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-black/[0.06]">
+                    <th className="text-left py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Year</th>
+                    <th className="text-right py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Initial</th>
+                    <th className="text-right py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Final</th>
+                    <th className="text-right py-2 text-[13px] tracking-[0.15em] uppercase text-[#999] font-medium">Savings</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {property.assessmentHistory.map((year) => {
+                    const finalValue = year.boardTotal || year.certifiedTotal || year.mailedTotal;
+                    const savedAmount = year.mailedTotal - finalValue;
+                    const savedPercent = savedAmount > 0 ? Math.round((savedAmount / year.mailedTotal) * 100) : 0;
+                    
+                    return (
+                      <tr key={year.year} className="border-b border-black/[0.04] last:border-b-0">
+                        <td className="py-3 font-medium text-[#1a1a1a]">{year.year}</td>
+                        <td className="py-3 text-right text-[#1a1a1a] text-sm">
+                          ${year.mailedTotal.toLocaleString()}
+                        </td>
+                        <td className="py-3 text-right text-[#1a1a1a] text-sm">
+                          ${finalValue.toLocaleString()}
+                        </td>
+                        <td className="py-3 text-right">
+                          {savedAmount > 0 ? (
+                            <span className="font-medium text-[#1a6b5a]">
+                              -${savedAmount.toLocaleString()}
+                              <span className="text-xs ml-1 opacity-70">
+                                (-{savedPercent}%)
+                              </span>
+                            </span>
+                          ) : (
+                            <span className="text-[#999]">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
