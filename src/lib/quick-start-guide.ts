@@ -12,6 +12,7 @@ export interface QuickStartData {
   filingUrl: string;        // "hcad.org", "dallascad.org", etc.
   filingBody: string;       // "HCAD", "DCAD", etc.
   filingPortal: string;     // "iFile", "uFile", etc.
+  filingAction?: string;    // "Click 'iFile Protest'" — county-specific portal action
   deadline: string;         // "May 15"
   currentAssessment: number;
   fairAssessment: number;
@@ -284,7 +285,11 @@ export function generateQuickStartGuideHtml(data: QuickStartData): string {
             <div class="filing-box-row">
               <span class="filing-box-label">Go to:</span>
               <span class="filing-box-value">${data.filingUrl}</span>
-            </div>
+            </div>${data.filingAction ? `
+            <div class="filing-box-row">
+              <span class="filing-box-label">Look for:</span>
+              <span class="filing-box-value">${data.filingAction}</span>
+            </div>` : ''}
             <div class="filing-box-row">
               <span class="filing-box-label">Account number:</span>
               <span class="filing-box-value"><strong>${data.acct}</strong></span>

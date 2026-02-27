@@ -558,6 +558,7 @@ function buildQuickStartData(data: BexarPropertyData): QuickStartData {
     filingUrl: "bcad.org",
     filingBody: "BCAD",
     filingPortal: "Online Protest",
+    filingAction: "Click \"File a Protest\" or use the Help Center",
     deadline: "May 15",
     currentAssessment: data.currentAssessment,
     fairAssessment: data.fairAssessment,

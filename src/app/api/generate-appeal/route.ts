@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { Resend } from "resend";
 import { generateAccessToken as _genToken, verifyAccessToken as _verToken, escapeHtml } from "@/lib/security";
-import { generateCookQuickStartHtml, type CookQuickStartData } from "@/lib/quick-start-guide-cook";
+import { generateCookAppealGuideHtml, type CookAppealGuideData } from "@/lib/appeal-guide-cook";
 import { generateCookEvidenceHtml, type CookEvidenceData } from "@/lib/evidence-packet-cook";
 import { generateCoverLetterHtml, type CoverLetterData } from "@/lib/cover-letter";
+import { getReassessmentStatus } from "@/lib/cook-township-reassessment";
 
 // Lazy initialization
 let stripe: Stripe | null = null;
@@ -858,8 +859,18 @@ async function generatePdf(html: string): Promise<Buffer> {
   return Buffer.from(arrayBuffer);
 }
 
-function buildCookQuickStartData(data: PropertyData): CookQuickStartData {
+function buildCookAppealGuideData(data: PropertyData): CookAppealGuideData {
   const formattedPin = data.pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5");
+  const topCompPins = data.comps.slice(0, 5).map(c => c.pin);
+  const reassessment = getReassessmentStatus(data.township) || {
+    district: 'City of Chicago' as const,
+    reassessmentYear: 2024,
+    nextReassessmentYear: 2027,
+    isReassessmentYear: false,
+    yearsUntilNext: 1,
+    savingsMultiplier: 1,
+    message: 'Reductions are possible at the Board of Review.',
+  };
   const notesForFiling = `
     <p>I am filing this appeal on the grounds of LACK OF UNIFORMITY.</p>
     <p>My property at ${escapeHtml(data.address)} (PIN: ${formattedPin}), Class ${data.classCode}, is currently assessed at $${data.currentAssessment.toLocaleString()} total ($${data.perSqft.toFixed(2)}/sq ft of building area).</p>
@@ -880,6 +891,8 @@ function buildCookQuickStartData(data: PropertyData): CookQuickStartData {
     compMedianPerSqft: data.compMedianPerSqft,
     compCount: data.comps.length,
     notesForFiling,
+    topCompPins,
+    reassessment,
   };
 }
 
@@ -913,6 +926,7 @@ function buildCookEvidenceData(data: PropertyData): CookEvidenceData {
     compAvgPerSqft: data.compAvgPerSqft,
     comps: data.comps,
     assessmentHistory: data.assessmentHistory,
+    topCompPins: data.comps.slice(0, 5).map(c => c.pin),
   };
 }
 
@@ -938,7 +952,7 @@ function buildCoverLetterData(data: PropertyData): CoverLetterData {
 async function sendEmail(
   email: string, 
   pin: string, 
-  quickStartPdf: Buffer,
+  appealGuidePdf: Buffer,
   evidencePdf: Buffer,
   coverLetterPdf: Buffer,
   data: PropertyData,
@@ -946,11 +960,12 @@ async function sendEmail(
 ): Promise<void> {
   const accessLink = `https://www.getovertaxed.com/appeal/${accessToken}`;
   const formattedPin = pin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5");
+  const reassessment = getReassessmentStatus(data.township);
   
   await getResend().emails.send({
     from: "Overtaxed <hello@getovertaxed.com>",
     to: email,
-    subject: `Your appeal package is ready — save $${data.savings.toLocaleString()}/year on property taxes`,
+    subject: `Your Cook County Property Tax Appeal Package — Save $${data.savings.toLocaleString()}/year`,
     html: `
       <div style="background: #f7f6f3; padding: 32px 16px;">
         <div style="max-width: 600px; margin: 0 auto;">
@@ -958,8 +973,8 @@ async function sendEmail(
             <span style="color: white; font-size: 18px; font-weight: 800; letter-spacing: -0.5px;">overtaxed</span>
           </div>
           <div style="background: #ffffff; padding: 28px 24px; border: 1px solid #e2e2e0; border-top: none; border-radius: 0 0 12px 12px;">
-            <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #1a1a1a;">Your Board of Review appeal package is ready</h1>
-            <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to file your property tax appeal for <strong>${escapeHtml(data.address)}</strong> with the Cook County Board of Review.</p>
+            <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; color: #1a1a1a;">Your property tax appeal package is ready</h1>
+            <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #666; margin-bottom: 24px; font-size: 15px;">Everything you need to appeal your property taxes for <strong>${escapeHtml(data.address)}</strong>.</p>
             
             <div style="background: #e8f4f0; border: 2px solid #1a6b5a; border-radius: 10px; padding: 18px 20px; margin-bottom: 24px;">
               <p style="margin: 0 0 4px 0; font-size: 14px; color: #1a6b5a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Estimated Annual Savings: $${data.savings.toLocaleString()}</strong></p>
@@ -969,16 +984,22 @@ async function sendEmail(
             <p style="font-size: 14px; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>Three PDFs attached:</strong></p>
             
             <div style="background: #f0fdf4; border: 1px solid #1a6b5a; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
-              <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📋 Quick Start Guide</strong> — step-by-step filing instructions + notes to copy-paste</p>
-              <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>✉️ Cover Letter</strong> — Formal protest letter, pre-filled and ready to sign.</p>
-              <p style="margin: 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📎 Evidence Packet</strong> — ${data.comps.length} comps, uniformity brief, assessment history (upload this to the Board of Review)</p>
+              <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📋 Appeal Guide</strong> — step-by-step walkthrough for BOTH the Assessor and Board of Review appeals</p>
+              <p style="margin: 0 0 8px 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>✉️ Cover Letter</strong> — formal protest letter, pre-filled and ready to sign</p>
+              <p style="margin: 0; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📎 Evidence Packet</strong> — ${data.comps.length} comps, uniformity brief, assessment history (upload to the Board of Review)</p>
             </div>
+            
+            ${reassessment?.isReassessmentYear ? `
+            <div style="background: #e0f2fe; border: 1px solid #0ea5e9; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
+              <p style="margin: 0; font-size: 13px; color: #0369a1; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>🎯 Reassessment Year:</strong> ${data.township} Township was just reassessed — a reduction now locks in savings for 3 years.</p>
+            </div>
+            ` : ''}
             
             <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;">
               <p style="margin: 0; font-size: 13px; color: #92400e; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"><strong>📸 Don't forget:</strong> The Board of Review requires a photo of the front of your property (Rule #17). Take a clear photo with your phone before you file.</p>
             </div>
             
-            <p style="margin-bottom: 16px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Your appeal package PDF is attached to this email. You can also access it online:</p>
+            <p style="margin-bottom: 16px; font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">Open your Appeal Guide to get started — it walks you through both levels of appeal.</p>
             <a href="${accessLink}" style="display: block; width: 100%; text-align: center; background: #1a6b5a; color: #fff; padding: 14px 28px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 15px;">View Your Appeal Package</a>
             
             <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;" />
@@ -990,8 +1011,8 @@ async function sendEmail(
     `,
     attachments: [
       {
-        filename: `quick-start-guide-${formattedPin}.pdf`,
-        content: quickStartPdf.toString("base64"),
+        filename: `appeal-guide-${formattedPin}.pdf`,
+        content: appealGuidePdf.toString("base64"),
       },
       {
         filename: `cover-letter-${formattedPin}.pdf`,
@@ -1070,14 +1091,14 @@ export async function GET(request: NextRequest) {
       const token = generateAccessToken(sessionId, pin);
       // Send email in background
       if (email) {
-        const quickStartData = buildCookQuickStartData(propertyData);
+        const appealGuideData = buildCookAppealGuideData(propertyData);
         const evidenceData = buildCookEvidenceData(propertyData);
         Promise.all([
-          generatePdf(generateCookQuickStartHtml(quickStartData)),
+          generatePdf(generateCookAppealGuideHtml(appealGuideData)),
           generatePdf(generateCookEvidenceHtml(evidenceData)),
           generatePdf(generateCoverLetterHtml(buildCoverLetterData(propertyData))),
-        ]).then(([quickStartPdf, evidencePdf, coverLetterPdf]) => {
-          sendEmail(email, pin, quickStartPdf, evidencePdf, coverLetterPdf, propertyData, token).catch(console.error);
+        ]).then(([appealGuidePdf, evidencePdf, coverLetterPdf]) => {
+          sendEmail(email, pin, appealGuidePdf, evidencePdf, coverLetterPdf, propertyData, token).catch(console.error);
         }).catch(console.error);
       }
       return NextResponse.json({ success: true, property: propertyData, token, email: email || null });

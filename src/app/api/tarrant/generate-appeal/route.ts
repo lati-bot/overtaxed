@@ -595,6 +595,7 @@ function buildQuickStartData(data: TarrantPropertyData): QuickStartData {
     filingUrl: "tad.org",
     filingBody: "TAD",
     filingPortal: "Online Protest",
+    filingAction: "Create an account → Add your property → Click \"File Protest\"",
     deadline: "May 15",
     currentAssessment: data.currentAssessment,
     fairAssessment: data.fairAssessment,

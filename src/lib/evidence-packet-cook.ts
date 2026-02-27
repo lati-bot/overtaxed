@@ -62,6 +62,8 @@ export interface CookEvidenceData {
   compAvgPerSqft: number;
   comps: CookCompProperty[];
   assessmentHistory: CookAssessmentHistory[];
+  /** Top 5 comparable PINs for quick reference */
+  topCompPins?: string[];
 }
 
 export function generateCookEvidenceHtml(data: CookEvidenceData): string {
@@ -193,7 +195,7 @@ export function generateCookEvidenceHtml(data: CookEvidenceData): string {
           </svg>
           <div>
             <div class="logo">overtaxed</div>
-            <div class="subtitle">Board of Review Appeal — Evidence Packet</div>
+            <div class="subtitle">Evidence Packet — For use at both Assessor and Board of Review appeal levels</div>
           </div>
         </div>
       </div>
@@ -216,6 +218,16 @@ export function generateCookEvidenceHtml(data: CookEvidenceData): string {
         <span><strong>Class:</strong> ${data.classCode} — ${data.classDescription}</span>
       </div>
     </div>
+    
+    <!-- Quick Reference: Comparable PINs -->
+    ${data.topCompPins && data.topCompPins.length > 0 ? `
+    <div style="background: #e8f4f0; border: 2px solid #1a6b5a; border-radius: 8px; padding: 14px 18px; margin-bottom: 16px;">
+      <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: #1a6b5a; font-weight: 700; margin-bottom: 8px;">Quick Reference: Comparable PINs (for Assessor Appeal Form)</div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        ${data.topCompPins.map(p => `<span style="font-family: 'SF Mono', Consolas, monospace; font-size: 11px; background: #fff; padding: 3px 8px; border-radius: 4px; border: 1px solid #1a6b5a;">${p.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5")}</span>`).join('')}
+      </div>
+    </div>
+    ` : ''}
     
     <!-- Summary Cards -->
     <div class="summary-row">

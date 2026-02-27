@@ -607,6 +607,7 @@ function buildQuickStartData(data: CollinPropertyData): QuickStartData {
     filingUrl: "collincad.org",
     filingBody: "CCAD",
     filingPortal: "Online Protest",
+    filingAction: "Click \"Property Protest\" on the homepage",
     deadline: "May 15",
     currentAssessment: data.currentAssessment,
     fairAssessment: data.fairAssessment,

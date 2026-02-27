@@ -607,6 +607,7 @@ function buildQuickStartData(data: AustinPropertyData): QuickStartData {
     filingUrl: "traviscad.org",
     filingBody: "TCAD",
     filingPortal: "Online Protest Portal",
+    filingAction: "Click \"Protest Online\" on the homepage",
     deadline: "May 15",
     currentAssessment: data.currentAssessment,
     fairAssessment: data.fairAssessment,
