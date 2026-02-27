@@ -78,6 +78,9 @@ export default function ResultsContent() {
   const [mounted, setMounted] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [comps, setComps] = useState<CompProperty[]>([]);
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
+  const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
@@ -104,6 +107,32 @@ export default function ResultsContent() {
   }, []);
 
   const isDark = false;
+
+  const handleWaitlistSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (waitlistSubmitting || waitlistSubmitted || !waitlistEmail) return;
+    setWaitlistSubmitting(true);
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: waitlistEmail,
+          pin: property?.pin || pin || acct || "",
+          jurisdiction: jurisdictionValue,
+        }),
+      });
+      if (res.ok) {
+        setWaitlistSubmitted(true);
+      } else {
+        alert("Something went wrong. Please try again.");
+      }
+    } catch {
+      alert("Something went wrong. Please try again.");
+    } finally {
+      setWaitlistSubmitting(false);
+    }
+  };
 
   const fetchProperty = async (searchPin?: string) => {
     setLoading(true);
@@ -1338,7 +1367,7 @@ export default function ResultsContent() {
             <div className="px-5 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
               {/* Comp cards */}
               <div className="space-y-3">
-                {comps.slice(0, 3).map((comp, i) => (
+                {comps.slice(0, 1).map((comp, i) => (
                   <div key={comp.acct || i} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-xl bg-[#f7f6f3] border border-black/[0.04]">
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-[#1a1a1a] text-sm truncate">{comp.address}</div>
@@ -1360,20 +1389,20 @@ export default function ResultsContent() {
                 ))}
               </div>
 
-              {/* Blurred teaser rows */}
-              {comps.length > 3 && (
+              {/* Blurred teaser rows — real comp data */}
+              {comps.length > 1 && (
                 <div className="relative mt-3">
                   <div className="space-y-3 select-none pointer-events-none" style={{ filter: "blur(6px)" }} aria-hidden="true">
-                    {comps.slice(3, 5).map((comp, i) => (
+                    {comps.slice(1, 4).map((comp, i) => (
                       <div key={`blur-${i}`} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-4 rounded-xl bg-[#f7f6f3] border border-black/[0.04]">
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-[#1a1a1a] text-sm">123 Example Street</div>
-                          <div className="text-xs text-[#999] mt-0.5">2,100 sq ft</div>
+                          <div className="font-medium text-[#1a1a1a] text-sm">{comp.address}</div>
+                          <div className="text-xs text-[#999] mt-0.5">{comp.sqft > 0 ? `${comp.sqft.toLocaleString()} sq ft` : ''}</div>
                         </div>
                         <div className="flex items-center gap-4 sm:gap-6">
                           <div className="text-right">
                             <div className="text-xs text-[#999]">{isTexas ? "Appraised" : "Assessed"}</div>
-                            <div className="font-semibold text-sm text-[#1a1a1a]">$350,000</div>
+                            <div className="font-semibold text-sm text-[#1a1a1a]">${comp.assessedVal.toLocaleString()}</div>
                           </div>
                           <div className="text-right">
                             <div className="text-xs text-[#999]">$/sq ft</div>
@@ -1387,7 +1416,7 @@ export default function ResultsContent() {
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="bg-white/90 backdrop-blur-sm rounded-xl px-5 py-3 shadow-sm border border-black/[0.06] text-center">
                       <div className="text-sm font-medium text-[#1a1a1a]">
-                        {Math.max(comps.length - 3, 2)} more comparables in your appeal packet
+                        {Math.max(comps.length - 1, 2)} more comparables in your appeal packet
                       </div>
                     </div>
                   </div>
