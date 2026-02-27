@@ -35,8 +35,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(cached.data);
     }
 
-    // Build search query - match addresses starting with the input
-    const whereClause = encodeURIComponent(`upper(property_address) like upper('${sanitized}%')`);
+    // Build search query - token-based matching to handle directional prefixes
+    // e.g. "100 OAKTON" matches "100 E OAKTON ST" by requiring each token appears in the address
+    const tokens = sanitized.split(/\s+/).filter(t => t.length > 0);
+    let whereClause: string;
+    if (tokens.length === 1) {
+      // Single token: prefix match for speed
+      whereClause = encodeURIComponent(`upper(property_address) like '${tokens[0]}%'`);
+    } else {
+      // Multi-token: first token must be prefix (house number), rest use contains
+      const conditions = tokens.map((token, i) =>
+        i === 0
+          ? `upper(property_address) like '${token}%'`
+          : `upper(property_address) like '%${token}%'`
+      );
+      whereClause = encodeURIComponent(conditions.join(" AND "));
+    }
     let url = `${PARCEL_API}?$where=${whereClause}&$limit=8&$select=pin,property_address,property_city,property_zip,township_name`;
     
     // Add app token if available (raises rate limit from ~1K to ~10K/hr)
