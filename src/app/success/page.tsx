@@ -134,6 +134,8 @@ function SuccessPage() {
         // Map jurisdiction to endpoint
         const jurisdictionEndpoints: Record<string, string> = {
           cook: "/api/generate-appeal",
+          cook_county: "/api/generate-appeal",
+          cook_county_il: "/api/generate-appeal",
           houston: "/api/houston/generate-appeal",
           dallas: "/api/dallas/generate-appeal",
           austin: "/api/austin/generate-appeal",
