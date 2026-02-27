@@ -1157,7 +1157,7 @@ export default function ResultsContent() {
                         }
                         return (
                           <>
-                            <span>{twp} Township isn&apos;t being reassessed this year, but you can still file an appeal. Filing windows open on a rolling schedule — check the <a href="https://www.cookcountyassessoril.gov/assessment-calendar-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Assessor&apos;s filing calendar</a> for dates.</span>
+                            <span>{twp} Township&apos;s filing window opens on a rolling schedule — get your appeal packet ready now so you&apos;re prepared the day it opens. Check the <a href="https://www.cookcountyassessoril.gov/assessment-calendar-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Assessor&apos;s filing calendar</a> for dates.</span>
                             <span className="block mt-1.5">After the Assessor&apos;s review, you can appeal again at the <a href="https://www.cookcountyboardofreview.com/dates-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Board of Review</a> — two chances to win.</span>
                           </>
                         );
