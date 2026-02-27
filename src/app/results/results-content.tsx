@@ -913,7 +913,7 @@ export default function ResultsContent() {
   // Per-sqft calculations for neighbor comparison
   const buildingSqFt = property.characteristics?.buildingSqFt || 0;
   const yourPerSqft = buildingSqFt > 0 ? Math.round(currentAssessment / buildingSqFt) : 0;
-  const neighborPerSqft = property.neighborhoodStats?.medianPerSqft || (buildingSqFt > 0 && fairAssessment > 0 ? Math.round(fairAssessment / buildingSqFt) : 0);
+  const neighborPerSqft = Math.round(property.neighborhoodStats?.medianPerSqft || (buildingSqFt > 0 && fairAssessment > 0 ? fairAssessment / buildingSqFt : 0));
   const maxPerSqft = Math.max(yourPerSqft, neighborPerSqft, 1);
   const assessmentGap = reduction; // currentAssessment - fairAssessment
   const overAssessedCount = property.neighborhoodStats?.overAssessedCount || 0;

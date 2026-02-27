@@ -169,6 +169,7 @@ async function getNeighborhoodStats(nbhd: string): Promise<{
   overAssessedCount: number;
   overAssessedPct: number;
   avgReduction: number;
+  medianPerSqft: number;
 } | null> {
   const client = getCosmosClient();
   if (!client || !nbhd) return null;
@@ -178,7 +179,7 @@ async function getNeighborhoodStats(nbhd: string): Promise<{
     const container = database.container(CONTAINER_NAME);
 
     const query = {
-      query: "SELECT c.status, c.estimated_savings FROM c WHERE c.nbhd = @nbhd",
+      query: "SELECT c.status, c.estimated_savings, c.sqft, c.current_assessment FROM c WHERE c.nbhd = @nbhd",
       parameters: [{ name: "@nbhd", value: nbhd }],
     };
 
@@ -200,7 +201,16 @@ async function getNeighborhoodStats(nbhd: string): Promise<{
           )
         : 0;
 
-    return { totalProperties, overAssessedCount, overAssessedPct, avgReduction };
+    // Calculate median $/sqft
+    const perSqftValues = resources
+      .filter((r: { sqft: number; current_assessment: number }) => r.sqft > 0 && r.current_assessment > 0)
+      .map((r: { sqft: number; current_assessment: number }) => r.current_assessment / r.sqft)
+      .sort((a: number, b: number) => a - b);
+    const medianPerSqft = perSqftValues.length > 0
+      ? Math.round(perSqftValues[Math.floor(perSqftValues.length / 2)] * 100) / 100
+      : 0;
+
+    return { totalProperties, overAssessedCount, overAssessedPct, avgReduction, medianPerSqft };
   } catch (error) {
     console.error("Neighborhood stats error:", error);
     return null;
