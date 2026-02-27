@@ -83,14 +83,39 @@ export async function GET(request: NextRequest) {
           const targetSqft = mainProp.sqft || 0;
           resources.sort((a: any, b: any) => Math.abs(a.sqft - targetSqft) - Math.abs(b.sqft - targetSqft));
           
-          comps = resources.map((c: any) => ({
-            pin: c.id || c.pin,
-            address: "N/A", // Address not stored in Cosmos - will be enriched later
-            sqft: c.sqft || 0,
-            beds: c.beds || 0,
-            yearBuilt: 0, // Not stored in Cosmos
-            perSqft: c.sqft > 0 ? c.current_assessment / c.sqft : 0,
-          }));
+          // Enrich with addresses from Cook County parcel API
+          const compPins = resources.map((c: any) => c.id || c.pin).filter(Boolean);
+          let addressMap: Record<string, string> = {};
+          if (compPins.length > 0) {
+            try {
+              const pinList = compPins.map((p: string) => `'${p}'`).join(",");
+              const addrUrl = `https://datacatalog.cookcountyil.gov/resource/c49d-89sn.json?$where=pin in(${encodeURIComponent(pinList)})&$limit=${compPins.length}`;
+              const addrRes = await fetch(addrUrl);
+              if (addrRes.ok) {
+                const addrData = await addrRes.json();
+                for (const p of addrData) {
+                  if (p.pin && p.property_address) {
+                    addressMap[p.pin] = p.property_address;
+                  }
+                }
+              }
+            } catch {
+              // Non-critical
+            }
+          }
+
+          comps = resources.map((c: any) => {
+            const compPin = c.id || c.pin;
+            return {
+              pin: compPin,
+              address: addressMap[compPin] || `PIN ${compPin.replace(/(\d{2})(\d{2})(\d{3})(\d{3})(\d{4})/, "$1-$2-$3-$4-$5")}`,
+              sqft: c.sqft || 0,
+              beds: c.beds || 0,
+              yearBuilt: 0,
+              current_assessment: c.current_assessment || 0,
+              perSqft: c.sqft > 0 ? c.current_assessment / c.sqft : 0,
+            };
+          });
         }
       }
     } catch (err) {
