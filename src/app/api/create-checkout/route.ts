@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
         },
       ],
       client_reference_id: clientReferenceId,
+      allow_promotion_codes: true,
       success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}&jurisdiction=${jurisdiction || "cook"}`,
       cancel_url: cancelUrl,
     }, {

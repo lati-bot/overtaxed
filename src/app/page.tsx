@@ -176,15 +176,12 @@ function SearchBar({
               disabled={loading || !address.trim()}
               className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-40 bg-[#1a6b5a] text-white hover:bg-[#155a4c] shadow-lg shadow-[#1a6b5a]/20 whitespace-nowrap"
             >
-              {loading ? "..." : "See My Savings"}
+              {loading ? "..." : "Check My Address — Free"}
             </button>
           </div>
-          {/* Security micro-copy with lock icon */}
+          {/* Microcopy below CTA */}
           <p className="text-[12px] text-[#999] mt-3 flex items-center justify-center gap-1.5">
-            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
-            Free lookup · No signup · We never store your address
+            Takes 10 seconds · No signup · Your value can&apos;t go up from appealing
           </p>
         </div>
       </form>
@@ -417,6 +414,11 @@ export default function Home() {
           { "@type": "Question", "name": "When can I file?", "acceptedAnswer": { "@type": "Answer", "text": "In Texas, protest after receiving your appraisal notice (usually late March). Deadline is May 15 or 30 days after your notice. In Cook County, IL, appeals open by township on a rotating schedule." } },
           { "@type": "Question", "name": "Why is this so much cheaper?", "acceptedAnswer": { "@type": "Answer", "text": "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." } },
           { "@type": "Question", "name": "What areas do you cover?", "acceptedAnswer": { "@type": "Answer", "text": "5M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), San Antonio (Bexar), Austin (Travis, Williamson), Rockwall County, and Cook County, IL." } },
+          { "@type": "Question", "name": "Can protesting property taxes raise my value?", "acceptedAnswer": { "@type": "Answer", "text": "No. By Texas law, your assessed value can only stay the same or go down during a protest. Zero risk." } },
+          { "@type": "Question", "name": "How much does the average homeowner save?", "acceptedAnswer": { "@type": "Answer", "text": "Most successful protests save between $500 and $1,500 per year depending on your property and local tax rate." } },
+          { "@type": "Question", "name": "What is the uniform and equal argument?", "acceptedAnswer": { "@type": "Answer", "text": "Texas law requires that properties be assessed equally. If similar homes are assessed lower than yours, you can argue your assessment should be reduced to match." } },
+          { "@type": "Question", "name": "Should I protest every year?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Property values and assessments change annually. Filing a protest keeps your assessment in check." } },
+          { "@type": "Question", "name": "What is the difference between market value and assessed value?", "acceptedAnswer": { "@type": "Answer", "text": "Market value is what your home would sell for. Assessed value is what your county uses to calculate property taxes, which may be lower due to homestead caps or prior protests." } },
         ],
       },
     ],
@@ -458,15 +460,12 @@ export default function Home() {
       {/* Hero — centered */}
       <section className="pt-16 sm:pt-24 pb-6 sm:pb-8 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-6">
-            4.9 million properties analyzed
-          </p>
           <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-normal leading-[1.12] tracking-[-0.03em] text-[#1a1a1a]">
-            Find out if you&apos;re<br />
-            overpaying property tax
+            Your neighbors pay less.<br />
+            Here&apos;s the proof.
           </h1>
           <p className="mt-6 text-lg text-[#666] leading-relaxed max-w-xl mx-auto font-light">
-            We compare your home to similar properties assessed lower — and build your appeal case in minutes. Free to check, no signup.
+            We compare your home to similar properties assessed lower — and build your complete appeal package for $49. Average savings: $1,136/year.
           </p>
 
           {/* [MUST FIX #3] Coverage — green dot removed, em-dash instead */}
@@ -501,9 +500,9 @@ export default function Home() {
           <div className="border-t border-black/[0.06] pt-12 sm:pt-16">
             <div className="grid grid-cols-3 gap-8 sm:gap-16">
               {[
-                { value: "$1,136", label: "Avg. annual savings" },
-                { value: "32%", label: "Homes over-assessed" },
-                { value: "72%", label: "Appeal success rate" },
+                { value: "$1,136/yr", label: "Average savings" },
+                { value: "65%+", label: "Of Texas protests succeed" },
+                { value: "$49", label: "Flat fee — keep 100%" },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
                   <div className="text-3xl sm:text-5xl font-medium tracking-[-0.03em] text-[#1a1a1a]">{stat.value}</div>
@@ -522,6 +521,26 @@ export default function Home() {
             &ldquo;I was paying $1,400 more than my neighbor for a smaller house. Overtaxed found 6 comps and I won my appeal in 3 weeks.&rdquo;
           </p>
           <p className="mt-4 text-[13px] text-[#999]">— Rachel M., Collin County, TX</p>
+        </div>
+      </section>
+
+      {/* Objection Busters */}
+      <section className="py-14 sm:py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Zero risk</p>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Common concerns, answered</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              { q: "Can my value go up?", a: "No. By law, your assessed value can only stay the same or go down during a protest. Fewer than 0.01% of hearings result in any increase. Zero risk." },
+              { q: "Is $49 really worth it?", a: "The average homeowner saves $1,136/year. That\u2019s a 23x return on $49. Typical firms charge 25\u201350% of your savings \u2014 that\u2019s $250\u2013500 per year." },
+              { q: "Do I need to go to a hearing?", a: "97% of protests are resolved without a formal hearing. You submit evidence online or by mail. We give you everything you need to file from your couch." },
+            ].map((card) => (
+              <div key={card.q} className="bg-white rounded-2xl p-8 border border-black/[0.06]">
+                <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{card.q}</h3>
+                <p className="text-[15px] leading-relaxed text-[#666] font-light">{card.a}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -611,6 +630,42 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Price Comparison Table */}
+      <section className="py-14 sm:py-20 px-6 bg-[#f0ede7]">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Compare</p>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Keep more of your savings</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr>
+                  <th className="py-4 pr-4 text-[13px] text-[#999] font-medium tracking-wide"></th>
+                  <th className="py-4 px-6 text-[15px] font-semibold text-white bg-[#1a6b5a] rounded-t-xl text-center">Overtaxed</th>
+                  <th className="py-4 px-6 text-[15px] font-medium text-[#666] text-center">Typical Firm</th>
+                  <th className="py-4 px-6 text-[15px] font-medium text-[#666] text-center">DIY Alone</th>
+                </tr>
+              </thead>
+              <tbody className="text-[15px]">
+                {[
+                  ["Cost", "$49 once", "$250–500/yr", "Free"],
+                  ["Evidence packet", "✓", "✓", "✗ You research"],
+                  ["Time investment", "15 min", "None", "10–20 hours"],
+                  ["You keep (on $1K savings)", "$951/yr", "$500–750/yr", "$1,000/yr"],
+                  ["Over 5 years", "$4,951", "$2,500–3,750", "$5,000"],
+                ].map(([label, ot, firm, diy], i) => (
+                  <tr key={i} className="border-t border-black/[0.06]">
+                    <td className="py-4 pr-4 text-[#666] font-light">{label}</td>
+                    <td className={`py-4 px-6 text-center font-medium bg-[#1a6b5a]/5 ${i === 4 ? "text-[#1a6b5a] font-bold text-lg" : "text-[#1a1a1a]"}`}>{ot}</td>
+                    <td className="py-4 px-6 text-center text-[#666] font-light">{firm}</td>
+                    <td className="py-4 px-6 text-center text-[#666] font-light">{diy}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       {/* FAQ */}
       <section id="faq" className="py-14 sm:py-20 px-6">
         <div className="max-w-3xl mx-auto">
@@ -624,6 +679,11 @@ export default function Home() {
               { q: "When can I file?", a: "In Texas, protest after receiving your appraisal notice (usually late March). Deadline is May 15 or 30 days after your notice. In Cook County, IL, appeals open by township on a rotating schedule." },
               { q: "Why is this so much cheaper?", a: "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." },
               { q: "What areas do you cover?", a: "5M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), San Antonio (Bexar), Austin (Travis, Williamson), Rockwall County, and Cook County, IL. More coming." },
+              { q: "Can protesting property taxes raise my value?", a: "No. By Texas law, your assessed value can only stay the same or go down during a protest. The appraisal district cannot raise your value as a result of your protest. There is zero risk." },
+              { q: "How much does the average homeowner save?", a: "Most successful protests save between $500 and $1,500 per year. In Harris County, the median DIY reduction is around $20,640 in assessed value. Your savings depend on your property and local tax rate." },
+              { q: "What is the uniform and equal argument?", a: "Texas law requires that properties be assessed equally. If similar homes in your area are assessed lower than yours, you can argue your assessment should be reduced to match — even if your market value is accurate." },
+              { q: "Should I protest every year?", a: "Yes. Property values and assessments change annually, and appraisal districts may raise your value each year. Filing a protest keeps your assessment in check and ensures you're not overpaying." },
+              { q: "What's the difference between market value and assessed value?", a: "Market value is what your home would sell for on the open market. Assessed value is the value your county uses to calculate your property taxes. The assessed value may be lower due to homestead caps or prior protests." },
             ].map((item, i) => (
               <div key={i} className="border-b border-black/[0.06] pb-8 sm:pb-10">
                 <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{item.q}</h3>
@@ -637,9 +697,9 @@ export default function Home() {
       {/* Footer CTA — dark teal */}
       <section className="py-20 sm:py-28 px-6 bg-[#0f2d26] text-center">
         <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.02em] mb-4 text-white">See if you have a case</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.02em] mb-4 text-white">Every year you don&apos;t protest costs you ~$1,136</h2>
           <p className="text-lg text-[#aaa] font-light mb-10">
-            The average homeowner saves $1,136/year. At $49, that&apos;s a 23x return.
+            Check your address in 10 seconds. $49 if you want to appeal.
           </p>
           <SearchBar
             {...searchBarProps}
