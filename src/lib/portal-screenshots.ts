@@ -15,7 +15,8 @@ const SCREENSHOT_MAP: Record<string, string> = {
   Travis: "tcad-portal.jpg",
   Williamson: "wcad-portal.jpg",
   Rockwall: "rockwallcad-portal.png",
-  // Fort Bend and Bexar — screenshots not yet captured
+  "Fort Bend": "fbcad-portal.jpg",
+  Bexar: "bcad-portal.png",
   // Cook County uses its own Appeal Guide
 };
 
