@@ -698,59 +698,84 @@ export default function ResultsContent() {
         </nav>
         
         <div className="max-w-lg mx-auto px-4 sm:px-6 py-12 sm:py-20">
-          <div className="bg-white rounded-2xl border border-black/[0.06] p-8">
-            <svg className="w-12 h-12 text-[#b45309] mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15.75h.007v.008H12v-.008z" />
-            </svg>
-            
-            <h1 className="text-xl font-medium text-[#1a1a1a] text-center mt-5">
-              We couldn&apos;t find that property
-            </h1>
-            
-            <p className="mt-2 text-center text-[#666] text-sm">
-              Here are a few things to check:
-            </p>
-            
-            <ul className="mt-5 space-y-3 text-sm text-[#666]">
-              <li className="flex items-start gap-2.5">
-                <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">–</span>
-                <span>
-                  <span className="font-medium text-[#1a1a1a]">Not in our coverage area?</span>{" "}
-                  We cover Cook County IL, Harris, Dallas, Travis, Collin, Tarrant, Denton, Williamson, Fort Bend, Bexar &amp; Rockwall counties in TX. More coming soon.
-                </span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">–</span>
-                <span>
-                  <span className="font-medium text-[#1a1a1a]">Typo in the address?</span>{" "}
-                  Double-check the spelling — our autocomplete should help.
-                </span>
-              </li>
-              <li className="flex items-start gap-2.5">
-                <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">–</span>
-                <span>
-                  <span className="font-medium text-[#1a1a1a]">Condo or commercial?</span>{" "}
-                  We specialize in single-family homes and small multi-family (2-4 units).
-                </span>
-              </li>
-            </ul>
-            
-            <div className="mt-6">
-              <Link 
-                href="/" 
-                className="block w-full text-center px-6 py-3 rounded-xl font-medium transition-colors bg-[#1a6b5a] hover:bg-[#155a4c] text-white"
-              >
-                Try Another Address
-              </Link>
+          <div className="bg-white rounded-2xl border border-black/[0.06] overflow-hidden">
+            {/* Header stripe */}
+            <div className="bg-gradient-to-r from-[#f59e0b]/10 to-[#f59e0b]/5 px-8 py-6 border-b border-[#f59e0b]/10">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-[#f59e0b]/15 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-6 h-6 text-[#b45309]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h1 className="text-lg font-semibold text-[#1a1a1a]">
+                    Property not found
+                  </h1>
+                  <p className="text-sm text-[#666] mt-0.5">
+                    We searched but couldn&apos;t match that address
+                  </p>
+                </div>
+              </div>
             </div>
-            
-            <p className="mt-4 text-center text-sm">
-              Need help?{" "}
-              <a href="mailto:hello@getovertaxed.com" className="text-[#1a6b5a] hover:underline">
-                hello@getovertaxed.com
-              </a>
-            </p>
+
+            <div className="p-8">
+              <p className="text-[13px] tracking-[0.1em] uppercase text-[#999] font-medium mb-4">Common reasons</p>
+              
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-[#e8f4f0] flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-3.5 h-3.5 text-[#1a6b5a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[#1a1a1a]">Outside our coverage area</p>
+                    <p className="text-sm text-[#666] mt-0.5">We cover 10 TX counties (Harris, Dallas, Travis, Collin, Tarrant, Denton, Williamson, Fort Bend, Bexar, Rockwall) + Cook County IL.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-[#e8f4f0] flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-3.5 h-3.5 text-[#1a6b5a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[#1a1a1a]">Typo in the address</p>
+                    <p className="text-sm text-[#666] mt-0.5">Try using the autocomplete suggestions as you type — it pulls directly from county records.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="w-7 h-7 rounded-lg bg-[#e8f4f0] flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-3.5 h-3.5 text-[#1a6b5a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[#1a1a1a]">Condo, commercial, or new build</p>
+                    <p className="text-sm text-[#666] mt-0.5">We specialize in single-family homes and 2-4 unit properties.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-black/[0.06]">
+                <Link 
+                  href="/" 
+                  className="block w-full text-center px-6 py-3.5 rounded-xl font-medium transition-colors bg-[#1a6b5a] hover:bg-[#155a4c] text-white"
+                >
+                  Try Another Address
+                </Link>
+                
+                <p className="mt-4 text-center text-sm text-[#999]">
+                  Still stuck? Email us at{" "}
+                  <a href="mailto:hello@getovertaxed.com" className="text-[#1a6b5a] hover:underline">
+                    hello@getovertaxed.com
+                  </a>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1159,25 +1184,53 @@ export default function ResultsContent() {
           {hasAnalysis && estimatedSavings === 0 && (
             <div className="p-5 sm:p-6 md:p-8 border-t border-black/[0.06]">
               <div className="text-center">
-                <div className="w-12 h-12 rounded-full bg-[#1a6b5a] flex items-center justify-center mx-auto mb-3">
-                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1a6b5a] to-[#22856f] flex items-center justify-center mx-auto mb-4 shadow-sm">
+                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
                 <div className="inline-flex items-center gap-2 bg-[#e8f4f0] text-[#1a6b5a] font-medium px-4 py-2 rounded-full text-sm mb-3">
                   ✓ {isTexas ? "Fairly Appraised" : "Fairly Assessed"}
                 </div>
-                <div className="text-xl font-semibold text-[#1a1a1a]">
-                  Great news — you&apos;re fairly assessed
-                </div>
-                <p className="mt-2 text-[#666]">
-                  Your {isTexas ? "appraised value" : "assessment"} is in line with comparable homes in your area. No {isTexas ? "protest" : "appeal"} needed right now.
+                <h3 className="text-xl font-semibold text-[#1a1a1a]">
+                  Good news — your home looks fairly {isTexas ? "appraised" : "assessed"}
+                </h3>
+                <p className="mt-2 text-[#666] max-w-md mx-auto">
+                  Based on {property.analysis?.compCount || "comparable"} similar properties in your area, your {isTexas ? "appraised value" : "assessment"} is in line with the market. We don&apos;t recommend filing a {isTexas ? "protest" : "appeal"} at this time.
                 </p>
-                {isTexas && (
-                  <p className="mt-3 text-sm text-[#999]">
-                    Texas reassesses annually — check back after you receive your 2026 appraisal notice (typically March/April).
-                  </p>
-                )}
+              </div>
+              
+              <div className="mt-6 bg-[#f7f6f3] rounded-xl p-5">
+                <p className="text-[13px] tracking-[0.1em] uppercase text-[#999] font-medium mb-3">What to do next</p>
+                <div className="space-y-3 text-sm text-[#555]">
+                  {isTexas ? (
+                    <>
+                      <div className="flex items-start gap-2.5">
+                        <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📋</span>
+                        <span>Make sure your <strong className="text-[#1a1a1a]">homestead exemption</strong> is filed — it caps annual increases at 10%</span>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📅</span>
+                        <span>Check back after your <strong className="text-[#1a1a1a]">2026 appraisal notice</strong> arrives (typically March–April)</span>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">🔔</span>
+                        <span>Values can jump year to year — we&apos;ll have fresh data as soon as counties release 2026 numbers</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-start gap-2.5">
+                        <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📋</span>
+                        <span>Verify your <strong className="text-[#1a1a1a]">exemptions</strong> are current (homeowner, senior, disability)</span>
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📅</span>
+                        <span>Reassessment notices typically arrive in <strong className="text-[#1a1a1a]">January–February</strong> — check back then</span>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           )}
