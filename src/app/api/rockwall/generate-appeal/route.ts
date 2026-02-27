@@ -711,7 +711,7 @@ export async function GET(request: NextRequest) {
     }
     try {
       const session = await getStripe().checkout.sessions.retrieve(tokenData.sessionId);
-      if (session.payment_status !== "paid") {
+      if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") {
         return NextResponse.json({ error: "Payment not completed" }, { status: 400 });
       }
       if (session.metadata?.processed === "true") {
@@ -730,7 +730,7 @@ export async function GET(request: NextRequest) {
   if (sessionId) {
     try {
       const session = await getStripe().checkout.sessions.retrieve(sessionId);
-      if (session.payment_status !== "paid") {
+      if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") {
         return NextResponse.json({ error: "Payment not completed" }, { status: 400 });
       }
       if (session.metadata?.processed === "true") {
@@ -790,7 +790,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const session = await getStripe().checkout.sessions.retrieve(tokenData.sessionId);
-    if (session.payment_status !== "paid") {
+    if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") {
       return NextResponse.json({ error: "Payment not completed" }, { status: 400 });
     }
     if (session.metadata?.processed === "true") {

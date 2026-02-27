@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
   let email: string | null;
   try {
     const session = await getStripe().checkout.sessions.retrieve(sessionId);
-    if (session.payment_status !== "paid") {
+    if (session.payment_status !== "paid" && session.payment_status !== "no_payment_required") {
       return NextResponse.json({ error: "Payment not completed" }, { status: 400 });
     }
     email = session.customer_details?.email || null;
