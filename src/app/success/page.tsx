@@ -37,6 +37,8 @@ function SuccessPage() {
   const [token, setToken] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [downloading, setDownloading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendStatus, setResendStatus] = useState<"idle" | "success" | "error" | "cooldown">("idle");
   const [isHouston, setIsHouston] = useState(false);
   const [isDallas, setIsDallas] = useState(false);
   const [isAustin, setIsAustin] = useState(false);
@@ -211,6 +213,30 @@ function SuccessPage() {
       alert("Failed to download PDF. Please try again.");
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    if (!token || resending) return;
+    setResending(true);
+    setResendStatus("idle");
+    try {
+      const res = await fetch("/api/resend-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      if (res.status === 429) {
+        setResendStatus("cooldown");
+      } else if (res.ok) {
+        setResendStatus("success");
+      } else {
+        setResendStatus("error");
+      }
+    } catch {
+      setResendStatus("error");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -400,12 +426,43 @@ function SuccessPage() {
           </div>
 
           {email && (
-            <p className="text-sm text-gray-500 mt-4 flex items-center gap-2">
-              <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              We also sent a copy to {email}
-            </p>
+            <div className="mt-4">
+              <p className="text-sm text-gray-500 flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                We also sent a copy to {email}
+              </p>
+              <div className="mt-3 flex items-center gap-3">
+                <button
+                  onClick={handleResendEmail}
+                  disabled={resending || resendStatus === "success"}
+                  className="text-sm text-[#1a6b5a] hover:underline disabled:opacity-50 disabled:no-underline flex items-center gap-1"
+                >
+                  {resending ? (
+                    <>
+                      <div className="w-3 h-3 border-2 border-gray-300 border-t-[#1a6b5a] rounded-full animate-spin"></div>
+                      Sending...
+                    </>
+                  ) : resendStatus === "success" ? (
+                    <>
+                      <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Email sent!
+                    </>
+                  ) : (
+                    "Didn't get your email? Resend it"
+                  )}
+                </button>
+                {resendStatus === "cooldown" && (
+                  <span className="text-xs text-amber-600">Please wait a minute before trying again</span>
+                )}
+                {resendStatus === "error" && (
+                  <span className="text-xs text-red-500">Failed to send — try again or contact support</span>
+                )}
+              </div>
+            </div>
           )}
         </div>
 
