@@ -1089,19 +1089,30 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Property not found" }, { status: 404 });
       }
       const token = generateAccessToken(sessionId, pin);
-      // Send email in background
+      // Generate PDFs and send email — await to surface errors
+      let emailStatus: "sent" | "skipped" | "error" = "skipped";
+      let emailError: string | null = null;
       if (email) {
-        const appealGuideData = buildCookAppealGuideData(propertyData);
-        const evidenceData = buildCookEvidenceData(propertyData);
-        Promise.all([
-          generatePdf(generateCookAppealGuideHtml(appealGuideData)),
-          generatePdf(generateCookEvidenceHtml(evidenceData)),
-          generatePdf(generateCoverLetterHtml(buildCoverLetterData(propertyData))),
-        ]).then(([appealGuidePdf, evidencePdf, coverLetterPdf]) => {
-          sendEmail(email, pin, appealGuidePdf, evidencePdf, coverLetterPdf, propertyData, token).catch(console.error);
-        }).catch(console.error);
+        try {
+          const appealGuideData = buildCookAppealGuideData(propertyData);
+          const evidenceData = buildCookEvidenceData(propertyData);
+          console.log(`[generate-appeal] Generating 3 PDFs for ${pin}...`);
+          const [appealGuidePdf, evidencePdf, coverLetterPdf] = await Promise.all([
+            generatePdf(generateCookAppealGuideHtml(appealGuideData)),
+            generatePdf(generateCookEvidenceHtml(evidenceData)),
+            generatePdf(generateCoverLetterHtml(buildCoverLetterData(propertyData))),
+          ]);
+          console.log(`[generate-appeal] PDFs generated (${appealGuidePdf.length + evidencePdf.length + coverLetterPdf.length} bytes total). Sending email to ${email}...`);
+          await sendEmail(email, pin, appealGuidePdf, evidencePdf, coverLetterPdf, propertyData, token);
+          console.log(`[generate-appeal] Email sent successfully to ${email}`);
+          emailStatus = "sent";
+        } catch (err: any) {
+          console.error(`[generate-appeal] EMAIL DELIVERY FAILED for ${pin} / ${email}:`, err);
+          emailStatus = "error";
+          emailError = err?.message || String(err);
+        }
       }
-      return NextResponse.json({ success: true, property: propertyData, token, email: email || null });
+      return NextResponse.json({ success: true, property: propertyData, token, email: email || null, emailStatus, emailError });
     } catch (error) {
       console.error("Error retrieving session:", error);
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
