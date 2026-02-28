@@ -46,9 +46,7 @@ export async function POST(request: NextRequest) {
     try {
       // Determine jurisdiction from client_reference_id prefix and delegate
       // to the appropriate generate-appeal endpoint (which handles lookup, PDF, and email)
-      const baseUrl = process.env.VERCEL_ENV === "production" 
-        ? "https://www.getovertaxed.com" 
-        : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+      const baseUrl = "https://www.getovertaxed.com";
 
       let endpoint: string;
       if (clientRef.startsWith("houston:")) {
