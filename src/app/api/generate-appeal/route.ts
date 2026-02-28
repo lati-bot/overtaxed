@@ -7,6 +7,9 @@ import { generateCookEvidenceHtml, type CookEvidenceData } from "@/lib/evidence-
 import { generateCoverLetterHtml, type CoverLetterData } from "@/lib/cover-letter";
 import { getReassessmentStatus } from "@/lib/cook-township-reassessment";
 
+// Allow up to 60s for this function (fetches Cook County APIs, generates 3 PDFs, sends email)
+export const maxDuration = 60;
+
 // Lazy initialization
 let stripe: Stripe | null = null;
 function getStripe() {
@@ -1094,15 +1097,60 @@ export async function GET(request: NextRequest) {
       let emailError: string | null = null;
       if (email) {
         try {
-          const appealGuideData = buildCookAppealGuideData(propertyData);
-          const evidenceData = buildCookEvidenceData(propertyData);
+          console.log(`[generate-appeal] Building HTML for ${pin}...`);
+          
+          // Step 1: Build data objects
+          let appealGuideData, evidenceData, coverLetterData;
+          try {
+            appealGuideData = buildCookAppealGuideData(propertyData);
+            console.log(`[generate-appeal] Appeal guide data built (${appealGuideData.compCount} comps, township=${appealGuideData.township})`);
+          } catch (err: any) {
+            throw new Error(`buildCookAppealGuideData crashed: ${err?.message}`);
+          }
+          try {
+            evidenceData = buildCookEvidenceData(propertyData);
+            console.log(`[generate-appeal] Evidence data built`);
+          } catch (err: any) {
+            throw new Error(`buildCookEvidenceData crashed: ${err?.message}`);
+          }
+          try {
+            coverLetterData = buildCoverLetterData(propertyData);
+            console.log(`[generate-appeal] Cover letter data built`);
+          } catch (err: any) {
+            throw new Error(`buildCoverLetterData crashed: ${err?.message}`);
+          }
+          
+          // Step 2: Generate HTML
+          let appealGuideHtml, evidenceHtml, coverLetterHtml;
+          try {
+            appealGuideHtml = generateCookAppealGuideHtml(appealGuideData);
+            console.log(`[generate-appeal] Appeal guide HTML: ${appealGuideHtml.length} chars`);
+          } catch (err: any) {
+            throw new Error(`generateCookAppealGuideHtml crashed: ${err?.message}`);
+          }
+          try {
+            evidenceHtml = generateCookEvidenceHtml(evidenceData);
+            console.log(`[generate-appeal] Evidence HTML: ${evidenceHtml.length} chars`);
+          } catch (err: any) {
+            throw new Error(`generateCookEvidenceHtml crashed: ${err?.message}`);
+          }
+          try {
+            coverLetterHtml = generateCoverLetterHtml(coverLetterData);
+            console.log(`[generate-appeal] Cover letter HTML: ${coverLetterHtml.length} chars`);
+          } catch (err: any) {
+            throw new Error(`generateCoverLetterHtml crashed: ${err?.message}`);
+          }
+          
+          // Step 3: Generate PDFs
           console.log(`[generate-appeal] Generating 3 PDFs for ${pin}...`);
           const [appealGuidePdf, evidencePdf, coverLetterPdf] = await Promise.all([
-            generatePdf(generateCookAppealGuideHtml(appealGuideData)),
-            generatePdf(generateCookEvidenceHtml(evidenceData)),
-            generatePdf(generateCoverLetterHtml(buildCoverLetterData(propertyData))),
+            generatePdf(appealGuideHtml),
+            generatePdf(evidenceHtml),
+            generatePdf(coverLetterHtml),
           ]);
           console.log(`[generate-appeal] PDFs generated (${appealGuidePdf.length + evidencePdf.length + coverLetterPdf.length} bytes total). Sending email to ${email}...`);
+          
+          // Step 4: Send email
           await sendEmail(email, pin, appealGuidePdf, evidencePdf, coverLetterPdf, propertyData, token);
           console.log(`[generate-appeal] Email sent successfully to ${email}`);
           emailStatus = "sent";
