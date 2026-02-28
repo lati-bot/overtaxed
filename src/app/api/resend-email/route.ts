@@ -102,9 +102,7 @@ export async function POST(request: NextRequest) {
     const jurisdiction = detectJurisdiction(tokenData);
     const endpointPath = jurisdictionEndpoints[jurisdiction || "cook"];
     
-    const baseUrl = process.env.VERCEL_ENV === "production"
-      ? "https://www.getovertaxed.com"
-      : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+    const baseUrl = "https://www.getovertaxed.com";
 
     const res = await fetch(`${baseUrl}${endpointPath}?session_id=${sessionId}`);
     
