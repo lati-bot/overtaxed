@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     const jurisdiction = detectJurisdiction(tokenData);
     const endpointPath = jurisdictionEndpoints[jurisdiction || "cook"];
     
-    const baseUrl = "https://www.getovertaxed.com";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.getovertaxed.com";
 
     const res = await fetch(`${baseUrl}${endpointPath}?session_id=${sessionId}`);
     

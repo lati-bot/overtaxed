@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
   let propertyData: any = null;
   t0 = Date.now();
   try {
-    const baseUrl = "https://www.getovertaxed.com";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.getovertaxed.com";
     const lookupRes = await fetch(`${baseUrl}/api/lookup?pin=${pin}`);
     if (!lookupRes.ok) {
       throw new Error(`Lookup returned ${lookupRes.status}: ${await lookupRes.text().catch(() => "")}`);

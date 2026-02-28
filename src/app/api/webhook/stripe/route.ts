@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     try {
       // Determine jurisdiction from client_reference_id prefix and delegate
       // to the appropriate generate-appeal endpoint (which handles lookup, PDF, and email)
-      const baseUrl = "https://www.getovertaxed.com";
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.getovertaxed.com";
 
       let endpoint: string;
       if (clientRef.startsWith("houston:")) {
