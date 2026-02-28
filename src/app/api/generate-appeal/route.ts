@@ -835,31 +835,41 @@ function generateBrief(data: PropertyData): string {
   `;
 }
 
-async function generatePdf(html: string): Promise<Buffer> {
-  const response = await fetch(`https://production-sfo.browserless.io/pdf?token=${BROWSERLESS_TOKEN}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": "no-cache",
-    },
-    body: JSON.stringify({
-      html,
-      options: {
-        format: "Letter",
-        printBackground: true,
-        margin: { top: "0.4in", right: "0.4in", bottom: "0.4in", left: "0.4in" },
+async function generatePdf(html: string, retries = 3): Promise<Buffer> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const response = await fetch(`https://production-sfo.browserless.io/pdf?token=${BROWSERLESS_TOKEN}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Cache-Control": "no-cache",
       },
-    }),
-  });
+      body: JSON.stringify({
+        html,
+        options: {
+          format: "Letter",
+          printBackground: true,
+          margin: { top: "0.4in", right: "0.4in", bottom: "0.4in", left: "0.4in" },
+        },
+      }),
+    });
 
-  if (!response.ok) {
+    if (response.ok) {
+      const arrayBuffer = await response.arrayBuffer();
+      return Buffer.from(arrayBuffer);
+    }
+
     const errorText = await response.text().catch(() => "");
+    if (response.status === 429 && attempt < retries) {
+      const waitMs = attempt * 2000; // 2s, 4s backoff
+      console.warn(`[generatePdf] 429 rate limited, retrying in ${waitMs}ms (attempt ${attempt}/${retries})`);
+      await new Promise(resolve => setTimeout(resolve, waitMs));
+      continue;
+    }
+
     console.error(`Browserless error: ${response.status} - ${errorText}`);
     throw new Error(`Browserless error: ${response.status}`);
   }
-
-  const arrayBuffer = await response.arrayBuffer();
-  return Buffer.from(arrayBuffer);
+  throw new Error("generatePdf: exhausted retries");
 }
 
 function buildCookAppealGuideData(data: PropertyData): CookAppealGuideData {
@@ -1142,12 +1152,13 @@ export async function GET(request: NextRequest) {
           }
           
           // Step 3: Generate PDFs
-          console.log(`[generate-appeal] Generating 3 PDFs for ${pin}...`);
-          const [appealGuidePdf, evidencePdf, coverLetterPdf] = await Promise.all([
-            generatePdf(appealGuideHtml),
-            generatePdf(evidenceHtml),
-            generatePdf(coverLetterHtml),
-          ]);
+          console.log(`[generate-appeal] Generating 3 PDFs sequentially for ${pin}...`);
+          const appealGuidePdf = await generatePdf(appealGuideHtml);
+          console.log(`[generate-appeal] Appeal Guide PDF: ${appealGuidePdf.length} bytes`);
+          const evidencePdf = await generatePdf(evidenceHtml);
+          console.log(`[generate-appeal] Evidence PDF: ${evidencePdf.length} bytes`);
+          const coverLetterPdf = await generatePdf(coverLetterHtml);
+          console.log(`[generate-appeal] Cover Letter PDF: ${coverLetterPdf.length} bytes`);
           console.log(`[generate-appeal] PDFs generated (${appealGuidePdf.length + evidencePdf.length + coverLetterPdf.length} bytes total). Sending email to ${email}...`);
           
           // Step 4: Send email
