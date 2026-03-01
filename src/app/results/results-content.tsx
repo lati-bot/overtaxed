@@ -938,6 +938,17 @@ export default function ResultsContent() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Property Header + Analysis + CTA — unified hero section */}
         <div className={`rounded-2xl border ${borderColor} ${bgCard} overflow-hidden ${isDark ? "" : "shadow-sm"}`}>
+          {/* Street View Image */}
+          {property.address && (
+            <div className="w-full h-48 sm:h-56 md:h-64 bg-[#e8e8e8] relative overflow-hidden">
+              <img
+                src={`/api/streetview?address=${encodeURIComponent(property.address + ", " + property.city + (isTexas ? ", TX" : ", IL " + property.zip))}`}
+                alt={`Street view of ${property.address}`}
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            </div>
+          )}
           {/* Property info bar */}
           <div className="p-5 sm:p-6 md:p-8">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
