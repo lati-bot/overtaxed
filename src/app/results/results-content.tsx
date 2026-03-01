@@ -1027,6 +1027,43 @@ export default function ResultsContent() {
                 </div>
               </div>
             </div>
+            {/* Quick CTA — above the fold */}
+            {hasAnalysis && estimatedSavings > 0 && !isTexas && (
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-[#e8f4f0] border border-[#1a6b5a]/15">
+                <div className="flex-1">
+                  <div className="font-semibold text-[#1a6b5a]">
+                    You could save ~${estimatedSavings.toLocaleString()}/year
+                  </div>
+                  <div className="text-sm text-[#1a6b5a]/70">
+                    That&apos;s ${(estimatedSavings * 3).toLocaleString()} over 3 years if you don&apos;t appeal
+                  </div>
+                </div>
+                <button
+                  onClick={() => document.getElementById('cta-section')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="px-6 py-3 rounded-xl font-semibold text-white bg-[#1a6b5a] hover:bg-[#155a4c] transition-colors text-sm whitespace-nowrap shadow-sm"
+                >
+                  Fix This Now — $49
+                </button>
+              </div>
+            )}
+            {hasAnalysis && estimatedSavings > 0 && isTexas && (
+              <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-[#fef3c7]/50 border border-[#b45309]/15">
+                <div className="flex-1">
+                  <div className="font-semibold text-[#b45309]">
+                    You could save ~${estimatedSavings.toLocaleString()}/year
+                  </div>
+                  <div className="text-sm text-[#b45309]/70">
+                    2026 data coming soon — join the waitlist to get notified
+                  </div>
+                </div>
+                <button
+                  onClick={() => document.getElementById('waitlist-section')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="px-6 py-3 rounded-xl font-semibold text-white bg-[#b45309] hover:bg-[#92400e] transition-colors text-sm whitespace-nowrap shadow-sm"
+                >
+                  Join Waitlist
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Over-assessed hero — unfairness/loss framing */}
@@ -1168,9 +1205,9 @@ export default function ResultsContent() {
               </p>
 
               {/* 4. CTA */}
-              <div className={`mt-5 pt-5 border-t border-black/[0.06]`}>
+              <div id="cta-section" className={`mt-5 pt-5 border-t border-black/[0.06]`}>
                 {isTexas ? (
-                  <div id="waitlist-form">
+                  <div id="waitlist-section">
                     <p className="text-sm text-[#666] mb-3">
                       Texas 2026 appraisal notices arrive March–April. We&apos;ll email you when your updated appeal package is ready — just $49.
                     </p>
