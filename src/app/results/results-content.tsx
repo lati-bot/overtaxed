@@ -938,26 +938,24 @@ export default function ResultsContent() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Property Header + Analysis + CTA — unified hero section */}
         <div className={`rounded-2xl border ${borderColor} ${bgCard} overflow-hidden ${isDark ? "" : "shadow-sm"}`}>
-          {/* Street View Image */}
+          {/* Street View Hero with overlay */}
           {property.address && (
-            <div className="w-full h-48 sm:h-56 md:h-64 bg-[#e8e8e8] relative overflow-hidden">
+            <div className="w-full h-52 sm:h-60 md:h-72 bg-[#2a2a2a] relative overflow-hidden">
               <img
                 src={`/api/streetview?address=${encodeURIComponent(property.address + ", " + property.city + (isTexas ? ", TX" : ", IL " + property.zip))}`}
                 alt={`Street view of ${property.address}`}
                 className="w-full h-full object-cover"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
-            </div>
-          )}
-          {/* Property info bar */}
-          <div className="p-5 sm:p-6 md:p-8">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-              <div>
-                <h1 className="text-xl sm:text-2xl font-semibold">{property.address}</h1>
-                <p className={textSecondary}>
+              {/* Gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              {/* Address overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 md:p-8">
+                <h1 className="text-xl sm:text-2xl font-semibold text-white drop-shadow-sm">{property.address}</h1>
+                <p className="text-white/80 text-sm mt-0.5">
                   {property.city}, {isTexas ? "TX" : `IL ${property.zip}`}
                 </p>
-                <p className={`text-sm ${textMuted} mt-1`}>
+                <p className="text-white/60 text-xs mt-1">
                   {isBexar
                     ? `Account: ${property.pin} • Bexar County`
                     : isRockwall
@@ -981,8 +979,38 @@ export default function ResultsContent() {
                     : `PIN: ${property.pin} • ${property.township} Township`
                   }
                 </p>
+                {/* Property detail pills */}
+                {property.characteristics && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {property.characteristics.buildingSqFt && (
+                      <span className="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-medium">
+                        {property.characteristics.buildingSqFt.toLocaleString()} sqft
+                      </span>
+                    )}
+                    {!isTarrant && !isDenton && !isWilliamson && !isRockwall && property.characteristics.bedrooms && (
+                      <span className="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-medium">
+                        {property.characteristics.bedrooms} bed
+                      </span>
+                    )}
+                    {!isTarrant && !isDenton && !isWilliamson && !isRockwall && property.characteristics.fullBaths && (
+                      <span className="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-medium">
+                        {property.characteristics.fullBaths}{property.characteristics.halfBaths ? `.${property.characteristics.halfBaths}` : ""} bath
+                      </span>
+                    )}
+                    {property.characteristics.yearBuilt && (
+                      <span className="px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-sm text-white text-xs font-medium">
+                        Built {property.characteristics.yearBuilt}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="md:text-right">
+            </div>
+          )}
+          {/* Assessment info */}
+          <div className="p-5 sm:p-6 md:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
                 <div className={`text-sm ${textSecondary}`}>{isTexas ? "Appraised Value" : "Current Assessment"}</div>
                 <div className="text-2xl sm:text-3xl font-semibold">
                   ${currentAssessment.toLocaleString()}
@@ -992,56 +1020,13 @@ export default function ResultsContent() {
                     ~${estimatedMarketValue.toLocaleString()} market value
                   </div>
                 )}
-                <div className={`text-xs ${textMuted} mt-1`}>
+              </div>
+              <div className="sm:text-right">
+                <div className={`text-xs ${textMuted}`}>
                   Based on 2025 certified appraisal data from {cadName}
                 </div>
               </div>
             </div>
-            
-            {/* Property Details — inline with header */}
-            {property.characteristics && (
-              <div className={`mt-4 pt-4 border-t ${borderColor} grid grid-cols-2 md:grid-cols-4 gap-3`}>
-                {property.characteristics.buildingSqFt && (
-                  <div>
-                    <div className={`text-sm ${textMuted}`}>Sq Ft</div>
-                    <div className="font-semibold">{property.characteristics.buildingSqFt.toLocaleString()}</div>
-                  </div>
-                )}
-                {!isTarrant && !isDenton && !isWilliamson && !isRockwall && property.characteristics.bedrooms && (
-                  <div>
-                    <div className={`text-sm ${textMuted}`}>Beds</div>
-                    <div className="font-semibold">{property.characteristics.bedrooms}</div>
-                  </div>
-                )}
-                {!isTarrant && !isDenton && !isWilliamson && !isRockwall && property.characteristics.fullBaths && (
-                  <div>
-                    <div className={`text-sm ${textMuted}`}>Baths</div>
-                    <div className="font-semibold">
-                      {property.characteristics.fullBaths}
-                      {property.characteristics.halfBaths ? `.${property.characteristics.halfBaths}` : ""}
-                    </div>
-                  </div>
-                )}
-                {isTarrant && property.characteristics.qualityGrade && (
-                  <div>
-                    <div className={`text-sm ${textMuted}`}>Quality</div>
-                    <div className="font-semibold">{property.characteristics.qualityGrade}</div>
-                  </div>
-                )}
-                {isTarrant && property.characteristics.condition && (
-                  <div>
-                    <div className={`text-sm ${textMuted}`}>Condition</div>
-                    <div className="font-semibold">{property.characteristics.condition}</div>
-                  </div>
-                )}
-                {property.characteristics.yearBuilt && (
-                  <div>
-                    <div className={`text-sm ${textMuted}`}>Built</div>
-                    <div className="font-semibold">{property.characteristics.yearBuilt}</div>
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Over-assessed hero — unfairness/loss framing */}
