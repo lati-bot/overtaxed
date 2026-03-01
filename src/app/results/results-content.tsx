@@ -1353,36 +1353,56 @@ export default function ResultsContent() {
           {!analysisAvailable && (
             <div className={`p-5 sm:p-6 md:p-8 border-t border-[#1a6b5a]/15 bg-[#e8f4f0]`}>
               <div className="text-center">
-                <div className="text-4xl mb-3">⏳</div>
+                <div className="text-4xl mb-3">{uploadInProgress ? "⏳" : "📊"}</div>
                 <div className={`font-medium text-lg text-[#1a6b5a]`}>
                   {uploadInProgress 
                     ? "We're still processing property data"
-                    : "Analysis not available for this property"
+                    : "We're expanding coverage in your area"
                   }
                 </div>
                 <p className={`mt-2 text-[#1a6b5a]/70`}>
                   {uploadInProgress
                     ? "We're crunching numbers for all properties in your area. Your property should be ready within a few hours."
-                    : "This property type may not be supported, or we don't have enough comparable data."
+                    : "We found your property but don't have enough comparable data in your neighborhood yet. We're actively expanding our coverage — leave your email and we'll notify you as soon as your analysis is ready."
                   }
                 </p>
-                {uploadInProgress && (
-                  <>
-                    <div className="mt-4 flex gap-2 max-w-sm mx-auto">
-                      <input 
-                        type="email" 
-                        placeholder="your@email.com"
-                        className={`flex-1 h-11 px-4 rounded-lg text-sm bg-white border-[#1a6b5a]/20 text-black placeholder-gray-400 border focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/50`}
-                      />
-                      <button className="px-4 h-11 rounded-lg font-medium text-sm bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors">
-                        Notify Me
-                      </button>
-                    </div>
-                    <p className={`mt-3 text-xs text-[#1a6b5a]/50`}>
-                      We&apos;ll email you when your analysis is ready.
-                    </p>
-                  </>
-                )}
+                <div className="mt-4 flex gap-2 max-w-sm mx-auto">
+                  <input 
+                    type="email" 
+                    id="notify-email-input"
+                    placeholder="your@email.com"
+                    className={`flex-1 h-11 px-4 rounded-lg text-sm bg-white border-[#1a6b5a]/20 text-black placeholder-gray-400 border focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/50`}
+                  />
+                  <button 
+                    id="notify-btn"
+                    onClick={async () => {
+                      const input = document.getElementById('notify-email-input') as HTMLInputElement;
+                      const btn = document.getElementById('notify-btn') as HTMLButtonElement;
+                      const email = input?.value?.trim();
+                      if (!email || !email.includes('@')) return;
+                      btn.textContent = 'Sending...';
+                      btn.disabled = true;
+                      try {
+                        await fetch('/api/notify-me', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ email, pin: property.pin, address: property.address }),
+                        });
+                        btn.textContent = '✓ Subscribed';
+                        btn.classList.replace('bg-[#1a6b5a]', 'bg-[#155a4c]');
+                      } catch {
+                        btn.textContent = 'Notify Me';
+                        btn.disabled = false;
+                      }
+                    }}
+                    className="px-4 h-11 rounded-lg font-medium text-sm bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors"
+                  >
+                    Notify Me
+                  </button>
+                </div>
+                <p className={`mt-3 text-xs text-[#1a6b5a]/50`}>
+                  We&apos;ll email you when your analysis is ready. No spam, ever.
+                </p>
               </div>
             </div>
           )}

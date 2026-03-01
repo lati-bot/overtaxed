@@ -269,7 +269,7 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
     ]);
     
     // Also get parcel info for address
-    const baseUrl = "https://www.getovertaxed.com";
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.getovertaxed.com";
     const lookupRes = await fetch(`${baseUrl}/api/lookup?pin=${pin}`);
     if (!lookupRes.ok) return null;
     const lookupData = await lookupRes.json();
