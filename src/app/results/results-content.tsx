@@ -82,6 +82,8 @@ export default function ResultsContent() {
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
+  const [historyExpanded, setHistoryExpanded] = useState(false);
+  const [showStickyCta, setShowStickyCta] = useState(false);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
@@ -105,6 +107,15 @@ export default function ResultsContent() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Show sticky CTA after scrolling past the hero
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowStickyCta(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const isDark = false;
@@ -1558,12 +1569,19 @@ export default function ResultsContent() {
           </div>
         )}
 
-        {/* Assessment History — after comps for Cook County */}
+        {/* Assessment History — collapsed by default */}
         {property.assessmentHistory && property.assessmentHistory.length > 0 && (
           <div className="mt-3 rounded-2xl bg-white border border-black/[0.06] overflow-hidden">
-            <div className="p-5 sm:p-6 md:p-8 pb-0 sm:pb-0 md:pb-0">
-              <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-4">ASSESSMENT HISTORY</div>
-            </div>
+            <button
+              onClick={() => setHistoryExpanded(!historyExpanded)}
+              className="w-full p-5 sm:p-6 md:p-8 flex items-center justify-between cursor-pointer hover:bg-black/[0.01] transition-colors"
+            >
+              <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium">ASSESSMENT HISTORY</div>
+              <svg className={`w-5 h-5 text-[#999] transition-transform ${historyExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            {historyExpanded && (
             <div className="overflow-x-auto px-5 sm:px-6 md:px-8 pb-5 sm:pb-6 md:pb-8">
               <table className="w-full text-sm">
                 <thead>
@@ -1607,6 +1625,7 @@ export default function ResultsContent() {
                 </tbody>
               </table>
             </div>
+            )}
           </div>
         )}
 
@@ -1683,94 +1702,6 @@ export default function ResultsContent() {
             </div>
           </div>
         )}
-
-        {/* Comparison Chart */}
-        {hasAnalysis && estimatedSavings > 0 && (
-          <div className={`mt-3 rounded-2xl border border-black/[0.06] bg-white p-5 sm:p-6 md:p-8`}>
-            <div className="text-[13px] tracking-[0.15em] text-[#999] uppercase font-medium mb-5">YOUR OPTIONS</div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* DIY */}
-              <div className={`rounded-2xl p-4 border border-black/[0.06]`}>
-                <div className={`text-sm font-medium ${textMuted} uppercase tracking-wide`}>Do It Yourself</div>
-                <div className={`text-2xl font-bold mt-2 ${textPrimary}`}>Free</div>
-                <div className={`text-sm ${textSecondary} mt-3 space-y-2`}>
-                  <div className="flex items-start gap-2">
-                    <span className={textMuted}>•</span>
-                    <span>Research comparable properties yourself</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={textMuted}>•</span>
-                    <span>Write your own evidence brief</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={textMuted}>•</span>
-                    <span>Figure out the filing process</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={textMuted}>•</span>
-                    <span className="font-medium text-[#b45309]">10+ hours of work</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Overtaxed — highlighted */}
-              <div className={`rounded-2xl p-4 border-2 border-[#1a6b5a] bg-[#e8f4f0]/30 relative`}>
-                <div className={`absolute -top-3 left-4 px-2 py-0.5 rounded-full text-xs font-medium bg-[#1a6b5a] text-white`}>
-                  Best Value
-                </div>
-                <div className={`text-sm font-medium uppercase tracking-wide text-[#1a6b5a]`}>Overtaxed</div>
-                <div className={`text-2xl font-bold mt-2 ${textPrimary}`}>$49</div>
-                <div className={`text-sm ${textSecondary} mt-3 space-y-2`}>
-                  <div className="flex items-start gap-2">
-                    <span className={`text-[#1a6b5a]`}>✓</span>
-                    <span>{compCount} comparable properties found for you</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={`text-[#1a6b5a]`}>✓</span>
-                    <span>Professional {isTexas ? "hearing script" : "evidence brief"}</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={`text-[#1a6b5a]`}>✓</span>
-                    <span>Step-by-step filing guide</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={`text-[#1a6b5a]`}>✓</span>
-                    <span className={`font-medium text-[#1a6b5a]`}>Ready in 5 minutes</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={`text-[#1a6b5a]`}>✓</span>
-                    <span className={`font-medium text-[#1a6b5a]`}>100% money-back guarantee</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Tax Attorney */}
-              <div className={`rounded-2xl p-4 border border-black/[0.06]`}>
-                <div className={`text-sm font-medium ${textMuted} uppercase tracking-wide`}>Tax Attorney</div>
-                <div className={`text-2xl font-bold mt-2 ${textPrimary}`}>$300–$500+</div>
-                <div className={`text-sm ${textSecondary} mt-3 space-y-2`}>
-                  <div className="flex items-start gap-2">
-                    <span className={textMuted}>•</span>
-                    <span>Full representation at hearings</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={textMuted}>•</span>
-                    <span>Attorney handles everything</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={textMuted}>•</span>
-                    <span>Often contingency-based</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className={textMuted}>•</span>
-                    <span className="text-[#b45309]">Same data, higher cost</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* FAQ Section */}
         {hasAnalysis && estimatedSavings > 0 && (
           <div className="mt-3 rounded-2xl border border-black/[0.06] bg-white overflow-hidden">
@@ -1927,6 +1858,40 @@ export default function ResultsContent() {
           {isTexas && " Multi-year projections assume similar assessment levels; Texas reassesses annually."}
         </p>
       </div>
+
+      {/* Sticky mobile CTA */}
+      {showStickyCta && hasAnalysis && estimatedSavings > 0 && !isTexas && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-black/[0.08] px-4 py-3 safe-area-bottom">
+          <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-[#1a1a1a] truncate">Save ~${estimatedSavings.toLocaleString()}/yr</div>
+              <div className="text-xs text-[#999]">100% money-back guarantee</div>
+            </div>
+            <button
+              onClick={() => document.getElementById('cta-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-[#1a6b5a] hover:bg-[#155a4c] transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              Fix This — $49
+            </button>
+          </div>
+        </div>
+      )}
+      {showStickyCta && hasAnalysis && estimatedSavings > 0 && isTexas && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-black/[0.08] px-4 py-3 safe-area-bottom">
+          <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-[#1a1a1a] truncate">Save ~${estimatedSavings.toLocaleString()}/yr</div>
+              <div className="text-xs text-[#b45309]">2026 data coming soon</div>
+            </div>
+            <button
+              onClick={() => document.getElementById('waitlist-section')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-[#b45309] hover:bg-[#92400e] transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              Join Waitlist
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
