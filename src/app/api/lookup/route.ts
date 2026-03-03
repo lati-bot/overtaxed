@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { CosmosClient } from "@azure/cosmos";
 
 const PARCEL_API = "https://datacatalog.cookcountyil.gov/resource/c49d-89sn.json";
-const ASSESSMENTS_API = "https://datacatalog.cookcountyil.gov/resource/uzyt-m557.json";
 
 // Cosmos DB connection
 const COSMOS_CONNECTION = process.env.COSMOS_CONNECTION_STRING || "";
@@ -26,20 +25,6 @@ interface ParcelResult {
   nbhd: string;
   latitude: string;
   longitude: string;
-}
-
-interface Assessment {
-  pin: string;
-  year: string;
-  mailed_bldg: string;
-  mailed_land: string;
-  mailed_tot: string;
-  certified_bldg?: string;
-  certified_land?: string;
-  certified_tot?: string;
-  board_bldg?: string;
-  board_land?: string;
-  board_tot?: string;
 }
 
 // V2 Cosmos data shape
@@ -153,15 +138,6 @@ async function searchByPin(pin: string): Promise<ParcelResult[]> {
   if (!response.ok) {
     throw new Error(`Parcel API error: ${response.status}`);
   }
-  
-  return response.json();
-}
-
-async function getAssessments(pin: string): Promise<Assessment[]> {
-  const url = `${ASSESSMENTS_API}?pin=${pin}&$order=year DESC&$limit=5`;
-  
-  const response = await fetch(url);
-  if (!response.ok) return [];
   
   return response.json();
 }
@@ -298,11 +274,8 @@ export async function GET(request: NextRequest) {
     // Try to get V2 data from Cosmos DB
     const cosmosData = await getPropertyFromCosmos(targetPin);
     
-    // If no Cosmos data found, return basic parcel info + Socrata assessments
+    // If no Cosmos data found, return basic parcel info
     if (!cosmosData) {
-      const assessments = await getAssessments(parcel.pin);
-      const latestAssessment = assessments.find(a => a.mailed_tot) || null;
-      
       return NextResponse.json({
         multiple: false,
         analysisAvailable: false,
@@ -316,23 +289,13 @@ export async function GET(request: NextRequest) {
           latitude: parcel.latitude,
           longitude: parcel.longitude,
           characteristics: null,
-          assessment: latestAssessment && latestAssessment.mailed_tot ? {
-            year: latestAssessment.year,
-            mailedTotal: parseInt(latestAssessment.mailed_tot) || 0,
-            mailedBuilding: parseInt(latestAssessment.mailed_bldg) || 0,
-            mailedLand: parseInt(latestAssessment.mailed_land) || 0,
-          } : null,
+          assessment: null,
         },
       });
     }
     
-    // V2 data found — build response entirely from Cosmos + Socrata assessments
-    const [assessments, neighborhoodStats] = await Promise.all([
-      getAssessments(parcel.pin),
-      getNeighborhoodStats(cosmosData.nbhd),
-    ]);
-    
-    const latestAssessment = assessments.find(a => a.mailed_tot) || null;
+    // V2 data found — build response entirely from Cosmos
+    const neighborhoodStats = await getNeighborhoodStats(cosmosData.nbhd);
     
     // Determine savings status
     const savingsEstimate = cosmosData.savings_estimate || 0;
@@ -347,6 +310,20 @@ export async function GET(request: NextRequest) {
     // Count half baths from buildings
     const halfBaths = cosmosData.buildings.reduce((sum, b) => sum + ((b as unknown as Record<string, number>).baths_half || 0), 0);
     
+    // Assessment history from Cosmos V2
+    const assessments = cosmosData.assessments || {};
+    const assessmentEntries = Object.entries(assessments)
+      .map(([year, a]: [string, any]) => ({
+        year,
+        mailedTotal: a.mailed || 0,
+        certifiedTotal: a.certified || null,
+        boardTotal: a.board || null,
+      }))
+      .filter(a => a.mailedTotal > 0)
+      .sort((a, b) => parseInt(b.year) - parseInt(a.year));
+    
+    const latestAssessment = assessmentEntries[0] || null;
+    
     return NextResponse.json({
       multiple: false,
       analysisAvailable: true,
@@ -359,7 +336,6 @@ export async function GET(request: NextRequest) {
         neighborhood: cosmosData.nbhd,
         latitude: parcel.latitude,
         longitude: parcel.longitude,
-        // Characteristics now from V2 Cosmos (aggregated across all buildings)
         characteristics: {
           class: cosmosData.class,
           buildingSqFt: cosmosData.total_sqft,
@@ -370,23 +346,13 @@ export async function GET(request: NextRequest) {
           halfBaths: halfBaths,
           exteriorWall: cosmosData.primary_ext_wall,
         },
-        assessment: latestAssessment && latestAssessment.mailed_tot ? {
+        assessment: latestAssessment ? {
           year: latestAssessment.year,
-          mailedTotal: parseInt(latestAssessment.mailed_tot) || 0,
-          mailedBuilding: parseInt(latestAssessment.mailed_bldg) || 0,
-          mailedLand: parseInt(latestAssessment.mailed_land) || 0,
-          certifiedTotal: latestAssessment.certified_tot ? parseInt(latestAssessment.certified_tot) : null,
-          boardTotal: latestAssessment.board_tot ? parseInt(latestAssessment.board_tot) : null,
+          mailedTotal: latestAssessment.mailedTotal,
+          certifiedTotal: latestAssessment.certifiedTotal,
+          boardTotal: latestAssessment.boardTotal,
         } : null,
-        assessmentHistory: assessments
-          .filter(a => a.mailed_tot)
-          .map(a => ({
-            year: a.year,
-            mailedTotal: parseInt(a.mailed_tot) || 0,
-            certifiedTotal: a.certified_tot ? parseInt(a.certified_tot) : null,
-            boardTotal: a.board_tot ? parseInt(a.board_tot) : null,
-          })),
-        // Analysis data from V2 Cosmos
+        assessmentHistory: assessmentEntries,
         analysis: {
           fairAssessment: isOverAssessed ? fairAssessment : cosmosData.current_assessment,
           potentialSavings: savingsEstimate,

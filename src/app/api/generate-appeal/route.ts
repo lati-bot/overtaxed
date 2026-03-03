@@ -31,10 +31,6 @@ function getResend() {
 
 const BROWSERLESS_TOKEN = process.env.BROWSERLESS_TOKEN || "";
 
-// Cook County API endpoints (parcel for address, assessments for history — characteristics now from Cosmos V2)
-const PARCEL_API = "https://datacatalog.cookcountyil.gov/resource/c49d-89sn.json";
-const ASSESSMENTS_API = "https://datacatalog.cookcountyil.gov/resource/uzyt-m557.json";
-
 // Cosmos DB
 import { CosmosClient } from "@azure/cosmos";
 let cosmosClient: CosmosClient | null = null;
@@ -141,42 +137,18 @@ async function fetchCharacteristicsFromCosmos(pin: string): Promise<any> {
   }
 }
 
-// Fetch latest assessment for a PIN from Cook County
-async function fetchAssessment(pin: string): Promise<any> {
-  try {
-    const url = `${ASSESSMENTS_API}?pin=${pin}&$order=year%20DESC&$limit=1&$where=mailed_tot%20IS%20NOT%20NULL`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data[0] || null;
-  } catch {
-    return null;
-  }
-}
-
-// Fetch assessment history for subject property
-async function fetchAssessmentHistory(pin: string): Promise<any[]> {
-  try {
-    const url = `${ASSESSMENTS_API}?pin=${pin}&$order=year%20DESC&$limit=5&$where=mailed_tot%20IS%20NOT%20NULL`;
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    return res.json();
-  } catch {
-    return [];
-  }
-}
-
-// Fetch address for a PIN from Cook County parcel data
-async function fetchAddress(pin: string): Promise<string> {
-  try {
-    const url = `${PARCEL_API}?pin=${pin}&$limit=1`;
-    const res = await fetch(url);
-    if (!res.ok) return "N/A";
-    const data = await res.json();
-    return data[0]?.property_address || "N/A";
-  } catch {
-    return "N/A";
-  }
+// Assessment history from Cosmos V2
+function getAssessmentHistory(cosmosData: any): Array<{year: string; mailedTotal: number; certifiedTotal: number | null; boardTotal: number | null}> {
+  const assessments = cosmosData?.assessments || {};
+  return Object.entries(assessments)
+    .map(([year, a]: [string, any]) => ({
+      year,
+      mailedTotal: a.mailed || 0,
+      certifiedTotal: a.certified || null,
+      boardTotal: a.board || null,
+    }))
+    .filter(a => a.mailedTotal > 0)
+    .sort((a, b) => parseInt(b.year) - parseInt(a.year));
 }
 
 // Get pre-computed comps from Cosmos V2 (already scored and ranked by precompute script)
@@ -194,18 +166,16 @@ async function getCompsFromCosmos(pin: string): Promise<Array<{pin: string; addr
   }
 }
 
-// Enrich a V2 comp with full data from Cosmos + Socrata (assessment breakdown)
+// Enrich a V2 comp with full data from Cosmos
 async function enrichComp(comp: {pin: string; address: string; sqft: number; beds: number; baths: number; year_built: number; assessment: number; per_sqft: number; quality: string}): Promise<CompProperty | null> {
   try {
     // Get the full Cosmos V2 record for detailed fields
     const cosmosData = await fetchCharacteristicsFromCosmos(comp.pin);
-    // Get assessment breakdown from Socrata (bldg vs land split)
-    const assessment = await fetchAssessment(comp.pin);
     
-    if (!assessment?.mailed_tot && !comp.assessment) return null;
-    
-    const assessmentTotal = parseFloat(assessment?.mailed_tot || "0") || comp.assessment;
     const sqft = cosmosData?.total_sqft || comp.sqft;
+    const assessmentTotal = cosmosData?.current_assessment || comp.assessment;
+    
+    if (!assessmentTotal) return null;
     
     return {
       pin: comp.pin,
@@ -221,8 +191,8 @@ async function enrichComp(comp: {pin: string; address: string; sqft: number; bed
       extWall: cosmosData?.primary_ext_wall || "Unknown",
       rooms: 0,
       assessmentTotal,
-      assessmentBldg: parseFloat(assessment?.mailed_bldg || "0") || 0,
-      assessmentLand: parseFloat(assessment?.mailed_land || "0") || 0,
+      assessmentBldg: 0,
+      assessmentLand: 0,
       perSqft: sqft > 0 ? assessmentTotal / sqft : 0,
     };
   } catch {
@@ -234,10 +204,9 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
   try {
     console.log(`[getPropertyData] Starting for PIN: ${pin}`);
     
-    // Fetch Cosmos V2 data + assessments + pre-computed comps in parallel
-    const [cosmosData, assessmentHistory, v2Comps] = await Promise.all([
+    // Fetch Cosmos V2 data + pre-computed comps in parallel
+    const [cosmosData, v2Comps] = await Promise.all([
       fetchCharacteristicsFromCosmos(pin),
-      fetchAssessmentHistory(pin),
       getCompsFromCosmos(pin),
     ]);
     
@@ -245,6 +214,9 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
       console.error(`[getPropertyData] No Cosmos data for PIN ${pin}`);
       return null;
     }
+    
+    // Assessment history from Cosmos V2
+    const assessmentHistory = getAssessmentHistory(cosmosData);
     
     // Enrich comps with assessment breakdown from Socrata (for bldg/land split in PDF)
     console.log(`[getPropertyData] Enriching ${v2Comps.length} comps...`);
@@ -264,16 +236,13 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
       validComps = validComps.slice(0, 9);
     }
     
-    // Use V2 data for subject property characteristics
+    // Use V2 data for subject property
     const sqft = cosmosData.total_sqft || 0;
-    const totalSqft = sqft; // V2 total_sqft already aggregates all buildings
-    const landSqft = 0; // V2 doesn't store land sqft separately
+    const totalSqft = sqft;
+    const landSqft = 0;
     const currentAssessment = cosmosData.current_assessment || 0;
-    
-    // Get bldg/land split from latest Socrata assessment
-    const latestAssessment = assessmentHistory.find((a: any) => a.mailed_tot) || {} as any;
-    const currentBldg = parseFloat(latestAssessment.mailed_bldg || "0") || 0;
-    const currentLand = parseFloat(latestAssessment.mailed_land || "0") || 0;
+    const currentBldg = 0;
+    const currentLand = 0;
     
     // Calculate fair assessment from comps
     const compPerSqfts = validComps.map(c => c.perSqft);
@@ -323,12 +292,7 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
       savings,
       perSqft,
       fairPerSqft,
-      assessmentHistory: assessmentHistory.map((a: any) => ({
-        year: a.year,
-        mailedTotal: parseFloat(a.mailed_tot) || 0,
-        certifiedTotal: a.certified_tot ? parseFloat(a.certified_tot) : null,
-        boardTotal: a.board_tot ? parseFloat(a.board_tot) : null,
-      })),
+      assessmentHistory,
       comps: validComps,
       compMedianPerSqft,
       compAvgPerSqft,
@@ -358,8 +322,6 @@ function generatePdfHtml(data: PropertyData): string {
       <td class="right">${c.beds}/${c.fbath}${c.hbath ? `.${c.hbath}` : ""}</td>
       <td class="right">${c.extWall}</td>
       <td class="right">${c.yearBuilt || "—"}</td>
-      <td class="right">$${c.assessmentBldg.toLocaleString()}</td>
-      <td class="right">$${c.assessmentLand.toLocaleString()}</td>
       <td class="right">$${c.assessmentTotal.toLocaleString()}</td>
       <td class="right highlight">$${c.perSqft.toFixed(2)}</td>
     </tr>`;
@@ -555,11 +517,10 @@ function generatePdfHtml(data: PropertyData): string {
         </table>
       </div>
       <div class="breakdown-card">
-        <h4>Current Assessment Breakdown</h4>
+        <h4>Current Assessment</h4>
         <table class="breakdown-table">
-          <tr><td>Building Assessment</td><td>$${data.currentBldg.toLocaleString()}</td></tr>
-          <tr><td>Land Assessment</td><td>$${data.currentLand.toLocaleString()}</td></tr>
           <tr><td>Total Assessment</td><td>$${data.currentAssessment.toLocaleString()}</td></tr>
+          <tr><td>Assessment per Sq Ft</td><td>$${data.perSqft.toFixed(2)}</td></tr>
         </table>
         <h4 style="margin-top: 12px;">Requested Assessment</h4>
         <table class="breakdown-table">
@@ -593,8 +554,6 @@ function generatePdfHtml(data: PropertyData): string {
             <th class="right">Bed/Bath</th>
             <th class="right">Ext.</th>
             <th class="right">Year</th>
-            <th class="right">Bldg Asmt</th>
-            <th class="right">Land Asmt</th>
             <th class="right">Total Asmt</th>
             <th class="right">$/SF</th>
           </tr>
@@ -611,8 +570,6 @@ function generatePdfHtml(data: PropertyData): string {
             <td class="right">${data.beds}/${data.fbath}${data.hbath ? `.${data.hbath}` : ""}</td>
             <td class="right">${escapeHtml(data.extWall)}</td>
             <td class="right">${data.yearBuilt || "—"}</td>
-            <td class="right">$${data.currentBldg.toLocaleString()}</td>
-            <td class="right">$${data.currentLand.toLocaleString()}</td>
             <td class="right">$${data.currentAssessment.toLocaleString()}</td>
             <td class="right" style="color: #b45309; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>
           </tr>

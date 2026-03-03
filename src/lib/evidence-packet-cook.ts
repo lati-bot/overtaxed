@@ -263,11 +263,10 @@ export function generateCookEvidenceHtml(data: CookEvidenceData): string {
         </table>
       </div>
       <div class="breakdown-card">
-        <h4>Current Assessment Breakdown</h4>
+        <h4>Current Assessment</h4>
         <table class="breakdown-table">
-          <tr><td>Building Assessment</td><td>$${data.currentBldg.toLocaleString()}</td></tr>
-          <tr><td>Land Assessment</td><td>$${data.currentLand.toLocaleString()}</td></tr>
           <tr><td>Total Assessment</td><td>$${data.currentAssessment.toLocaleString()}</td></tr>
+          <tr><td>Assessment per Sq Ft</td><td>$${data.perSqft.toFixed(2)}</td></tr>
         </table>
         <h4 style="margin-top: 12px;">Requested Assessment</h4>
         <table class="breakdown-table">
