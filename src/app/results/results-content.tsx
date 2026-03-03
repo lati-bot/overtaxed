@@ -1379,7 +1379,9 @@ export default function ResultsContent() {
                         <span>Values can jump year to year — we&apos;ll have fresh data as soon as counties release 2026 numbers</span>
                       </div>
                     </>
-                  ) : (
+                  ) : (() => {
+                    const reassessmentInfo = property.township ? getReassessmentStatus(property.township) : null;
+                    return (
                     <>
                       <div className="flex items-start gap-2.5">
                         <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📋</span>
@@ -1387,10 +1389,19 @@ export default function ResultsContent() {
                       </div>
                       <div className="flex items-start gap-2.5">
                         <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📅</span>
-                        <span>Reassessment notices typically arrive in <strong className="text-[#1a1a1a]">January–February</strong> — check back then</span>
+                        {reassessmentInfo ? (
+                          reassessmentInfo.isReassessmentYear ? (
+                            <span>Your township ({property.township}) is being <strong className="text-[#1a1a1a]">reassessed this year</strong> — this is the best time to appeal</span>
+                          ) : (
+                            <span>Your township ({property.township}) is next reassessed in <strong className="text-[#1a1a1a]">{reassessmentInfo.nextReassessmentYear}</strong> — you can still appeal at the <a href="https://www.cookcountyboardofreview.com/dates-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Board of Review</a></span>
+                          )
+                        ) : (
+                          <span>Cook County reassesses on a <strong className="text-[#1a1a1a]">3-year cycle</strong> by township — check the <a href="https://www.cookcountyassessoril.gov/assessment-calendar-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Assessor&apos;s calendar</a> for your deadline</span>
+                        )}
                       </div>
                     </>
-                  )}
+                    );
+                  })()}
                 </div>
               </div>
             </div>

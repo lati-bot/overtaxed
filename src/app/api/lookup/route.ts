@@ -89,6 +89,7 @@ interface CosmosPropertyV2 {
   }>;
   sales_comps: Array<{ pin: string; address: string; sale_date: string; sale_price: number; sqft: number; price_per_sqft: number }>;
   savings_estimate: number;
+  tax_rate?: number;
 }
 
 function parseAddress(input: string): { houseNum: string; street: string } | null {
