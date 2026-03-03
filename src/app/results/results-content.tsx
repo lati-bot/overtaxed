@@ -49,6 +49,7 @@ interface PropertyData {
     medianPerSqft: number;
     avgReduction: number;
   } | null;
+  taxRate?: number | null;
 }
 
 interface CompProperty {
@@ -900,9 +901,11 @@ export default function ResultsContent() {
   const hasAnalysis = analysisAvailable && property.analysis;
   const fairAssessment = hasAnalysis ? property.analysis!.fairAssessment : currentAssessment;
   const reduction = currentAssessment - fairAssessment;
-  // Houston uses ~2.2% tax rate; Cook County uses assessment reduction × 20%
+  // Houston uses ~2.2% tax rate; Cook County uses real tax_rate from Cosmos (or 2% fallback)
+  const cookTaxRate = property.taxRate || 0.02;
+  const cookMultiplier = 10 * cookTaxRate; // assessment × 10 = market value, × rate = tax
   const rawSavings = reduction > 0 
-    ? (isTexas ? Math.round(reduction * 0.022) : Math.round(reduction * 0.20))
+    ? (isTexas ? Math.round(reduction * 0.022) : Math.round(reduction * cookMultiplier))
     : 0;
   // Minimum threshold: don't show as over-assessed if savings are trivial
   const MIN_SAVINGS_THRESHOLD = 250;
@@ -912,7 +915,7 @@ export default function ResultsContent() {
   // Tax bill calculations
   const estimatedTaxBill = isTexas 
     ? Math.round(currentAssessment * 0.022)
-    : Math.round(currentAssessment * 0.20); // Cook County: ~2% of market value ≈ assessed × 0.20
+    : Math.round(currentAssessment * cookMultiplier); // Cook County: assessed × 10 × real rate
   const estimatedTaxBillAfter = estimatedTaxBill - estimatedSavings;
   const taxBillReductionPct = estimatedTaxBill > 0 ? Math.round((estimatedSavings / estimatedTaxBill) * 100) : 0;
 

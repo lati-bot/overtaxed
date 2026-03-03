@@ -259,7 +259,8 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
     const fairAssessment = compMedianPerSqft > 0 ? Math.round(compMedianPerSqft * sqft) : currentAssessment;
     const reduction = Math.max(0, currentAssessment - fairAssessment);
     // Use precomputed savings to stay consistent across all surfaces
-    const savings = precomputedSavings > 0 ? precomputedSavings : Math.round(reduction * 0.20);
+    const taxRate = cosmosData.tax_rate || 0.02;
+    const savings = precomputedSavings > 0 ? precomputedSavings : Math.round(reduction * 10 * taxRate);
     const perSqft = sqft > 0 ? currentAssessment / sqft : 0;
     const fairPerSqft = sqft > 0 ? fairAssessment / sqft : 0;
     const overAssessedPct = currentAssessment > 0 ? Math.round((reduction / currentAssessment) * 100) : 0;

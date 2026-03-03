@@ -359,6 +359,7 @@ export async function GET(request: NextRequest) {
           compCount: cosmosData.comps.length,
         },
         neighborhoodStats: neighborhoodStats || null,
+        taxRate: cosmosData.tax_rate || null,
       },
     });
     
