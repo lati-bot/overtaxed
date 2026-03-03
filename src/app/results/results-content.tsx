@@ -85,6 +85,10 @@ export default function ResultsContent() {
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [showStickyCta, setShowStickyCta] = useState(false);
+  const [reassessmentEmail, setReassessmentEmail] = useState("");
+  const [reassessmentSubmitting, setReassessmentSubmitting] = useState(false);
+  const [reassessmentSubmitted, setReassessmentSubmitted] = useState(false);
+  const [shareTooltip, setShareTooltip] = useState(false);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
@@ -1496,6 +1500,119 @@ export default function ResultsContent() {
                     🛡️ 100% money-back guarantee • One-time fee • Delivered instantly
                   </p>
                 </div>
+                )}
+              </div>
+
+              {/* Lead Capture — reassessment notification + referral */}
+              <div className="mt-5 pt-5 border-t border-black/[0.06]">
+                {/* Reassessment email capture */}
+                <div className="rounded-xl bg-[#f7f6f3] border border-black/[0.04] p-5">
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl flex-shrink-0">📬</span>
+                    <div className="flex-1">
+                      <div className="font-semibold text-[#1a1a1a]">
+                        Get notified at next reassessment
+                      </div>
+                      <p className="text-sm text-[#666] mt-1">
+                        {isTexas
+                          ? "Texas reassesses annually. We'll alert you when 2027 notices drop so you can act fast."
+                          : `${property.township ? property.township + " Township" : "Your area"} gets reassessed on a 3-year cycle. We'll email you when your next reassessment window opens — the best time to appeal.`
+                        }
+                      </p>
+                      {reassessmentSubmitted ? (
+                        <div className="mt-3 bg-[#e8f4f0] rounded-lg p-3 text-center">
+                          <span className="text-[#1a6b5a] font-medium text-sm">✓ You&apos;re signed up! We&apos;ll let you know.</span>
+                        </div>
+                      ) : (
+                        <form
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (reassessmentSubmitting || !reassessmentEmail) return;
+                            setReassessmentSubmitting(true);
+                            try {
+                              const res = await fetch("/api/waitlist", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  email: reassessmentEmail,
+                                  pin: property.pin,
+                                  jurisdiction: jurisdictionValue,
+                                  source: "reassessment-notify",
+                                }),
+                              });
+                              if (res.ok) {
+                                setReassessmentSubmitted(true);
+                              } else {
+                                alert("Something went wrong. Please try again.");
+                              }
+                            } catch {
+                              alert("Something went wrong. Please try again.");
+                            } finally {
+                              setReassessmentSubmitting(false);
+                            }
+                          }}
+                          className="mt-3 flex flex-col sm:flex-row gap-2"
+                        >
+                          <input
+                            type="email"
+                            placeholder="Enter your email"
+                            value={reassessmentEmail}
+                            onChange={(e) => setReassessmentEmail(e.target.value)}
+                            required
+                            className="flex-1 px-3.5 py-2.5 rounded-lg border border-black/10 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/30 focus:border-[#1a6b5a]"
+                          />
+                          <button
+                            type="submit"
+                            disabled={reassessmentSubmitting}
+                            className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all bg-[#1a6b5a] text-white whitespace-nowrap ${reassessmentSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#155a4c] cursor-pointer'}`}
+                          >
+                            {reassessmentSubmitting ? "..." : "Notify Me"}
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Referral / Share CTA */}
+                {property.neighborhoodStats && property.neighborhoodStats.overAssessedPct > 0 && (
+                  <div className="mt-3 rounded-xl bg-[#fef3c7]/40 border border-[#b45309]/10 p-5">
+                    <div className="flex items-start gap-3">
+                      <span className="text-xl flex-shrink-0">🏘️</span>
+                      <div className="flex-1">
+                        <div className="font-semibold text-[#1a1a1a]">
+                          {property.neighborhoodStats.overAssessedPct}% of your neighbors are over-assessed
+                        </div>
+                        <p className="text-sm text-[#666] mt-1">
+                          Share this tool with them — a few minutes of research could save them hundreds per year.
+                        </p>
+                        <button
+                          onClick={() => {
+                            const url = "https://getovertaxed.com";
+                            const text = `I just checked my property tax assessment — turns out ${property.neighborhoodStats?.overAssessedPct}% of homes in our neighborhood are over-assessed. Free to check yours:`;
+                            if (navigator.share) {
+                              navigator.share({ title: "Check Your Property Taxes", text, url }).catch(() => {});
+                            } else {
+                              navigator.clipboard.writeText(`${text} ${url}`);
+                              setShareTooltip(true);
+                              setTimeout(() => setShareTooltip(false), 2000);
+                            }
+                          }}
+                          className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm bg-white border border-black/10 text-[#1a1a1a] hover:bg-[#f7f6f3] transition-colors cursor-pointer relative"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                          </svg>
+                          Share With Neighbors
+                          {shareTooltip && (
+                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-xs px-2.5 py-1 rounded-md whitespace-nowrap">
+                              Copied to clipboard!
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
