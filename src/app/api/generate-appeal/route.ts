@@ -31,11 +31,6 @@ function getResend() {
 
 const BROWSERLESS_TOKEN = process.env.BROWSERLESS_TOKEN || "";
 
-// Cook County API endpoints
-const PARCEL_API = "https://datacatalog.cookcountyil.gov/resource/c49d-89sn.json";
-const CHARACTERISTICS_API = "https://datacatalog.cookcountyil.gov/resource/bcnq-qi2z.json";
-const ASSESSMENTS_API = "https://datacatalog.cookcountyil.gov/resource/uzyt-m557.json";
-
 // Cosmos DB
 import { CosmosClient } from "@azure/cosmos";
 let cosmosClient: CosmosClient | null = null;
@@ -129,127 +124,75 @@ interface PropertyData {
   overAssessedPct: number;
 }
 
-// Fetch characteristics for a PIN from Cook County
-async function fetchCharacteristics(pin: string): Promise<any> {
+// Fetch characteristics for a PIN from Cosmos V2 (replaces old Socrata bcnq-qi2z)
+async function fetchCharacteristicsFromCosmos(pin: string): Promise<any> {
+  const client = getCosmosClient();
+  if (!client) return null;
   try {
-    const url = `${CHARACTERISTICS_API}?pin=${pin}&$order=tax_year%20DESC&$limit=1`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data[0] || null;
+    const container = client.database("overtaxed").container("properties");
+    const { resource } = await container.item(pin, pin).read();
+    return resource || null;
   } catch {
     return null;
   }
 }
 
-// Fetch latest assessment for a PIN from Cook County
-async function fetchAssessment(pin: string): Promise<any> {
-  try {
-    const url = `${ASSESSMENTS_API}?pin=${pin}&$order=year%20DESC&$limit=1&$where=mailed_tot%20IS%20NOT%20NULL`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data[0] || null;
-  } catch {
-    return null;
-  }
+// Assessment history from Cosmos V2
+function getAssessmentHistory(cosmosData: any): Array<{year: string; mailedTotal: number; certifiedTotal: number | null; boardTotal: number | null}> {
+  const assessments = cosmosData?.assessments || {};
+  return Object.entries(assessments)
+    .map(([year, a]: [string, any]) => ({
+      year,
+      mailedTotal: a.mailed || 0,
+      certifiedTotal: a.certified || null,
+      boardTotal: a.board || null,
+    }))
+    .filter(a => a.mailedTotal > 0)
+    .sort((a, b) => parseInt(b.year) - parseInt(a.year));
 }
 
-// Fetch assessment history for subject property
-async function fetchAssessmentHistory(pin: string): Promise<any[]> {
-  try {
-    const url = `${ASSESSMENTS_API}?pin=${pin}&$order=year%20DESC&$limit=5&$where=mailed_tot%20IS%20NOT%20NULL`;
-    const res = await fetch(url);
-    if (!res.ok) return [];
-    return res.json();
-  } catch {
-    return [];
-  }
-}
-
-// Fetch address for a PIN from Cook County parcel data
-async function fetchAddress(pin: string): Promise<string> {
-  try {
-    const url = `${PARCEL_API}?pin=${pin}&$limit=1`;
-    const res = await fetch(url);
-    if (!res.ok) return "N/A";
-    const data = await res.json();
-    return data[0]?.property_address || "N/A";
-  } catch {
-    return "N/A";
-  }
-}
-
-// Get comp PINs from Cosmos
-async function getCompPins(pin: string): Promise<string[]> {
+// Get pre-computed comps from Cosmos V2 (already scored and ranked by precompute script)
+async function getCompsFromCosmos(pin: string): Promise<Array<{pin: string; address: string; sqft: number; beds: number; baths: number; year_built: number; assessment: number; per_sqft: number; quality: string}>> {
   const client = getCosmosClient();
   if (!client) return [];
   
   try {
     const container = client.database("overtaxed").container("properties");
-    const { resource: mainProp } = await container.item(pin, pin).read();
-    
-    if (!mainProp?.nbhd) return [];
-    
-    const mainPerSqft = mainProp.sqft > 0 ? mainProp.current_assessment / mainProp.sqft : 0;
-    
-    // Get 20 comps (we'll sort by sqft similarity and filter to best 9 after enrichment)
-    const { resources } = await container.items.query({
-      query: `SELECT TOP 20 c.id, c.sqft, c.beds, c.current_assessment
-              FROM c 
-              WHERE c.nbhd = @nbhd 
-              AND c.id != @pin 
-              AND c.sqft > 0 
-              AND (c.current_assessment / c.sqft) < @perSqft`,
-      parameters: [
-        { name: "@nbhd", value: mainProp.nbhd },
-        { name: "@pin", value: pin },
-        { name: "@perSqft", value: mainPerSqft },
-      ],
-    }).fetchAll();
-    
-    // Sort by sqft similarity client-side (Cosmos doesn't support ORDER BY ABS())
-    const targetSqft = mainProp.sqft || 0;
-    resources.sort((a: any, b: any) => Math.abs(a.sqft - targetSqft) - Math.abs(b.sqft - targetSqft));
-    
-    return resources.map((c: any) => c.id);
+    const { resource } = await container.item(pin, pin).read();
+    return resource?.comps || [];
   } catch (err) {
-    console.error("[getCompPins] Error:", err);
+    console.error("[getCompsFromCosmos] Error:", err);
     return [];
   }
 }
 
-// Enrich a comp PIN with full data from Cook County APIs
-async function enrichCompPin(pin: string): Promise<CompProperty | null> {
+// Enrich a V2 comp with full data from Cosmos
+async function enrichComp(comp: {pin: string; address: string; sqft: number; beds: number; baths: number; year_built: number; assessment: number; per_sqft: number; quality: string}): Promise<CompProperty | null> {
   try {
-    const [chars, assessment, address] = await Promise.all([
-      fetchCharacteristics(pin),
-      fetchAssessment(pin),
-      fetchAddress(pin),
-    ]);
+    // Get the full Cosmos V2 record for detailed fields
+    const cosmosData = await fetchCharacteristicsFromCosmos(comp.pin);
     
-    if (!assessment?.mailed_tot) return null;
+    const sqft = cosmosData?.total_sqft || comp.sqft;
+    const assessmentTotal = cosmosData?.current_assessment || comp.assessment;
     
-    const sqft = parseInt(chars?.bldg_sf || "0") || 0;
-    const totalSqft = parseInt(chars?.total_bldg_sf || chars?.bldg_sf || "0") || 0;
-    const assessmentTotal = parseFloat(assessment.mailed_tot) || 0;
+    if (!assessmentTotal) return null;
     
     return {
-      pin,
-      address: address || "N/A",
-      classCode: chars?.class || assessment?.class || "",
-      sqft,
-      totalSqft,
-      beds: parseInt(chars?.beds || "0") || 0,
-      fbath: parseInt(chars?.fbath || "0") || 0,
-      hbath: parseInt(chars?.hbath || "0") || 0,
-      yearBuilt: chars?.age ? (new Date().getFullYear() - parseInt(chars.age)) : 0,
-      age: parseInt(chars?.age || "0") || 0,
-      extWall: EXT_WALL[chars?.ext_wall || ""] || "Unknown",
-      rooms: parseInt(chars?.rooms || "0") || 0,
+      pin: comp.pin,
+      address: cosmosData?.address || comp.address || "N/A",
+      classCode: cosmosData?.class || "",
+      sqft: sqft,
+      totalSqft: sqft,
+      beds: cosmosData?.total_beds || comp.beds || 0,
+      fbath: cosmosData?.total_baths || comp.baths || 0,
+      hbath: 0,
+      yearBuilt: cosmosData?.year_built || comp.year_built || 0,
+      age: cosmosData?.year_built ? (new Date().getFullYear() - cosmosData.year_built) : 0,
+      extWall: cosmosData?.primary_ext_wall || "Unknown",
+      rooms: 0,
       assessmentTotal,
-      assessmentBldg: parseFloat(assessment.mailed_bldg) || 0,
-      assessmentLand: parseFloat(assessment.mailed_land) || 0,
+      assessmentBldg: 0,
+      assessmentLand: 0,
       perSqft: sqft > 0 ? assessmentTotal / sqft : 0,
     };
   } catch {
@@ -261,30 +204,26 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
   try {
     console.log(`[getPropertyData] Starting for PIN: ${pin}`);
     
-    // Fetch all data in parallel
-    const [chars, assessmentHistory, compPins] = await Promise.all([
-      fetchCharacteristics(pin),
-      fetchAssessmentHistory(pin),
-      getCompPins(pin),
+    // Fetch Cosmos V2 data + pre-computed comps in parallel
+    const [cosmosData, v2Comps] = await Promise.all([
+      fetchCharacteristicsFromCosmos(pin),
+      getCompsFromCosmos(pin),
     ]);
     
-    // Also get parcel info for address
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.getovertaxed.com";
-    const lookupRes = await fetch(`${baseUrl}/api/lookup?pin=${pin}`);
-    if (!lookupRes.ok) return null;
-    const lookupData = await lookupRes.json();
-    if (!lookupData.property) return null;
+    if (!cosmosData) {
+      console.error(`[getPropertyData] No Cosmos data for PIN ${pin}`);
+      return null;
+    }
     
-    const prop = lookupData.property;
-    const analysis = prop.analysis || {};
-    const assessment = prop.assessment || {};
+    // Assessment history from Cosmos V2
+    const assessmentHistory = getAssessmentHistory(cosmosData);
     
-    // Enrich comp PINs with full Cook County data (parallel, batched)
-    console.log(`[getPropertyData] Enriching ${compPins.length} comps...`);
-    const enrichedComps = await Promise.all(compPins.map(enrichCompPin));
+    // Enrich comps with assessment breakdown from Socrata (for bldg/land split in PDF)
+    console.log(`[getPropertyData] Enriching ${v2Comps.length} comps...`);
+    const enrichedComps = await Promise.all(v2Comps.map(enrichComp));
     
-    // Filter to valid comps with same class code, then take best 9
-    const subjectClass = chars?.class || "";
+    // Filter to valid comps, take best 9
+    const subjectClass = cosmosData.class || "";
     let validComps = enrichedComps
       .filter((c): c is CompProperty => c !== null && c.sqft > 0 && c.perSqft > 0)
       .sort((a, b) => a.perSqft - b.perSqft); // Lowest $/sqft first (strongest evidence)
@@ -297,20 +236,18 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
       validComps = validComps.slice(0, 9);
     }
     
-    // Calculate stats
-    const sqft = parseInt(chars?.bldg_sf || "0") || prop.characteristics?.buildingSqFt || 0;
-    const totalSqft = parseInt(chars?.total_bldg_sf || "0") || sqft;
-    const landSqft = parseInt(chars?.hd_sf || "0") || 0;
-    const currentAssessment = assessment.mailedTotal || 0;
-    const currentBldg = assessment.mailedBuilding || 0;
-    const currentLand = assessment.mailedLand || 0;
-    const fairAssessment = analysis.fairAssessment || currentAssessment;
-    const reduction = currentAssessment - fairAssessment;
-    const savings = Math.round(reduction * 0.20);
-    const perSqft = sqft > 0 ? currentAssessment / sqft : 0;
-    const fairPerSqft = sqft > 0 ? fairAssessment / sqft : 0;
-    const overAssessedPct = currentAssessment > 0 ? Math.round((reduction / currentAssessment) * 100) : 0;
+    // Use V2 data for subject property
+    const sqft = cosmosData.total_sqft || 0;
+    const totalSqft = sqft;
+    const landSqft = 0;
+    const currentAssessment = cosmosData.current_assessment || 0;
+    const currentBldg = 0;
+    const currentLand = 0;
     
+    // Use precomputed savings from Cosmos V2 (consistent with results page)
+    const precomputedSavings = cosmosData.savings_estimate || 0;
+    
+    // Calculate fair assessment and reduction from comps (for PDF detail)
     const compPerSqfts = validComps.map(c => c.perSqft);
     const compMedianPerSqft = compPerSqfts.length > 0 
       ? compPerSqfts[Math.floor(compPerSqfts.length / 2)] 
@@ -319,29 +256,38 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
       ? compPerSqfts.reduce((a, b) => a + b, 0) / compPerSqfts.length
       : 0;
     
-    const yearBuilt = chars?.age ? (new Date().getFullYear() - parseInt(chars.age)) : (prop.characteristics?.yearBuilt || 0);
+    const fairAssessment = compMedianPerSqft > 0 ? Math.round(compMedianPerSqft * sqft) : currentAssessment;
+    const reduction = Math.max(0, currentAssessment - fairAssessment);
+    // Use precomputed savings to stay consistent across all surfaces
+    const savings = precomputedSavings > 0 ? precomputedSavings : Math.round(reduction * 0.20);
+    const perSqft = sqft > 0 ? currentAssessment / sqft : 0;
+    const fairPerSqft = sqft > 0 ? fairAssessment / sqft : 0;
+    const overAssessedPct = currentAssessment > 0 ? Math.round((reduction / currentAssessment) * 100) : 0;
+    
+    const yearBuilt = cosmosData.year_built || 0;
+    const age = yearBuilt > 0 ? (new Date().getFullYear() - yearBuilt) : 0;
     
     console.log(`[getPropertyData] Done: ${validComps.length} comps, $${currentAssessment} assessment, $${savings} savings`);
     
     return {
       pin,
-      address: prop.address || "",
-      city: prop.city || "CHICAGO",
-      zip: prop.zip || "",
-      township: prop.township || "",
-      neighborhood: chars?.nbhd || prop.neighborhood || "",
+      address: cosmosData.address || "",
+      city: cosmosData.city || "CHICAGO",
+      zip: cosmosData.zip || "",
+      township: cosmosData.township || "",
+      neighborhood: cosmosData.nbhd || "",
       classCode: subjectClass,
       classDescription: CLASS_DESCRIPTIONS[subjectClass] || `Class ${subjectClass}`,
       sqft,
       totalSqft,
       landSqft,
-      beds: parseInt(chars?.beds || "0") || prop.characteristics?.bedrooms || 0,
-      fbath: parseInt(chars?.fbath || "0") || 0,
-      hbath: parseInt(chars?.hbath || "0") || 0,
-      rooms: parseInt(chars?.rooms || "0") || 0,
+      beds: cosmosData.total_beds || 0,
+      fbath: cosmosData.total_baths || 0,
+      hbath: 0,
+      rooms: 0, // V2 doesn't aggregate rooms
       yearBuilt,
-      age: parseInt(chars?.age || "0") || 0,
-      extWall: EXT_WALL[chars?.ext_wall || ""] || "Unknown",
+      age,
+      extWall: cosmosData.primary_ext_wall || "Unknown",
       currentAssessment,
       currentBldg,
       currentLand,
@@ -350,12 +296,7 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
       savings,
       perSqft,
       fairPerSqft,
-      assessmentHistory: assessmentHistory.map(a => ({
-        year: a.year,
-        mailedTotal: parseFloat(a.mailed_tot) || 0,
-        certifiedTotal: a.certified_tot ? parseFloat(a.certified_tot) : null,
-        boardTotal: a.board_tot ? parseFloat(a.board_tot) : null,
-      })),
+      assessmentHistory,
       comps: validComps,
       compMedianPerSqft,
       compAvgPerSqft,
@@ -385,8 +326,6 @@ function generatePdfHtml(data: PropertyData): string {
       <td class="right">${c.beds}/${c.fbath}${c.hbath ? `.${c.hbath}` : ""}</td>
       <td class="right">${c.extWall}</td>
       <td class="right">${c.yearBuilt || "—"}</td>
-      <td class="right">$${c.assessmentBldg.toLocaleString()}</td>
-      <td class="right">$${c.assessmentLand.toLocaleString()}</td>
       <td class="right">$${c.assessmentTotal.toLocaleString()}</td>
       <td class="right highlight">$${c.perSqft.toFixed(2)}</td>
     </tr>`;
@@ -582,11 +521,10 @@ function generatePdfHtml(data: PropertyData): string {
         </table>
       </div>
       <div class="breakdown-card">
-        <h4>Current Assessment Breakdown</h4>
+        <h4>Current Assessment</h4>
         <table class="breakdown-table">
-          <tr><td>Building Assessment</td><td>$${data.currentBldg.toLocaleString()}</td></tr>
-          <tr><td>Land Assessment</td><td>$${data.currentLand.toLocaleString()}</td></tr>
           <tr><td>Total Assessment</td><td>$${data.currentAssessment.toLocaleString()}</td></tr>
+          <tr><td>Assessment per Sq Ft</td><td>$${data.perSqft.toFixed(2)}</td></tr>
         </table>
         <h4 style="margin-top: 12px;">Requested Assessment</h4>
         <table class="breakdown-table">
@@ -620,8 +558,6 @@ function generatePdfHtml(data: PropertyData): string {
             <th class="right">Bed/Bath</th>
             <th class="right">Ext.</th>
             <th class="right">Year</th>
-            <th class="right">Bldg Asmt</th>
-            <th class="right">Land Asmt</th>
             <th class="right">Total Asmt</th>
             <th class="right">$/SF</th>
           </tr>
@@ -638,8 +574,6 @@ function generatePdfHtml(data: PropertyData): string {
             <td class="right">${data.beds}/${data.fbath}${data.hbath ? `.${data.hbath}` : ""}</td>
             <td class="right">${escapeHtml(data.extWall)}</td>
             <td class="right">${data.yearBuilt || "—"}</td>
-            <td class="right">$${data.currentBldg.toLocaleString()}</td>
-            <td class="right">$${data.currentLand.toLocaleString()}</td>
             <td class="right">$${data.currentAssessment.toLocaleString()}</td>
             <td class="right" style="color: #b45309; font-weight: 700;">$${data.perSqft.toFixed(2)}</td>
           </tr>
