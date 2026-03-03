@@ -244,7 +244,10 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
     const currentBldg = 0;
     const currentLand = 0;
     
-    // Calculate fair assessment from comps
+    // Use precomputed savings from Cosmos V2 (consistent with results page)
+    const precomputedSavings = cosmosData.savings_estimate || 0;
+    
+    // Calculate fair assessment and reduction from comps (for PDF detail)
     const compPerSqfts = validComps.map(c => c.perSqft);
     const compMedianPerSqft = compPerSqfts.length > 0 
       ? compPerSqfts[Math.floor(compPerSqfts.length / 2)] 
@@ -255,7 +258,8 @@ async function getPropertyData(pin: string): Promise<PropertyData | null> {
     
     const fairAssessment = compMedianPerSqft > 0 ? Math.round(compMedianPerSqft * sqft) : currentAssessment;
     const reduction = Math.max(0, currentAssessment - fairAssessment);
-    const savings = Math.round(reduction * 0.20); // Cook County tax rate multiplier
+    // Use precomputed savings to stay consistent across all surfaces
+    const savings = precomputedSavings > 0 ? precomputedSavings : Math.round(reduction * 0.20);
     const perSqft = sqft > 0 ? currentAssessment / sqft : 0;
     const fairPerSqft = sqft > 0 ? fairAssessment / sqft : 0;
     const overAssessedPct = currentAssessment > 0 ? Math.round((reduction / currentAssessment) * 100) : 0;
