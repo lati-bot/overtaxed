@@ -2,16 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { CosmosClient } from "@azure/cosmos";
 
 const PARCEL_API = "https://datacatalog.cookcountyil.gov/resource/c49d-89sn.json";
-const CHARACTERISTICS_API = "https://datacatalog.cookcountyil.gov/resource/bcnq-qi2z.json";
 const ASSESSMENTS_API = "https://datacatalog.cookcountyil.gov/resource/uzyt-m557.json";
 
 // Cosmos DB connection
 const COSMOS_CONNECTION = process.env.COSMOS_CONNECTION_STRING || "";
 const DATABASE_NAME = "overtaxed";
 const CONTAINER_NAME = "properties";
-
-// Flag to show "still processing" message - set to false once upload is complete
-const UPLOAD_IN_PROGRESS = false;
 
 let cosmosClient: CosmosClient | null = null;
 function getCosmosClient() {
@@ -32,24 +28,6 @@ interface ParcelResult {
   longitude: string;
 }
 
-interface PropertyCharacteristics {
-  pin: string;
-  class: string;
-  tax_year?: string;
-  township_code: string;
-  nbhd: string;
-  bldg_sf?: string;
-  hd_sf?: string;
-  total_bldg_sf?: string;
-  age?: string;
-  beds?: string;
-  fbath?: string;
-  hbath?: string;
-  ext_wall?: string;
-  rooms?: string;
-  addr?: string;
-}
-
 interface Assessment {
   pin: string;
   year: string;
@@ -64,17 +42,68 @@ interface Assessment {
   board_tot?: string;
 }
 
-interface CosmosProperty {
+// V2 Cosmos data shape
+interface CosmosPropertyV2 {
   pin: string;
-  status: string;
+  address: string;
+  city: string;
+  zip: string;
+  state: string;
+  county: string;
+  lat: number;
+  lon: number;
+  class: string;
   nbhd: string;
-  sqft: number;
-  beds: number;
+  township: string;
+  municipality: string;
+  ward: string;
+  community_area: string;
+  buildings: Array<{
+    card: number;
+    sqft: number;
+    beds: number;
+    baths_full: number;
+    year_built: number;
+    stories: string;
+    quality: string;
+    condition: string;
+    ext_wall: string;
+    basement: string;
+    heat: string;
+    ac: string;
+    fireplace: number;
+    garage_size: string;
+    apartments: string;
+    use: string;
+  }>;
+  is_multicard: boolean;
+  total_sqft: number;
+  total_beds: number;
+  total_baths: number;
+  year_built: number;
+  primary_quality: string;
+  primary_condition: string;
+  primary_ext_wall: string;
+  primary_stories: string;
+  assessments: Record<string, { mailed: number; certified: number; board: number }>;
   current_assessment: number;
-  fair_assessment: number;
-  estimated_savings: number;
-  comp_count: number;
-  median_per_sqft: number;
+  market_value: number;
+  appeal_history: { times_reduced: number; has_appealed: boolean };
+  recent_sales: Array<{ date: string; price: number }>;
+  per_sqft: number;
+  comps: Array<{
+    pin: string;
+    address: string;
+    sqft: number;
+    beds: number;
+    baths: number;
+    year_built: number;
+    assessment: number;
+    per_sqft: number;
+    quality: string;
+  }>;
+  sales_comps: Array<{ pin: string; address: string; sale_date: string; sale_price: number; sqft: number; price_per_sqft: number }>;
+  savings_estimate: number;
 }
 
 function parseAddress(input: string): { houseNum: string; street: string } | null {
@@ -128,16 +157,6 @@ async function searchByPin(pin: string): Promise<ParcelResult[]> {
   return response.json();
 }
 
-async function getCharacteristics(pin: string): Promise<PropertyCharacteristics | null> {
-  const url = `${CHARACTERISTICS_API}?pin=${pin}&$order=tax_year DESC&$limit=1`;
-  
-  const response = await fetch(url);
-  if (!response.ok) return null;
-  
-  const data = await response.json();
-  return data[0] || null;
-}
-
 async function getAssessments(pin: string): Promise<Assessment[]> {
   const url = `${ASSESSMENTS_API}?pin=${pin}&$order=year DESC&$limit=5`;
   
@@ -147,7 +166,7 @@ async function getAssessments(pin: string): Promise<Assessment[]> {
   return response.json();
 }
 
-async function getAnalysisFromCosmos(pin: string): Promise<CosmosProperty | null> {
+async function getPropertyFromCosmos(pin: string): Promise<CosmosPropertyV2 | null> {
   const client = getCosmosClient();
   if (!client) return null;
   
@@ -158,7 +177,6 @@ async function getAnalysisFromCosmos(pin: string): Promise<CosmosProperty | null
     const { resource } = await container.item(pin, pin).read();
     return resource || null;
   } catch (error) {
-    // Item not found or other error
     console.error("Cosmos lookup error:", error);
     return null;
   }
@@ -178,33 +196,34 @@ async function getNeighborhoodStats(nbhd: string): Promise<{
     const database = client.database(DATABASE_NAME);
     const container = database.container(CONTAINER_NAME);
 
+    // V2 fields: savings_estimate, total_sqft, current_assessment
     const query = {
-      query: "SELECT c.status, c.estimated_savings, c.sqft, c.current_assessment FROM c WHERE c.nbhd = @nbhd",
+      query: "SELECT c.savings_estimate, c.total_sqft, c.current_assessment FROM c WHERE c.nbhd = @nbhd AND c.county = 'Cook'",
       parameters: [{ name: "@nbhd", value: nbhd }],
     };
 
     const { resources } = await container.items
-      .query(query, { partitionKey: nbhd })
+      .query(query)
       .fetchAll();
 
     if (!resources || resources.length === 0) return null;
 
     const totalProperties = resources.length;
-    const overAssessed = resources.filter((r: { status: string }) => r.status === "over");
+    const overAssessed = resources.filter((r: { savings_estimate: number }) => (r.savings_estimate || 0) > 0);
     const overAssessedCount = overAssessed.length;
     const overAssessedPct = Math.round((overAssessedCount / totalProperties) * 100);
     const avgReduction =
       overAssessedCount > 0
         ? Math.round(
-            overAssessed.reduce((sum: number, r: { estimated_savings: number }) => sum + (r.estimated_savings || 0), 0) /
+            overAssessed.reduce((sum: number, r: { savings_estimate: number }) => sum + (r.savings_estimate || 0), 0) /
               overAssessedCount
           )
         : 0;
 
     // Calculate median $/sqft
     const perSqftValues = resources
-      .filter((r: { sqft: number; current_assessment: number }) => r.sqft > 0 && r.current_assessment > 0)
-      .map((r: { sqft: number; current_assessment: number }) => r.current_assessment / r.sqft)
+      .filter((r: { total_sqft: number; current_assessment: number }) => r.total_sqft > 0 && r.current_assessment > 0)
+      .map((r: { total_sqft: number; current_assessment: number }) => r.current_assessment / r.total_sqft)
       .sort((a: number, b: number) => a - b);
     const medianPerSqft = perSqftValues.length > 0
       ? Math.round(perSqftValues[Math.floor(perSqftValues.length / 2)] * 100) / 100
@@ -276,23 +295,17 @@ export async function GET(request: NextRequest) {
     const parcel = parcels[0];
     targetPin = parcel.pin;
     
-    // Try to get analysis from Cosmos DB
-    const analysis = await getAnalysisFromCosmos(targetPin);
+    // Try to get V2 data from Cosmos DB
+    const cosmosData = await getPropertyFromCosmos(targetPin);
     
-    // If no analysis found, return property info with a flag
-    if (!analysis) {
-      // Still get basic property info from Cook County
-      const [characteristics, assessments] = await Promise.all([
-        getCharacteristics(parcel.pin),
-        getAssessments(parcel.pin),
-      ]);
-      
+    // If no Cosmos data found, return basic parcel info + Socrata assessments
+    if (!cosmosData) {
+      const assessments = await getAssessments(parcel.pin);
       const latestAssessment = assessments.find(a => a.mailed_tot) || null;
       
       return NextResponse.json({
         multiple: false,
         analysisAvailable: false,
-        uploadInProgress: UPLOAD_IN_PROGRESS,
         property: {
           pin: parcel.pin,
           address: parcel.property_address,
@@ -302,16 +315,7 @@ export async function GET(request: NextRequest) {
           neighborhood: parcel.nbhd,
           latitude: parcel.latitude,
           longitude: parcel.longitude,
-          characteristics: characteristics ? {
-            class: characteristics.class,
-            buildingSqFt: characteristics.bldg_sf ? parseInt(characteristics.bldg_sf) : null,
-            landSqFt: characteristics.hd_sf ? parseInt(characteristics.hd_sf) : null,
-            yearBuilt: characteristics.age ? (new Date().getFullYear() - parseInt(characteristics.age)) : null,
-            bedrooms: characteristics.beds ? parseInt(characteristics.beds) : null,
-            fullBaths: characteristics.fbath ? parseInt(characteristics.fbath) : null,
-            halfBaths: characteristics.hbath ? parseInt(characteristics.hbath) : null,
-            exteriorWall: characteristics.ext_wall,
-          } : null,
+          characteristics: null,
           assessment: latestAssessment && latestAssessment.mailed_tot ? {
             year: latestAssessment.year,
             mailedTotal: parseInt(latestAssessment.mailed_tot) || 0,
@@ -322,14 +326,26 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    // Analysis found - return full data
-    const [characteristics, assessments, neighborhoodStats] = await Promise.all([
-      getCharacteristics(parcel.pin),
+    // V2 data found — build response entirely from Cosmos + Socrata assessments
+    const [assessments, neighborhoodStats] = await Promise.all([
       getAssessments(parcel.pin),
-      getNeighborhoodStats(analysis.nbhd),
+      getNeighborhoodStats(cosmosData.nbhd),
     ]);
     
     const latestAssessment = assessments.find(a => a.mailed_tot) || null;
+    
+    // Determine savings status
+    const savingsEstimate = cosmosData.savings_estimate || 0;
+    const isOverAssessed = savingsEstimate > 0;
+    
+    // Calculate fair assessment from comps median
+    const compsMedianPerSqft = cosmosData.comps.length > 0
+      ? cosmosData.comps.reduce((sum, c) => sum + c.per_sqft, 0) / cosmosData.comps.length
+      : cosmosData.per_sqft;
+    const fairAssessment = Math.round(compsMedianPerSqft * cosmosData.total_sqft);
+    
+    // Count half baths from buildings
+    const halfBaths = cosmosData.buildings.reduce((sum, b) => sum + ((b as unknown as Record<string, number>).baths_half || 0), 0);
     
     return NextResponse.json({
       multiple: false,
@@ -340,19 +356,20 @@ export async function GET(request: NextRequest) {
         city: parcel.property_city,
         zip: parcel.property_zip,
         township: parcel.township_name,
-        neighborhood: parcel.nbhd,
+        neighborhood: cosmosData.nbhd,
         latitude: parcel.latitude,
         longitude: parcel.longitude,
-        characteristics: characteristics ? {
-          class: characteristics.class,
-          buildingSqFt: characteristics.bldg_sf ? parseInt(characteristics.bldg_sf) : null,
-          landSqFt: characteristics.hd_sf ? parseInt(characteristics.hd_sf) : null,
-          yearBuilt: characteristics.age ? (new Date().getFullYear() - parseInt(characteristics.age)) : null,
-          bedrooms: characteristics.beds ? parseInt(characteristics.beds) : null,
-          fullBaths: characteristics.fbath ? parseInt(characteristics.fbath) : null,
-          halfBaths: characteristics.hbath ? parseInt(characteristics.hbath) : null,
-          exteriorWall: characteristics.ext_wall,
-        } : null,
+        // Characteristics now from V2 Cosmos (aggregated across all buildings)
+        characteristics: {
+          class: cosmosData.class,
+          buildingSqFt: cosmosData.total_sqft,
+          landSqFt: null,
+          yearBuilt: cosmosData.year_built,
+          bedrooms: cosmosData.total_beds,
+          fullBaths: cosmosData.total_baths,
+          halfBaths: halfBaths,
+          exteriorWall: cosmosData.primary_ext_wall,
+        },
         assessment: latestAssessment && latestAssessment.mailed_tot ? {
           year: latestAssessment.year,
           mailedTotal: parseInt(latestAssessment.mailed_tot) || 0,
@@ -369,11 +386,11 @@ export async function GET(request: NextRequest) {
             certifiedTotal: a.certified_tot ? parseInt(a.certified_tot) : null,
             boardTotal: a.board_tot ? parseInt(a.board_tot) : null,
           })),
-        // Analysis data from Cosmos
+        // Analysis data from V2 Cosmos
         analysis: {
-          fairAssessment: analysis.fair_assessment,
-          potentialSavings: analysis.estimated_savings || 0,
-          compCount: analysis.comp_count || 0,
+          fairAssessment: isOverAssessed ? fairAssessment : cosmosData.current_assessment,
+          potentialSavings: savingsEstimate,
+          compCount: cosmosData.comps.length,
         },
         neighborhoodStats: neighborhoodStats || null,
       },
