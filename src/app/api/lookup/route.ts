@@ -89,6 +89,7 @@ interface CosmosPropertyV2 {
   }>;
   sales_comps: Array<{ pin: string; address: string; sale_date: string; sale_price: number; sqft: number; price_per_sqft: number }>;
   savings_estimate: number;
+  tax_rate?: number;
 }
 
 function parseAddress(input: string): { houseNum: string; street: string } | null {
@@ -301,9 +302,10 @@ export async function GET(request: NextRequest) {
     const savingsEstimate = cosmosData.savings_estimate || 0;
     const isOverAssessed = savingsEstimate > 0;
     
-    // Calculate fair assessment from comps median
-    const compsMedianPerSqft = cosmosData.comps.length > 0
-      ? cosmosData.comps.reduce((sum, c) => sum + c.per_sqft, 0) / cosmosData.comps.length
+    // Calculate fair assessment from comps median (must match precompute + generate-appeal)
+    const sortedPerSqft = cosmosData.comps.map(c => c.per_sqft).sort((a, b) => a - b);
+    const compsMedianPerSqft = sortedPerSqft.length > 0
+      ? sortedPerSqft[Math.floor(sortedPerSqft.length / 2)]
       : cosmosData.per_sqft;
     const fairAssessment = Math.round(compsMedianPerSqft * cosmosData.total_sqft);
     
@@ -359,6 +361,7 @@ export async function GET(request: NextRequest) {
           compCount: cosmosData.comps.length,
         },
         neighborhoodStats: neighborhoodStats || null,
+        taxRate: cosmosData.tax_rate || null,
       },
     });
     

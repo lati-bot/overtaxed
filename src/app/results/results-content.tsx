@@ -49,6 +49,7 @@ interface PropertyData {
     medianPerSqft: number;
     avgReduction: number;
   } | null;
+  taxRate?: number | null;
 }
 
 interface CompProperty {
@@ -84,6 +85,10 @@ export default function ResultsContent() {
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
   const [historyExpanded, setHistoryExpanded] = useState(false);
   const [showStickyCta, setShowStickyCta] = useState(false);
+  const [reassessmentEmail, setReassessmentEmail] = useState("");
+  const [reassessmentSubmitting, setReassessmentSubmitting] = useState(false);
+  const [reassessmentSubmitted, setReassessmentSubmitted] = useState(false);
+  const [shareTooltip, setShareTooltip] = useState(false);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
@@ -900,10 +905,18 @@ export default function ResultsContent() {
   const hasAnalysis = analysisAvailable && property.analysis;
   const fairAssessment = hasAnalysis ? property.analysis!.fairAssessment : currentAssessment;
   const reduction = currentAssessment - fairAssessment;
-  // Houston uses ~2.2% tax rate; Cook County uses assessment reduction × 20%
-  const rawSavings = reduction > 0 
-    ? (isTexas ? Math.round(reduction * 0.022) : Math.round(reduction * 0.20))
+  // Cook County tax formula: assessment × 3.0355 (equalizer) × (composite_rate / 100)
+  // taxRate from Cosmos is the composite rate as a PERCENTAGE (e.g. 6.618606 for Chicago)
+  const cookCompositeRate = property.taxRate || 2; // percentage, e.g. 6.618606
+  const COOK_EQUALIZER = 3.0355;
+  const cookMultiplier = COOK_EQUALIZER * (cookCompositeRate / 100); // e.g. 3.0355 × 0.06618606 ≈ 0.201
+  
+  // Use precomputed savings from Cosmos when available (canonical), fallback to recalculation
+  const precomputedSavings = hasAnalysis ? property.analysis!.potentialSavings : 0;
+  const recalculatedSavings = reduction > 0 
+    ? (isTexas ? Math.round(reduction * 0.022) : Math.round(reduction * cookMultiplier))
     : 0;
+  const rawSavings = precomputedSavings > 0 ? precomputedSavings : recalculatedSavings;
   // Minimum threshold: don't show as over-assessed if savings are trivial
   const MIN_SAVINGS_THRESHOLD = 250;
   const estimatedSavings = rawSavings >= MIN_SAVINGS_THRESHOLD ? rawSavings : 0;
@@ -912,7 +925,7 @@ export default function ResultsContent() {
   // Tax bill calculations
   const estimatedTaxBill = isTexas 
     ? Math.round(currentAssessment * 0.022)
-    : Math.round(currentAssessment * 0.20); // Cook County: ~2% of market value ≈ assessed × 0.20
+    : Math.round(currentAssessment * cookMultiplier); // Cook County: assessed × equalizer × rate
   const estimatedTaxBillAfter = estimatedTaxBill - estimatedSavings;
   const taxBillReductionPct = estimatedTaxBill > 0 ? Math.round((estimatedSavings / estimatedTaxBill) * 100) : 0;
 
@@ -1085,12 +1098,12 @@ export default function ResultsContent() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
                 </svg>
-                {isTexas ? "Over-Appraised" : "Over-Assessed"}
+                {isTexas ? "Savings Found" : "Savings Found"}
               </div>
 
               <h2 className="mt-4 text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a1a1a]">
-                Your home is {isTexas ? "over-appraised" : "over-assessed"} by{" "}
-                <span className="text-[#b45309]">${assessmentGap.toLocaleString()}</span>
+                Your home could save you{" "}
+                <span className="text-[#b45309]">${estimatedSavings.toLocaleString()}/year</span>
               </h2>
 
               {yourPerSqft > 0 && neighborPerSqft > 0 && (
@@ -1105,12 +1118,12 @@ export default function ResultsContent() {
 
               {/* 2. THE MONEY — Cumulative */}
               <div className="mt-6 rounded-xl bg-white border border-black/[0.06] p-5">
-                <div className="text-sm text-[#666] font-medium">You&apos;re overpaying</div>
+                <div className="text-sm text-[#666] font-medium">Potential savings</div>
                 <div className="text-3xl sm:text-4xl font-bold text-[#1a1a1a] mt-1">
                   ~${estimatedSavings.toLocaleString()}<span className="text-lg sm:text-xl font-semibold text-[#666]">/year</span>
                 </div>
                 <div className="mt-2 text-base sm:text-lg text-[#b45309] font-semibold">
-                  That&apos;s ${multiYearSavings.toLocaleString()} over {multiYearLabel} if you don&apos;t {isTexas ? "protest" : "appeal"}
+                  ${multiYearSavings.toLocaleString()} over {multiYearLabel} with a successful {isTexas ? "protest" : "appeal"}
                 </div>
                 <div className="mt-3 flex items-center gap-4 flex-wrap text-sm text-[#666]">
                   <div className="flex items-center gap-1.5">
@@ -1124,6 +1137,9 @@ export default function ResultsContent() {
                   <div className="flex items-center gap-1.5">
                     <span className="font-medium text-[#1a6b5a]">↓ {taxBillReductionPct}% reduction</span>
                   </div>
+                </div>
+                <div className="mt-3 text-xs text-[#999]">
+                  Based on {compCount} comparable properties · {isTexas ? `${countyName} certified appraisal data` : "Cook County Clerk certified 2024 tax rates"}
                 </div>
               </div>
 
@@ -1338,57 +1354,275 @@ export default function ResultsContent() {
             </div>
           )}
 
-          {/* Fairly assessed */}
+          {/* Assessment in line — still encourage appeal */}
           {hasAnalysis && estimatedSavings === 0 && (
             <div className="p-5 sm:p-6 md:p-8 border-t border-black/[0.06]">
-              <div className="text-center">
-                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-[#1a6b5a] to-[#22856f] flex items-center justify-center mx-auto mb-4 shadow-sm">
-                  <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div className="inline-flex items-center gap-2 bg-[#e8f4f0] text-[#1a6b5a] font-medium px-4 py-2 rounded-full text-sm mb-3">
-                  ✓ {isTexas ? "Fairly Appraised" : "Fairly Assessed"}
-                </div>
-                <h3 className="text-xl font-semibold text-[#1a1a1a]">
-                  Good news — your home looks fairly {isTexas ? "appraised" : "assessed"}
-                </h3>
-                <p className="mt-2 text-[#666] max-w-md mx-auto">
-                  Based on {property.analysis?.compCount || "comparable"} similar properties in your area, your {isTexas ? "appraised value" : "assessment"} is in line with the market. We don&apos;t recommend filing a {isTexas ? "protest" : "appeal"} at this time.
-                </p>
+              <div className="inline-flex items-center gap-2 bg-[#e8f4f0] text-[#1a6b5a] font-medium px-4 py-2 rounded-full text-sm">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Your Assessment
               </div>
-              
-              <div className="mt-6 bg-[#f7f6f3] rounded-xl p-5">
-                <p className="text-[13px] tracking-[0.1em] uppercase text-[#999] font-medium mb-3">What to do next</p>
+
+              <h2 className="mt-4 text-xl sm:text-2xl font-bold text-[#1a1a1a]">
+                Your {isTexas ? "appraised value" : "assessment"} is in line with comparable properties
+              </h2>
+              <p className="mt-2 text-base text-[#666]">
+                Based on {property.analysis?.compCount || "comparable"} similar properties, your {isTexas ? "appraised value" : "assessment"} appears consistent with the market.
+                {" "}Many homeowners in this situation still successfully {isTexas ? "protest" : "appeal"} — {isTexas ? "appraisal review boards" : "the Board of Review"} consider factors beyond our algorithm, like property condition, needed repairs, or unique circumstances.
+              </p>
+
+              {/* Reasons to still appeal */}
+              <div className="mt-5 rounded-xl bg-[#f7f6f3] border border-black/[0.04] p-5">
+                <p className="text-[13px] tracking-[0.1em] uppercase text-[#999] font-medium mb-3">WHY YOU MIGHT STILL {isTexas ? "PROTEST" : "APPEAL"}</p>
                 <div className="space-y-3 text-sm text-[#555]">
-                  {isTexas ? (
-                    <>
-                      <div className="flex items-start gap-2.5">
-                        <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📋</span>
-                        <span>Make sure your <strong className="text-[#1a1a1a]">homestead exemption</strong> is filed — it caps annual increases at 10%</span>
-                      </div>
-                      <div className="flex items-start gap-2.5">
-                        <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📅</span>
-                        <span>Check back after your <strong className="text-[#1a1a1a]">2026 appraisal notice</strong> arrives (typically March–April)</span>
-                      </div>
-                      <div className="flex items-start gap-2.5">
-                        <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">🔔</span>
-                        <span>Values can jump year to year — we&apos;ll have fresh data as soon as counties release 2026 numbers</span>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex items-start gap-2.5">
-                        <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📋</span>
-                        <span>Verify your <strong className="text-[#1a1a1a]">exemptions</strong> are current (homeowner, senior, disability)</span>
-                      </div>
-                      <div className="flex items-start gap-2.5">
-                        <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📅</span>
-                        <span>Reassessment notices typically arrive in <strong className="text-[#1a1a1a]">January–February</strong> — check back then</span>
-                      </div>
-                    </>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">🔧</span>
+                    <span><strong className="text-[#1a1a1a]">Property condition</strong> — needed repairs, outdated systems, or cosmetic issues that lower your home&apos;s value aren&apos;t reflected in assessments</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">📊</span>
+                    <span><strong className="text-[#1a1a1a]">No downside</strong> — filing is free and your {isTexas ? "appraisal" : "assessment"} can never go <em>up</em> as a result of your {isTexas ? "protest" : "appeal"}</span>
+                  </div>
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">💰</span>
+                    <span><strong className="text-[#1a1a1a]">Even small reductions add up</strong> — a {isTexas ? "5%" : "10%"} reduction saves you ${isTexas ? Math.round(currentAssessment * 0.05 * 0.022).toLocaleString() : Math.round(currentAssessment * 0.1 * cookMultiplier).toLocaleString()}/year in taxes</span>
+                  </div>
+                  {!isTexas && (
+                    <div className="flex items-start gap-2.5">
+                      <span className="text-[#1a6b5a] mt-0.5 flex-shrink-0">🔄</span>
+                      <span><strong className="text-[#1a1a1a]">Two chances to win</strong> — appeal first at the Assessor, then again at the Board of Review if needed</span>
+                    </div>
                   )}
                 </div>
+              </div>
+
+              {/* Deadline info */}
+              <div className={`mt-4 rounded-xl p-3.5 flex items-start gap-3 bg-[#faf3e0] border border-[#e8d5a8]`}>
+                <span className="text-lg flex-shrink-0">⏰</span>
+                <div className="text-sm font-medium text-[#8a7d6b]">
+                  {isTexas
+                    ? "Appraisal notices typically mail mid-April. Protest deadline: May 15, 2026 (or 30 days after your notice)."
+                    : (() => {
+                        const reassessment = property.township ? getReassessmentStatus(property.township) : null;
+                        if (reassessment?.isReassessmentYear) {
+                          return (
+                            <>
+                              <span>{property.township} Township is being reassessed this year — this is your best window to appeal. Check the <a href="https://www.cookcountyassessoril.gov/assessment-calendar-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Assessor&apos;s filing calendar</a> for your exact deadline.</span>
+                            </>
+                          );
+                        }
+                        return (
+                          <span>Check the <a href="https://www.cookcountyassessoril.gov/assessment-calendar-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Assessor&apos;s filing calendar</a> for your township&apos;s deadline, or appeal at the <a href="https://www.cookcountyboardofreview.com/dates-and-deadlines" target="_blank" rel="noopener noreferrer" className="underline text-[#1a6b5a]">Board of Review</a>.</span>
+                        );
+                      })()
+                  }
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div id="cta-section-fair" className="mt-5 pt-5 border-t border-black/[0.06]">
+                {isTexas ? (
+                  <div id="waitlist-section">
+                    <p className="text-sm text-[#666] mb-3">
+                      Texas 2026 appraisal notices arrive March–April. We&apos;ll email you when your updated appeal package is ready — just $49.
+                    </p>
+                    {waitlistSubmitted ? (
+                      <div className="bg-[#e8f4f0] rounded-xl p-4 text-center">
+                        <span className="text-[#1a6b5a] font-medium">✓ You&apos;re on the list!</span>
+                        <p className="text-sm text-[#666] mt-1">We&apos;ll notify you as soon as {countyName} 2026 data is live.</p>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleWaitlistSubmit} className="flex flex-col sm:flex-row gap-3">
+                        <input
+                          type="email"
+                          placeholder="Enter your email"
+                          value={waitlistEmail}
+                          onChange={(e) => setWaitlistEmail(e.target.value)}
+                          required
+                          className="flex-1 px-4 py-3 rounded-xl border border-black/10 text-base focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/30 focus:border-[#1a6b5a]"
+                        />
+                        <button
+                          type="submit"
+                          disabled={waitlistSubmitting}
+                          className={`px-6 py-3 rounded-xl font-semibold text-base transition-all bg-[#1a6b5a] text-white whitespace-nowrap ${waitlistSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'}`}
+                        >
+                          {waitlistSubmitting ? "Submitting..." : "Notify Me When 2026 Data Is Ready"}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                ) : (
+                <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                      <div className="font-semibold text-lg text-gray-900">
+                        Get your appeal package — $49
+                      </div>
+                      <div className="text-sm mt-2 space-y-1 text-[#666]">
+                        <div className="flex items-start gap-2">
+                          <span className="flex-shrink-0">✓</span>
+                          <span>Custom evidence brief for <strong>{property.address}</strong></span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="flex-shrink-0">✓</span>
+                          <span>{compCount} comparable properties with detailed analysis</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <span className="flex-shrink-0">✓</span>
+                          <span>Step-by-step filing instructions</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        if (checkoutLoading) return;
+                        setCheckoutLoading(true);
+                        try {
+                          const res = await fetch("/api/create-checkout", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              propertyId: property.pin,
+                              jurisdiction: jurisdictionValue,
+                            }),
+                          });
+                          const data = await res.json();
+                          if (data.url) {
+                            window.location.href = data.url;
+                          } else {
+                            alert("Failed to start checkout. Please try again.");
+                            setCheckoutLoading(false);
+                          }
+                        } catch {
+                          alert("Failed to start checkout. Please try again.");
+                          setCheckoutLoading(false);
+                        }
+                      }}
+                      disabled={checkoutLoading}
+                      className={`w-full sm:w-auto px-8 py-4 rounded-xl font-semibold text-lg transition-all bg-[#1a6b5a] text-white whitespace-nowrap flex-shrink-0 ${checkoutLoading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#155a4c] hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'}`}
+                    >
+                      {checkoutLoading ? "Processing..." : "Get My Appeal Package — $49"}
+                    </button>
+                  </div>
+                  <p className="mt-3 text-xs text-[#999]">
+                    🛡️ 100% money-back guarantee • One-time fee • Delivered instantly
+                  </p>
+                </div>
+                )}
+              </div>
+
+              {/* Lead Capture — reassessment notification + referral */}
+              <div className="mt-5 pt-5 border-t border-black/[0.06]">
+                {/* Reassessment email capture */}
+                <div className="rounded-xl bg-[#f7f6f3] border border-black/[0.04] p-5">
+                  <div className="flex items-start gap-3">
+                    <span className="text-xl flex-shrink-0">📬</span>
+                    <div className="flex-1">
+                      <div className="font-semibold text-[#1a1a1a]">
+                        Get notified at next reassessment
+                      </div>
+                      <p className="text-sm text-[#666] mt-1">
+                        {isTexas
+                          ? "Texas reassesses annually. We'll alert you when 2027 notices drop so you can act fast."
+                          : `${property.township ? property.township + " Township" : "Your area"} gets reassessed on a 3-year cycle. We'll email you when your next reassessment window opens — the best time to appeal.`
+                        }
+                      </p>
+                      {reassessmentSubmitted ? (
+                        <div className="mt-3 bg-[#e8f4f0] rounded-lg p-3 text-center">
+                          <span className="text-[#1a6b5a] font-medium text-sm">✓ You&apos;re signed up! We&apos;ll let you know.</span>
+                        </div>
+                      ) : (
+                        <form
+                          onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (reassessmentSubmitting || !reassessmentEmail) return;
+                            setReassessmentSubmitting(true);
+                            try {
+                              const res = await fetch("/api/waitlist", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  email: reassessmentEmail,
+                                  pin: property.pin,
+                                  jurisdiction: jurisdictionValue,
+                                  source: "reassessment-notify",
+                                }),
+                              });
+                              if (res.ok) {
+                                setReassessmentSubmitted(true);
+                              } else {
+                                alert("Something went wrong. Please try again.");
+                              }
+                            } catch {
+                              alert("Something went wrong. Please try again.");
+                            } finally {
+                              setReassessmentSubmitting(false);
+                            }
+                          }}
+                          className="mt-3 flex flex-col sm:flex-row gap-2"
+                        >
+                          <input
+                            type="email"
+                            placeholder="Enter your email"
+                            value={reassessmentEmail}
+                            onChange={(e) => setReassessmentEmail(e.target.value)}
+                            required
+                            className="flex-1 px-3.5 py-2.5 rounded-lg border border-black/10 text-sm focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/30 focus:border-[#1a6b5a]"
+                          />
+                          <button
+                            type="submit"
+                            disabled={reassessmentSubmitting}
+                            className={`px-5 py-2.5 rounded-lg font-medium text-sm transition-all bg-[#1a6b5a] text-white whitespace-nowrap ${reassessmentSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#155a4c] cursor-pointer'}`}
+                          >
+                            {reassessmentSubmitting ? "..." : "Notify Me"}
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Referral / Share CTA */}
+                {property.neighborhoodStats && property.neighborhoodStats.overAssessedPct > 0 && (
+                  <div className="mt-3 rounded-xl bg-[#fef3c7]/40 border border-[#b45309]/10 p-5">
+                    <div className="flex items-start gap-3">
+                      <span className="text-xl flex-shrink-0">🏘️</span>
+                      <div className="flex-1">
+                        <div className="font-semibold text-[#1a1a1a]">
+                          {property.neighborhoodStats.overAssessedPct}% of your neighbors are over-assessed
+                        </div>
+                        <p className="text-sm text-[#666] mt-1">
+                          Share this tool with them — a few minutes of research could save them hundreds per year.
+                        </p>
+                        <button
+                          onClick={() => {
+                            const url = "https://getovertaxed.com";
+                            const text = `I just checked my property tax assessment — turns out ${property.neighborhoodStats?.overAssessedPct}% of homes in our neighborhood are over-assessed. Free to check yours:`;
+                            if (navigator.share) {
+                              navigator.share({ title: "Check Your Property Taxes", text, url }).catch(() => {});
+                            } else {
+                              navigator.clipboard.writeText(`${text} ${url}`);
+                              setShareTooltip(true);
+                              setTimeout(() => setShareTooltip(false), 2000);
+                            }
+                          }}
+                          className="mt-3 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm bg-white border border-black/10 text-[#1a1a1a] hover:bg-[#f7f6f3] transition-colors cursor-pointer relative"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                          </svg>
+                          Share With Neighbors
+                          {shareTooltip && (
+                            <span className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#1a1a1a] text-white text-xs px-2.5 py-1 rounded-md whitespace-nowrap">
+                              Copied to clipboard!
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1860,6 +2094,22 @@ export default function ResultsContent() {
       </div>
 
       {/* Sticky mobile CTA */}
+      {showStickyCta && hasAnalysis && estimatedSavings === 0 && !isTexas && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-black/[0.08] px-4 py-3 safe-area-bottom">
+          <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-[#1a1a1a] truncate">File your appeal</div>
+              <div className="text-xs text-[#999]">100% money-back guarantee</div>
+            </div>
+            <button
+              onClick={() => document.getElementById('cta-section-fair')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-5 py-2.5 rounded-xl font-semibold text-sm text-white bg-[#1a6b5a] hover:bg-[#155a4c] transition-colors whitespace-nowrap flex-shrink-0"
+            >
+              Appeal — $49
+            </button>
+          </div>
+        </div>
+      )}
       {showStickyCta && hasAnalysis && estimatedSavings > 0 && !isTexas && (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-black/[0.08] px-4 py-3 safe-area-bottom">
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">

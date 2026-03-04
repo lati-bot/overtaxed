@@ -95,7 +95,7 @@ function SearchBar({
               <input
                 ref={inputRef}
                 type="text"
-                placeholder={placeholder || "Enter your home address..."}
+                placeholder={placeholder || "Enter your address or PIN..."}
                 className="w-full h-14 px-5 rounded-xl text-base bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#1a6b5a]/30 focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/10 transition-all"
                 value={address}
                 onChange={handleInputChange}
@@ -324,6 +324,19 @@ export default function Home() {
     e.preventDefault();
     if (!address.trim()) return;
     setLoading(true);
+
+    // PIN/account number detection — route directly to results
+    const cleaned = address.trim().replace(/[-\s]/g, "");
+    if (/^\d{14}$/.test(cleaned)) {
+      // Cook County PIN (14 digits)
+      router.push(`/results?pin=${cleaned}`);
+      return;
+    }
+    if (/^\d{6,13}$/.test(cleaned)) {
+      // TX account number — try all TX markets
+      router.push(`/results?address=${encodeURIComponent(address.trim())}`);
+      return;
+    }
 
     if (!selectedPin && suggestions.length > 0) {
       const best = suggestions[0];
