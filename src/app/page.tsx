@@ -223,6 +223,13 @@ export default function Home() {
       setNoMatch(false);
       return;
     }
+    // Skip autocomplete for PIN-like inputs (all digits, 6+ chars)
+    const stripped = address.replace(/[-\s]/g, "");
+    if (/^\d{6,}$/.test(stripped)) {
+      setSuggestions([]);
+      setNoMatch(false);
+      return;
+    }
     const timer = setTimeout(async () => {
       try {
         const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes, dentonRes, williamsonRes, fortbendRes, rockwallRes, bexarRes] = await Promise.all([
