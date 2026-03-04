@@ -905,12 +905,18 @@ export default function ResultsContent() {
   const hasAnalysis = analysisAvailable && property.analysis;
   const fairAssessment = hasAnalysis ? property.analysis!.fairAssessment : currentAssessment;
   const reduction = currentAssessment - fairAssessment;
-  // Houston uses ~2.2% tax rate; Cook County uses real tax_rate from Cosmos (or 2% fallback)
-  const cookTaxRate = property.taxRate || 0.02;
-  const cookMultiplier = 10 * cookTaxRate; // assessment × 10 = market value, × rate = tax
-  const rawSavings = reduction > 0 
+  // Cook County tax formula: assessment × 3.0355 (equalizer) × (composite_rate / 100)
+  // taxRate from Cosmos is the composite rate as a PERCENTAGE (e.g. 6.618606 for Chicago)
+  const cookCompositeRate = property.taxRate || 2; // percentage, e.g. 6.618606
+  const COOK_EQUALIZER = 3.0355;
+  const cookMultiplier = COOK_EQUALIZER * (cookCompositeRate / 100); // e.g. 3.0355 × 0.06618606 ≈ 0.201
+  
+  // Use precomputed savings from Cosmos when available (canonical), fallback to recalculation
+  const precomputedSavings = hasAnalysis ? property.analysis!.potentialSavings : 0;
+  const recalculatedSavings = reduction > 0 
     ? (isTexas ? Math.round(reduction * 0.022) : Math.round(reduction * cookMultiplier))
     : 0;
+  const rawSavings = precomputedSavings > 0 ? precomputedSavings : recalculatedSavings;
   // Minimum threshold: don't show as over-assessed if savings are trivial
   const MIN_SAVINGS_THRESHOLD = 250;
   const estimatedSavings = rawSavings >= MIN_SAVINGS_THRESHOLD ? rawSavings : 0;
@@ -919,7 +925,7 @@ export default function ResultsContent() {
   // Tax bill calculations
   const estimatedTaxBill = isTexas 
     ? Math.round(currentAssessment * 0.022)
-    : Math.round(currentAssessment * cookMultiplier); // Cook County: assessed × 10 × real rate
+    : Math.round(currentAssessment * cookMultiplier); // Cook County: assessed × equalizer × rate
   const estimatedTaxBillAfter = estimatedTaxBill - estimatedSavings;
   const taxBillReductionPct = estimatedTaxBill > 0 ? Math.round((estimatedSavings / estimatedTaxBill) * 100) : 0;
 
