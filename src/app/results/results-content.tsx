@@ -1098,12 +1098,12 @@ export default function ResultsContent() {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z" />
                 </svg>
-                {isTexas ? "Over-Appraised" : "Over-Assessed"}
+                {isTexas ? "Savings Found" : "Savings Found"}
               </div>
 
               <h2 className="mt-4 text-2xl sm:text-3xl md:text-4xl font-bold text-[#1a1a1a]">
-                Your home is {isTexas ? "over-appraised" : "over-assessed"} by{" "}
-                <span className="text-[#b45309]">${assessmentGap.toLocaleString()}</span>
+                Your home could save you{" "}
+                <span className="text-[#b45309]">${estimatedSavings.toLocaleString()}/year</span>
               </h2>
 
               {yourPerSqft > 0 && neighborPerSqft > 0 && (
@@ -1118,12 +1118,12 @@ export default function ResultsContent() {
 
               {/* 2. THE MONEY — Cumulative */}
               <div className="mt-6 rounded-xl bg-white border border-black/[0.06] p-5">
-                <div className="text-sm text-[#666] font-medium">You&apos;re overpaying</div>
+                <div className="text-sm text-[#666] font-medium">Potential savings</div>
                 <div className="text-3xl sm:text-4xl font-bold text-[#1a1a1a] mt-1">
                   ~${estimatedSavings.toLocaleString()}<span className="text-lg sm:text-xl font-semibold text-[#666]">/year</span>
                 </div>
                 <div className="mt-2 text-base sm:text-lg text-[#b45309] font-semibold">
-                  That&apos;s ${multiYearSavings.toLocaleString()} over {multiYearLabel} if you don&apos;t {isTexas ? "protest" : "appeal"}
+                  ${multiYearSavings.toLocaleString()} over {multiYearLabel} with a successful {isTexas ? "protest" : "appeal"}
                 </div>
                 <div className="mt-3 flex items-center gap-4 flex-wrap text-sm text-[#666]">
                   <div className="flex items-center gap-1.5">
@@ -1137,6 +1137,9 @@ export default function ResultsContent() {
                   <div className="flex items-center gap-1.5">
                     <span className="font-medium text-[#1a6b5a]">↓ {taxBillReductionPct}% reduction</span>
                   </div>
+                </div>
+                <div className="mt-3 text-xs text-[#999]">
+                  Based on {compCount} comparable properties · {isTexas ? `${countyName} certified appraisal data` : "Cook County Clerk certified 2024 tax rates"}
                 </div>
               </div>
 
