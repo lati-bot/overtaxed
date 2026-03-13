@@ -244,9 +244,9 @@ export default function AppealCalendarClient() {
           </p>
           <div className="grid sm:grid-cols-3 gap-3">
             {([
-              { triad: 'North' as Triad, years: '2025, 2028, 2031', count: 14, emoji: '🔵' },
+              { triad: 'North' as Triad, years: '2025, 2028, 2031', count: 13, emoji: '🔵' },
               { triad: 'City' as Triad, years: '2024, 2027, 2030', count: 8, emoji: '🟡' },
-              { triad: 'South/West' as Triad, years: '2023, 2026, 2029', count: 16, emoji: '🟢' },
+              { triad: 'South/West' as Triad, years: '2023, 2026, 2029', count: 17, emoji: '🟢' },
             ]).map(({ triad, years, count, emoji }) => (
               <div 
                 key={triad} 
