@@ -25,7 +25,7 @@ export interface TownshipCalendar {
 
 const NORTH_TOWNSHIPS = [
   'Barrington', 'Elk Grove', 'Evanston', 'Hanover', 'Leyden', 'Maine',
-  'New Trier', 'Niles', 'Northfield', 'Norwood Park', 'Palatine', 'Proviso',
+  'New Trier', 'Niles', 'Northfield', 'Norwood Park', 'Palatine',
   'Schaumburg', 'Wheeling',
 ];
 
@@ -36,7 +36,7 @@ const CITY_TOWNSHIPS = [
 
 const SOUTH_WEST_TOWNSHIPS = [
   'Berwyn', 'Bloom', 'Bremen', 'Calumet', 'Cicero', 'Lemont', 'Lyons',
-  'Oak Park', 'Orland', 'Palos', 'Rich', 'River Forest', 'Riverside',
+  'Oak Park', 'Orland', 'Palos', 'Proviso', 'Rich', 'River Forest', 'Riverside',
   'Stickney', 'Thornton', 'Worth',
 ];
 
