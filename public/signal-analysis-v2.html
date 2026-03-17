@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal — Should You Build It?</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: #FDFBF7;
+  color: #2C2C2C;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: #E8D5B7; }
+
+.page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* --- Header --- */
+.header {
+  padding: 72px 0 20px;
+  border-bottom: 1px solid #E0D8CC;
+  margin-bottom: 56px;
+}
+
+.header .kicker {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #9E8E76;
+  margin-bottom: 16px;
+}
+
+.header h1 {
+  font-family: 'Source Serif 4', Georgia, serif;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #1A1A1A;
+  margin-bottom: 14px;
+  letter-spacing: -0.5px;
+}
+
+.header .dek {
+  font-size: 19px;
+  color: #6B6255;
+  max-width: 540px;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+.header .meta {
+  margin-top: 20px;
+  font-size: 13px;
+  color: #A89E8E;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* --- Score block --- */
+.verdict-block {
+  background: #F5F0E8;
+  border-left: 4px solid #C4956A;
+  padding: 28px 32px;
+  margin: 48px 0;
+}
+
+.verdict-block .score-line {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.verdict-block .score-num {
+  font-family: 'Source Serif 4', serif;
+  font-size: 54px;
+  font-weight: 700;
+  color: #1A1A1A;
+  line-height: 1;
+}
+
+.verdict-block .score-of {
+  font-size: 18px;
+  color: #9E8E76;
+}
+
+.verdict-block .verdict-text {
+  font-family: 'Source Serif 4', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #4A3F33;
+  margin-bottom: 6px;
+}
+
+.verdict-block p {
+  font-size: 15px;
+  color: #6B6255;
+  line-height: 1.65;
+}
+
+/* --- Numbers strip --- */
+.numbers {
+  display: flex;
+  gap: 0;
+  margin: 48px 0;
+  border-top: 1px solid #E0D8CC;
+  border-bottom: 1px solid #E0D8CC;
+}
+
+.numbers .n {
+  flex: 1;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.numbers .n + .n {
+  border-left: 1px solid #E0D8CC;
+}
+
+.numbers .n .val {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 22px;
+  font-weight: 500;
+  color: #1A1A1A;
+}
+
+.numbers .n .lbl {
+  font-size: 11px;
+  color: #9E8E76;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+/* --- Prose --- */
+h2 {
+  font-family: 'Source Serif 4', serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1A1A1A;
+  margin: 64px 0 20px;
+  line-height: 1.25;
+}
+
+h2:first-of-type { margin-top: 0; }
+
+h3 {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #4A3F33;
+  margin: 32px 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+p, li {
+  font-size: 16px;
+  color: #3D3D3D;
+  margin-bottom: 14px;
+}
+
+p strong { color: #1A1A1A; }
+
+/* --- Aside / pullquote --- */
+.aside {
+  border-left: 3px solid #C4956A;
+  padding: 2px 0 2px 20px;
+  margin: 32px 0;
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 17px;
+  color: #5C5244;
+  line-height: 1.65;
+}
+
+/* --- Tables (kept minimal) --- */
+.tbl-wrap {
+  margin: 24px -8px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th {
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #9E8E76;
+  padding: 10px 12px;
+  border-bottom: 2px solid #D6CCBB;
+  font-weight: 500;
+}
+
+td {
+  padding: 11px 12px;
+  border-bottom: 1px solid #EDE7DD;
+  color: #3D3D3D;
+  vertical-align: top;
+}
+
+td strong { color: #1A1A1A; font-weight: 600; }
+
+tr:last-child td { border-bottom: none; }
+
+/* --- Inline labels --- */
+.tag {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.tag.go { background: #D4EDDA; color: #2D6A3F; }
+.tag.wait { background: #FFF3CD; color: #856404; }
+.tag.stop { background: #F8D7DA; color: #8B2D36; }
+
+/* --- Two-up for pros/cons --- */
+.two-up {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin: 28px 0;
+}
+
+.two-up h3 { margin-top: 0; }
+
+.two-up ul {
+  list-style: none;
+  padding: 0;
+}
+
+.two-up li {
+  font-size: 14px;
+  margin-bottom: 10px;
+  padding-left: 18px;
+  position: relative;
+  color: #4A3F33;
+}
+
+.two-up .strengths li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: #6B9B4A;
+  font-weight: 700;
+}
+
+.two-up .weaknesses li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: #BF6B5A;
+  font-weight: 700;
+}
+
+/* --- Timeline (simple) --- */
+.roadmap-step {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 22px;
+  align-items: baseline;
+}
+
+.roadmap-step .when {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  color: #9E8E76;
+  min-width: 72px;
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+.roadmap-step .what h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1A1A1A;
+  margin-bottom: 2px;
+}
+
+.roadmap-step .what p {
+  font-size: 14px;
+  color: #6B6255;
+  margin-bottom: 0;
+}
+
+/* --- Footer --- */
+.footer {
+  margin-top: 80px;
+  padding: 24px 0 48px;
+  border-top: 1px solid #E0D8CC;
+  font-size: 12px;
+  color: #B0A594;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+/* --- Wide breakout for one table --- */
+.breakout {
+  margin-left: -40px;
+  margin-right: -40px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 700px) {
+  .page { padding: 0 18px; }
+  .header { padding-top: 40px; }
+  .header h1 { font-size: 34px; }
+  h2 { font-size: 24px; }
+  .two-up { grid-template-columns: 1fr; gap: 20px; }
+  .numbers { flex-wrap: wrap; }
+  .numbers .n { flex: 1 1 50%; }
+  .numbers .n + .n { border-left: none; }
+  .numbers .n:nth-child(odd) { border-right: 1px solid #E0D8CC; }
+  .numbers .n:nth-child(n+3) { border-top: 1px solid #E0D8CC; }
+  .verdict-block { padding: 20px 22px; }
+  .verdict-block .score-num { font-size: 42px; }
+  .breakout { margin-left: 0; margin-right: 0; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="header">
+  <div class="kicker">Startup Idea Analysis</div>
+  <h1>Signal: Event Intelligence for Prediction Markets</h1>
+  <div class="dek">An interactive probability analysis platform for prediction markets, sports betting, elections, and macro events. Is it worth building? Here's the honest breakdown.</div>
+  <div class="meta">March 2026 · Based on publicly available data</div>
+</div>
+
+<div class="verdict-block">
+  <div class="score-line">
+    <div class="score-num">7.5</div>
+    <div class="score-of">/ 10</div>
+  </div>
+  <div class="verdict-text">Worth building lean.</div>
+  <p>Genuine market gap, cheap to build, great timing. Not a quit-your-job bet — yet. Build the MVP and let the market decide.</p>
+</div>
+
+<div class="numbers">
+  <div class="n"><div class="val">$40B</div><div class="lbl">2025 Market Vol.</div></div>
+  <div class="n"><div class="val">40×</div><div class="lbl">Growth (2yr)</div></div>
+  <div class="n"><div class="val">~8 wks</div><div class="lbl">MVP Timeline</div></div>
+  <div class="n"><div class="val">~$2K</div><div class="lbl">MVP Cost</div></div>
+</div>
+
+<!-- ============================================================ -->
+
+<h2>The gap nobody's filling</h2>
+
+<p>Prediction platforms show you prices, not analysis. Polymarket and Kalshi tell you what the market thinks — not <em>why</em>. No factor decomposition, no scenario modeling, no edge calculation. You get a number and a chart. That's it.</p>
+
+<p>Meanwhile, every sharp sports betting tool (OddsJam, Action Network) ignores prediction markets entirely. And there's no "what-if" modeling anywhere — nobody lets you adjust factors with sliders and watch probability recalculate in real-time. That's the hook: a thinking tool for bettors.</p>
+
+<div class="aside">
+  The financial world has Bloomberg, TradingView, Koyfin. The prediction market equivalent? Wide open.
+</div>
+
+<h2>Who you're up against</h2>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>Player</th><th>What they do</th><th>Where Signal wins</th></tr>
+<tr><td><strong>Polymarket / Kalshi</strong></td><td>Market prices, volume, trends</td><td>No independent modeling or factor analysis</td></tr>
+<tr><td><strong>Metaculus</strong></td><td>Community forecasting + calibration</td><td>Crowd wisdom, not individual tooling</td></tr>
+<tr><td><strong>OddsJam</strong> ($40–200/mo)</td><td>Sports arbitrage + EV betting</td><td>Sports only — zero prediction market coverage</td></tr>
+<tr><td><strong>Action Network</strong></td><td>Sports news, odds, expert picks</td><td>Media + light analytics, no probability engine</td></tr>
+<tr><td><strong>TradingView</strong></td><td>Financial charting + community</td><td>Best UX model to emulate — but wrong market</td></tr>
+</table>
+</div>
+
+<h2>The market is real — and moving fast</h2>
+
+<p>Polymarket did roughly <strong>$21.5B in volume</strong> in 2025. Up from nearly zero in 2023. Kalshi hit <strong>$17.1B</strong> after getting CFTC approval for election contracts. US sports betting alone: <strong>$167B wagered, $18B in revenue</strong>, growing at ~11% CAGR.</p>
+
+<h3>TAM scenarios</h3>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>Scenario</th><th>Estimate</th></tr>
+<tr><td>Conservative — 5% of traders pay $20–50/mo</td><td><strong>$12M–$120M/yr</strong></td></tr>
+<tr><td>Bull case — cross prediction + sports</td><td><strong>$200M–$500M/yr</strong></td></tr>
+<tr><td>Bloomberg analogy — institutional enters</td><td><strong>$500M+</strong></td></tr>
+</table>
+</div>
+
+<h2>How the engine actually works</h2>
+
+<p>The model isn't trying to beat the market. It's trying to help you <em>think</em> about the market. That's an important distinction — FiveThirtyEight doesn't beat prediction markets either, and it built a massive audience.</p>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>Approach</th><th>Description</th><th>Status</th></tr>
+<tr><td><strong>Signal Ensemble</strong></td><td>Aggregate prices across platforms + news sentiment + base rates</td><td><span class="tag go">MVP Ready</span></td></tr>
+<tr><td><strong>Bayesian Updating</strong></td><td>Prior from history, update on incoming signals</td><td><span class="tag go">Well-Understood</span></td></tr>
+<tr><td><strong>LLM Reasoning</strong></td><td>GPT-4/Claude decomposes events into factors, estimates probability</td><td><span class="tag go">Secret Weapon</span></td></tr>
+<tr><td><strong>Market Microstructure</strong></td><td>Order flow, smart money detection, volume analysis</td><td><span class="tag wait">Phase 2</span></td></tr>
+</table>
+</div>
+
+<div class="aside">
+  The interactive sliders are a thinking framework, not an oracle. That's valuable even if the baseline model just reflects market consensus.
+</div>
+
+<h2>Data sources & APIs</h2>
+
+<p>Most of the data you need is free or cheap. The one painful exception: Twitter/X at $100+/mo for real-time sentiment.</p>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>Source</th><th>Access</th><th>Data</th></tr>
+<tr><td><strong>Polymarket API</strong></td><td><span class="tag go">Public</span></td><td>Markets, prices, order books, trades</td></tr>
+<tr><td><strong>Kalshi API</strong></td><td><span class="tag go">Public</span></td><td>Markets, events, order book</td></tr>
+<tr><td><strong>Manifold API</strong></td><td><span class="tag go">Very Open</span></td><td>Markets, comments, bets, users</td></tr>
+<tr><td><strong>NewsAPI / GDELT</strong></td><td><span class="tag go">Free Tier</span></td><td>Headlines, global events, real-time</td></tr>
+<tr><td><strong>Reddit API</strong></td><td><span class="tag go">Free</span></td><td>Crypto/prediction market sentiment</td></tr>
+<tr><td><strong>The Odds API</strong></td><td><span class="tag go">Free Tier</span></td><td>80+ sportsbooks aggregated</td></tr>
+<tr><td><strong>Twitter/X</strong></td><td><span class="tag stop">$100+/mo</span></td><td>Real-time sentiment (expensive)</td></tr>
+</table>
+</div>
+
+<h2>MVP roadmap — 8 weeks</h2>
+
+<div style="margin: 28px 0;">
+  <div class="roadmap-step">
+    <div class="when">Wk 1–2</div>
+    <div class="what"><h4>Data Pipeline</h4><p>Ingest Polymarket + Kalshi + Manifold. Normalize and store in Postgres.</p></div>
+  </div>
+  <div class="roadmap-step">
+    <div class="when">Wk 3–4</div>
+    <div class="what"><h4>Probability Engine</h4><p>Cross-platform price aggregation + LLM-powered news sentiment + baseline model.</p></div>
+  </div>
+  <div class="roadmap-step">
+    <div class="when">Wk 5–6</div>
+    <div class="what"><h4>Frontend</h4><p>Market browser, interactive factor sliders, edge calculator, charts.</p></div>
+  </div>
+  <div class="roadmap-step">
+    <div class="when">Wk 7–8</div>
+    <div class="what"><h4>Polish & Launch</h4><p>Auth, alerting, landing page, beta launch.</p></div>
+  </div>
+</div>
+
+<h3>Tech stack</h3>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>Layer</th><th>Tech</th></tr>
+<tr><td>Frontend</td><td><strong>Next.js + React + Tailwind</strong></td></tr>
+<tr><td>Backend</td><td><strong>Python FastAPI</strong> (ML-friendly)</td></tr>
+<tr><td>Database</td><td><strong>PostgreSQL + Redis</strong></td></tr>
+<tr><td>AI/NLP</td><td><strong>OpenAI GPT-4</strong> (factor decomposition)</td></tr>
+<tr><td>Hosting</td><td><strong>Vercel + Railway</strong> (~$200–500/mo)</td></tr>
+</table>
+</div>
+
+<h2>What could kill it</h2>
+
+<div class="tbl-wrap">
+<table>
+<tr><th>Risk</th><th>Severity</th><th>What you do about it</th></tr>
+<tr><td><strong>Platforms build analytics in-house</strong></td><td><span class="tag stop">Critical</span></td><td>Move fast + cross-platform from day 1. They won't build for competitors. Robinhood didn't kill TradingView.</td></tr>
+<tr><td><strong>"Beat the market" expectations</strong></td><td><span class="tag stop">Critical</span></td><td>Position as thinking tool, not oracle. FiveThirtyEight doesn't beat markets either — still valuable.</td></tr>
+<tr><td><strong>Small user base today</strong></td><td><span class="tag wait">Medium</span></td><td>Expand into sports betting (100× larger TAM).</td></tr>
+<tr><td><strong>Cyclical demand</strong></td><td><span class="tag wait">Medium</span></td><td>Elections drive spikes; diversify into sports/crypto for baseline.</td></tr>
+<tr><td><strong>Name "Signal" is taken</strong></td><td><span class="tag wait">Medium</span></td><td>Rebrand before launch — see name ideas below.</td></tr>
+<tr><td><strong>Weak moat</strong></td><td><span class="tag go">Manageable</span></td><td>Build moat over time: data accumulation, community models, network effects.</td></tr>
+</table>
+</div>
+
+<h2>Bottom line</h2>
+
+<div class="two-up">
+  <div class="strengths">
+    <h3>Going for it</h3>
+    <ul>
+      <li>Genuine gap — no cross-platform prediction analytics exists</li>
+      <li>Massive tailwind — 40× market growth, still early</li>
+      <li>Regulatory clarity (CFTC approvals)</li>
+      <li>Capital efficient — ~$2K to MVP</li>
+      <li>Multiple revenue paths (SaaS, API, data)</li>
+      <li>Expandable into sports betting</li>
+      <li>LLMs unlock the probability engine</li>
+      <li>Network effects possible</li>
+    </ul>
+  </div>
+  <div class="weaknesses">
+    <h3>Against it</h3>
+    <ul>
+      <li>Weak initial moat — replicable concept</li>
+      <li>Small TAM today (~$50–100M)</li>
+      <li>Platform risk from Polymarket/Kalshi</li>
+      <li>"Beating the market" is genuinely hard</li>
+      <li>Name collision with Signal Messenger</li>
+      <li>Cyclical demand patterns</li>
+      <li>Requires ongoing model curation</li>
+    </ul>
+  </div>
+</div>
+
+<p style="margin-top: 40px; font-family: 'Source Serif 4', serif; font-size: 22px; font-weight: 600; color: #1A1A1A; line-height: 1.4;">Build it. Ship before midterms.</p>
+
+<p>The window is open. Six months to the 2026 midterm cycle. Cross-platform from day one. Thinking tool, not oracle. Let the market validate.</p>
+
+<p style="color: #6B6255; margin-top: 28px;">One thing first: you need a real name. Some options worth considering —</p>
+
+<p style="font-family: 'IBM Plex Mono', monospace; font-size: 14px; color: #4A3F33; letter-spacing: 0.3px;">
+  EdgeMap &nbsp;· &nbsp;Forecast Lab &nbsp;· &nbsp;ProbabilityKit &nbsp;· &nbsp;MarketLens &nbsp;· &nbsp;OddsEngine &nbsp;· &nbsp;Prism
+</p>
+
+<div class="footer">
+  Analysis compiled March 2026 · Market conditions evolving rapidly
+</div>
+
+</div>
+</body>
+</html>
