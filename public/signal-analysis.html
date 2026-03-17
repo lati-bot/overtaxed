@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal — Event Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #0a0a0f; --surface: #12121a; --surface2: #1a1a26;
+  --border: rgba(255,255,255,0.06); --text: #e8e8ed; --text2: #8888a0;
+  --accent: #6c5ce7; --accent2: #a29bfe; --green: #00d2a0; --red: #ff6b6b;
+  --blue: #74b9ff; --orange: #ffa94d; --yellow: #ffd43b;
+}
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; overflow-x: hidden; }
+
+/* Hero */
+.hero { position: relative; padding: 80px 40px 60px; text-align: center; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at 30% 50%, rgba(108,92,231,0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 50%, rgba(0,210,160,0.08) 0%, transparent 50%); animation: pulse 8s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 0.8; } 50% { opacity: 1; } }
+.hero-content { position: relative; z-index: 1; max-width: 700px; margin: 0 auto; }
+.badge { display: inline-block; background: rgba(108,92,231,0.15); border: 1px solid rgba(108,92,231,0.3); color: var(--accent2); padding: 6px 16px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 24px; }
+.hero h1 { font-size: 56px; font-weight: 900; letter-spacing: -2px; line-height: 1.1; background: linear-gradient(135deg, #fff 0%, var(--accent2) 50%, var(--green) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 16px; }
+.hero p { font-size: 18px; color: var(--text2); max-width: 550px; margin: 0 auto; font-weight: 300; }
+
+/* Score */
+.score-section { display: flex; justify-content: center; padding: 20px 40px 50px; }
+.score-ring { position: relative; width: 160px; height: 160px; }
+.score-ring svg { transform: rotate(-90deg); }
+.score-ring circle { fill: none; stroke-width: 8; }
+.score-bg { stroke: var(--surface2); }
+.score-fill { stroke: url(#scoreGrad); stroke-linecap: round; stroke-dasharray: 440; stroke-dashoffset: 110; transition: stroke-dashoffset 2s ease; }
+.score-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+.score-num { font-size: 42px; font-weight: 900; color: #fff; }
+.score-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+.score-verdict { margin-left: 40px; display: flex; flex-direction: column; justify-content: center; }
+.score-verdict h3 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 8px; }
+.score-verdict p { color: var(--text2); font-size: 15px; max-width: 320px; }
+
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; max-width: 900px; margin: 0 auto 60px; padding: 0 40px; }
+.stat { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; text-align: center; transition: transform 0.2s, border-color 0.2s; }
+.stat:hover { transform: translateY(-2px); border-color: rgba(108,92,231,0.3); }
+.stat .num { font-size: 32px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+.stat .num.purple { color: var(--accent2); }
+.stat .num.green { color: var(--green); }
+.stat .num.blue { color: var(--blue); }
+.stat .num.orange { color: var(--orange); }
+.stat .desc { font-size: 12px; color: var(--text2); margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Sections */
+.container { max-width: 900px; margin: 0 auto; padding: 0 40px; }
+.section { margin-bottom: 60px; }
+.section-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+.section-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+.section-icon.green { background: rgba(0,210,160,0.12); }
+.section-icon.red { background: rgba(255,107,107,0.12); }
+.section-icon.blue { background: rgba(116,185,255,0.12); }
+.section-icon.purple { background: rgba(108,92,231,0.12); }
+.section-icon.orange { background: rgba(255,169,77,0.12); }
+.section-title { font-size: 24px; font-weight: 700; color: #fff; }
+
+/* Cards */
+.card-grid { display: grid; gap: 12px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; display: flex; align-items: flex-start; gap: 14px; transition: border-color 0.2s; }
+.card:hover { border-color: rgba(255,255,255,0.1); }
+.card-icon { font-size: 20px; flex-shrink: 0; margin-top: 2px; }
+.card h4 { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+.card p { font-size: 13px; color: var(--text2); line-height: 1.5; }
+
+/* Tables */
+table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 16px 0; }
+th { background: var(--surface2); color: var(--text2); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; padding: 14px 18px; text-align: left; }
+td { padding: 14px 18px; font-size: 14px; border-top: 1px solid var(--border); color: var(--text); }
+td strong { color: #fff; }
+tr:hover td { background: rgba(108,92,231,0.04); }
+
+/* Risk pills */
+.risk { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 700; }
+.risk.critical { background: rgba(255,107,107,0.15); color: var(--red); }
+.risk.medium { background: rgba(255,169,77,0.15); color: var(--orange); }
+.risk.low { background: rgba(0,210,160,0.15); color: var(--green); }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before { content: ''; position: absolute; left: 8px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(to bottom, var(--accent), var(--green)); border-radius: 2px; }
+.timeline-item { position: relative; margin-bottom: 20px; }
+.timeline-item::before { content: ''; position: absolute; left: -24px; top: 8px; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg); }
+.timeline-item:last-child::before { background: var(--green); }
+.timeline-item h4 { font-size: 14px; font-weight: 600; color: #fff; }
+.timeline-item .week { font-size: 12px; color: var(--accent2); font-weight: 500; margin-bottom: 2px; }
+.timeline-item p { font-size: 13px; color: var(--text2); }
+
+/* CTA */
+.cta-section { text-align: center; padding: 60px 40px; margin-top: 40px; position: relative; }
+.cta-section::before { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 200px; height: 1px; background: linear-gradient(to right, transparent, var(--accent), transparent); }
+.cta-section h2 { font-size: 32px; font-weight: 800; color: #fff; margin-bottom: 12px; }
+.cta-section p { color: var(--text2); font-size: 16px; max-width: 500px; margin: 0 auto 30px; }
+.name-pills { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 20px; }
+.name-pill { background: var(--surface); border: 1px solid var(--border); padding: 8px 18px; border-radius: 20px; font-size: 14px; color: var(--text2); transition: all 0.2s; }
+.name-pill:hover { border-color: var(--accent); color: var(--accent2); }
+
+/* Pros/Cons */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.col-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; }
+.col-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.col-card.pros h4 { color: var(--green); }
+.col-card.cons h4 { color: var(--red); }
+.col-card li { font-size: 13px; color: var(--text2); margin-bottom: 8px; list-style: none; padding-left: 20px; position: relative; }
+.col-card.pros li::before { content: '✓'; position: absolute; left: 0; color: var(--green); font-weight: 700; }
+.col-card.cons li::before { content: '✗'; position: absolute; left: 0; color: var(--red); font-weight: 700; }
+
+/* Footer */
+.footer { text-align: center; padding: 40px; color: var(--text2); font-size: 12px; opacity: 0.5; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero h1 { font-size: 36px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .two-col { grid-template-columns: 1fr; }
+  .score-section { flex-direction: column; align-items: center; text-align: center; }
+  .score-verdict { margin-left: 0; margin-top: 20px; align-items: center; }
+}
+</style>
+</head>
+<body>
+
+<svg style="position:absolute;width:0;height:0">
+<defs><linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+<stop offset="0%" style="stop-color:#6c5ce7"/><stop offset="100%" style="stop-color:#00d2a0"/>
+</linearGradient></defs>
+</svg>
+
+<!-- HERO -->
+<div class="hero">
+<div class="hero-content">
+<div class="badge">💡 Startup Idea Analysis</div>
+<h1>Signal</h1>
+<p>An interactive probability analysis platform for prediction markets, sports betting, elections & macro events.</p>
+</div>
+</div>
+
+<!-- SCORE -->
+<div class="score-section">
+<div class="score-ring">
+<svg width="160" height="160" viewBox="0 0 160 160">
+<circle class="score-bg" cx="80" cy="80" r="70"/>
+<circle class="score-fill" cx="80" cy="80" r="70"/>
+</svg>
+<div class="score-text">
+<div class="score-num">7.5</div>
+<div class="score-label">out of 10</div>
+</div>
+</div>
+<div class="score-verdict">
+<h3>Worth Building Lean</h3>
+<p>Genuine market gap, cheap to build, great timing. Not a quit-your-job bet — yet. Build the MVP and let the market decide.</p>
+</div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+<div class="stat"><div class="num purple">$40B</div><div class="desc">2025 Market Volume</div></div>
+<div class="stat"><div class="num green">40×</div><div class="desc">Growth (2yr)</div></div>
+<div class="stat"><div class="num blue">~8 wks</div><div class="desc">MVP Timeline</div></div>
+<div class="stat"><div class="num orange">~$2K</div><div class="desc">MVP Cost</div></div>
+</div>
+
+<div class="container">
+
+<!-- THE GAP -->
+<div class="section">
+<div class="section-header">
+<div class="section-icon purple">🔍</div>
+<div class="section-title">The Gap</div>
+</div>
+<div class="card-grid">
+<div class="card"><div class="card-icon">📊</div><div><h4>Prediction platforms show prices, not analysis</h4><p>Polymarket and Kalshi tell you what the market thinks — not why. No factor decomposition, no scenario modeling, no edge calculation.</p></div></div>
+<div class="card"><div class="card-icon">🎰</div><div><h4>Sports tools don't cover prediction markets</h4><p>OddsJam, Action Network, Sharp — all strong in sports betting, zero coverage of political/crypto/macro prediction markets.</p></div></div>
+<div class="card"><div class="card-icon">💡</div><div><h4>No "what-if" modeling exists</h4><p>Nobody lets you adjust factors with sliders and watch probability recalculate in real-time. This is the unique hook — a thinking tool for bettors.</p></div></div>
+<div class="card"><div class="card-icon">🏦</div><div><h4>"Bloomberg for prediction markets" doesn't exist</h4><p>The financial world has Bloomberg, TradingView, Koyfin. The prediction market equivalent is wide open.</p></div></div>
+</div>
+</div>
+
+<!-- COMPETITIVE LANDSCAPE -->
+<div class="section">
+<div class="section-header">
+<div class="section-icon blue">⚔️</div>
+<div class="section-title">Competitive Landscape</div>
+</div>
+<table>
+<tr><th>Competitor</th><th>What They Do</th><th>Signal's Edge</th></tr>
+<tr><td><strong>Polymarket / Kalshi</strong></td><td>Show market prices, volume, trends</td><td>No independent modeling or factor analysis</td></tr>
+<tr><td><strong>Metaculus</strong></td><td>Community forecasting + calibration</td><td>Crowd wisdom, not individual analytical tooling</td></tr>
+<tr><td><strong>OddsJam</strong> ($40-200/mo)</td><td>Sports arbitrage + EV betting</td><td>Sports only — no prediction market coverage</td></tr>
+<tr><td><strong>Action Network</strong></td><td>Sports news, odds, expert picks</td><td>Media + light analytics, no probability engine</td></tr>
+<tr><td><strong>TradingView</strong></td><td>Financial charting + community</td><td>Stocks/crypto — best model to emulate for UX</td></tr>
+</table>
+</div>
+
+<!-- MARKET SIZE -->
+<div class="section">
+<div class="section-header">
+<div class="section-icon green">📈</div>
+<div class="section-title">Market Sizing</div>
+</div>
+<table>
+<tr><th>Segment</th><th>Volume/Revenue</th><th>Growth</th></tr>
+<tr><td><strong>Polymarket</strong> (2025)</td><td>~$21.5B volume</td><td>From nearly $0 in 2023</td></tr>
+<tr><td><strong>Kalshi</strong> (2025)</td><td>~$17.1B volume</td><td>CFTC-regulated, election contracts approved</td></tr>
+<tr><td><strong>US Sports Betting</strong> (2025)</td><td>$167B wagered / $18B revenue</td><td>~11% CAGR → $187B global by 2030</td></tr>
+</table>
+<table>
+<tr><th>TAM Scenario</th><th>Estimate</th></tr>
+<tr><td>Conservative — 5% of traders pay $20-50/mo</td><td><strong>$12M–$120M/yr</strong></td></tr>
+<tr><td>Bull case — cross prediction + sports betting</td><td><strong>$200M–$500M/yr</strong></td></tr>
+<tr><td>Bloomberg analogy — institutional enters</td><td><strong>$500M+</strong></td></tr>
+</table>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="section">
+<div class="section-header">
+<div class="section-icon purple">⚙️</div>
+<div class="section-title">How the Engine Works</div>
+</div>
+<table>
+<tr><th>Approach</th><th>Description</th><th>Feasibility</th></tr>
+<tr><td><strong>Signal Ensemble</strong></td><td>Aggregate prices across platforms + news sentiment + base rates</td><td><span class="risk low">MVP Ready</span></td></tr>
+<tr><td><strong>Bayesian Updating</strong></td><td>Prior from history, update on incoming signals</td><td><span class="risk low">Well-Understood</span></td></tr>
+<tr><td><strong>LLM Reasoning</strong></td><td>GPT-4/Claude decomposes events into factors, estimates probability</td><td><span class="risk low">Secret Weapon</span></td></tr>
+<tr><td><strong>Market Microstructure</strong></td><td>Order flow, smart money detection, volume analysis</td><td><span class="risk medium">Phase 2</span></td></tr>
+</table>
+<div class="card" style="margin-top: 16px;">
+<div class="card-icon">💎</div>
+<div><h4>Key insight: You don't need to beat the market</h4><p>The tool helps users think more clearly about probability. The interactive sliders are a thinking framework, not an oracle. That's valuable even if the baseline model just reflects market consensus.</p></div>
+</div>
+</div>
+
+<!-- DATA SOURCES -->
+<div class="section">
+<div class="section-header">
+<div class="section-icon orange">🔌</div>
+<div class="section-title">APIs & Data Sources</div>
+</div>
+<table>
+<tr><th>Source</th><th>Status</th><th>Data</th></tr>
+<tr><td><strong>Polymarket API</strong></td><td><span class="risk low">Public</span></td><td>Markets, prices, order books, trades</td></tr>
+<tr><td><strong>Kalshi API</strong></td><td><span class="risk low">Public</span></td><td>Markets, events, order book</td></tr>
+<tr><td><strong>Manifold API</strong></td><td><span class="risk low">Very Open</span></td><td>Markets, comments, bets, users</td></tr>
+<tr><td><strong>NewsAPI / GDELT</strong></td><td><span class="risk low">Free Tier</span></td><td>Headlines, global events, real-time</td></tr>
+<tr><td><strong>Reddit API</strong></td><td><span class="risk low">Free</span></td><td>Crypto/prediction market sentiment</td></tr>
+<tr><td><strong>The Odds API</strong></td><td><span class="risk low">Free Tier</span></td><td>80+ sportsbooks aggregated</td></tr>
+<tr><td><strong>Twitter/X</strong></td><td><span class="risk critical">$100+/mo</span></td><td>Real-time sentiment (expensive)</td></tr>
+</table>
+</div>
+
+<!-- MVP TIMELINE -->
+<div class="section">
+<div class="section-header">
+<div class="section-icon blue">🚀</div>
+<div class="section-title">MVP Roadmap</div>
+</div>
+<div class="timeline">
+<div class="timeline-item"><div class="week">Weeks 1–2</div><h4>Data Pipeline</h4><p>Ingest Polymarket + Kalshi + Manifold. Normalize and store in Postgres.</p></div>
+<div class="timeline-item"><div class="week">Weeks 3–4</div><h4>Probability Engine</h4><p>Cross-platform price aggregation + LLM-powered news sentiment + baseline model.</p></div>
+<div class="timeline-item"><div class="week">Weeks 5–6</div><h4>Frontend</h4><p>Market browser, interactive factor sliders, edge calculator, charts.</p></div>
+<div class="timeline-item"><div class="week">Weeks 7–8</div><h4>Polish & Launch</h4><p>Auth, alerting, landing page, beta launch. Ship it.</p></div>
+</div>
+<table style="margin-top: 24px;">
+<tr><th>Stack Layer</th><th>Tech</th></tr>
+<tr><td>Frontend</td><td><strong>Next.js + React + Tailwind</strong></td></tr>
+<tr><td>Backend</td><td><strong>Python FastAPI</strong> (ML-friendly)</td></tr>
+<tr><td>Database</td><td><strong>PostgreSQL + Redis</strong></td></tr>
+<tr><td>AI/NLP</td><td><strong>OpenAI GPT-4</strong> (factor decomposition)</td></tr>
+<tr><td>Hosting</td><td><strong>Vercel + Railway</strong> (~$200-500/mo)</td></tr>
+</table>
+</div>
+
+<!-- RISKS -->
+<div class="section">
+<div class="section-header">
+<div class="section-icon red">⚡</div>
+<div class="section-title">Risks & Challenges</div>
+</div>
+<table>
+<tr><th>Risk</th><th>Level</th><th>Mitigation</th></tr>
+<tr><td><strong>Platforms build analytics in-house</strong></td><td><span class="risk critical">Critical</span></td><td>Move fast + cross-platform (they won't build for competitors). Robinhood didn't kill TradingView.</td></tr>
+<tr><td><strong>"Beat the market" expectations</strong></td><td><span class="risk critical">Critical</span></td><td>Position as thinking tool, not oracle. FiveThirtyEight doesn't beat markets either — still valuable.</td></tr>
+<tr><td><strong>Small user base today</strong></td><td><span class="risk medium">Medium</span></td><td>Expand into sports betting (100x larger TAM)</td></tr>
+<tr><td><strong>Cyclical demand</strong></td><td><span class="risk medium">Medium</span></td><td>Elections drive spikes; diversify into sports/crypto for baseline</td></tr>
+<tr><td><strong>Name "Signal" is taken</strong></td><td><span class="risk medium">Medium</span></td><td>Rebrand before launch (see suggestions below)</td></tr>
+<tr><td><strong>Weak moat</strong></td><td><span class="risk low">Manageable</span></td><td>Build moat over time: data accumulation, community models, network effects</td></tr>
+</table>
+</div>
+
+<!-- VERDICT -->
+<div class="section">
+<div class="section-header">
+<div class="section-icon green">🏆</div>
+<div class="section-title">Final Verdict</div>
+</div>
+<div class="two-col">
+<div class="col-card pros">
+<h4>✅ Strengths</h4>
+<ul>
+<li>Genuine gap — no cross-platform prediction analytics exists</li>
+<li>Massive tailwind — 40x market growth, still early</li>
+<li>Regulatory clarity (CFTC approvals)</li>
+<li>Capital efficient — ~$2K to MVP</li>
+<li>Multiple revenue paths (SaaS, API, data)</li>
+<li>Expandable into sports betting</li>
+<li>LLMs unlock the probability engine</li>
+<li>Network effects possible</li>
+</ul>
+</div>
+<div class="col-card cons">
+<h4>✗ Weaknesses</h4>
+<ul>
+<li>Weak initial moat — replicable concept</li>
+<li>Small TAM today (~$50-100M)</li>
+<li>Platform risk from Polymarket/Kalshi</li>
+<li>"Beating the market" is genuinely hard</li>
+<li>Name collision with Signal Messenger</li>
+<li>Cyclical demand patterns</li>
+<li>Requires ongoing model curation</li>
+</ul>
+</div>
+</div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+<h2>Build It. Ship Before Midterms.</h2>
+<p>The window is open. 6 months to the 2026 midterm cycle. Cross-platform from day 1. Thinking tool, not oracle. Let the market validate.</p>
+<div style="margin-top: 24px; font-size: 14px; color: var(--text2);">But first — pick a real name 👇</div>
+<div class="name-pills">
+<div class="name-pill">EdgeMap</div>
+<div class="name-pill">Forecast Lab</div>
+<div class="name-pill">ProbabilityKit</div>
+<div class="name-pill">MarketLens</div>
+<div class="name-pill">OddsEngine</div>
+<div class="name-pill">Prism</div>
+</div>
+</div>
+
+<div class="footer">
+Analysis compiled March 2026 · Based on publicly available data · Market conditions evolving rapidly
+</div>
+
+</body>
+</html>
