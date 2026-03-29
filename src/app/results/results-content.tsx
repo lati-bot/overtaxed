@@ -105,6 +105,8 @@ export default function ResultsContent() {
   const isBexar = jurisdiction === "bexar";
   const isRockwall = jurisdiction === "rockwall";
   const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend || isRockwall || isBexar;
+  // Markets with 2026 preliminary data uploaded — can sell immediately
+  const has2026Data = isAustin;
   const cadName = isBexar ? "BCAD" : isRockwall ? "Rockwall CAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "Denton CAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isHouston ? "HCAD" : "Cook County Assessor";
   const countyName = isBexar ? "Bexar County" : isRockwall ? "Rockwall County" : isFortBend ? "Fort Bend County" : isWilliamson ? "Williamson County" : isDenton ? "Denton County" : isTarrant ? "Tarrant County" : isCollin ? "Collin County" : isAustin ? "Travis County" : isDallas ? "Dallas County" : isHouston ? "Harris County" : "Cook County";
   const avgTaxRate = isBexar ? "2.1" : isWilliamson ? "2.1" : "2.2";
@@ -1047,12 +1049,12 @@ export default function ResultsContent() {
               </div>
               <div className="sm:text-right">
                 <div className={`text-xs ${textMuted}`}>
-                  Based on 2025 certified appraisal data from {cadName}
+                  Based on {has2026Data ? "2026 preliminary" : "2025 certified"} appraisal data from {cadName}
                 </div>
               </div>
             </div>
             {/* Quick CTA — above the fold */}
-            {hasAnalysis && estimatedSavings > 0 && !isTexas && (
+            {hasAnalysis && estimatedSavings > 0 && (!isTexas || has2026Data) && (
               <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-[#e8f4f0] border border-[#1a6b5a]/15">
                 <div className="flex-1">
                   <div className="font-semibold text-[#1a6b5a]">
@@ -1070,7 +1072,7 @@ export default function ResultsContent() {
                 </button>
               </div>
             )}
-            {hasAnalysis && estimatedSavings > 0 && isTexas && (
+            {hasAnalysis && estimatedSavings > 0 && isTexas && !has2026Data && (
               <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-[#fef3c7]/50 border border-[#b45309]/15">
                 <div className="flex-1">
                   <div className="font-semibold text-[#b45309]">
@@ -1233,7 +1235,7 @@ export default function ResultsContent() {
 
               {/* 4. CTA */}
               <div id="cta-section" className={`mt-5 pt-5 border-t border-black/[0.06]`}>
-                {isTexas ? (
+                {isTexas && !has2026Data ? (
                   <div id="waitlist-section">
                     <p className="text-sm text-[#666] mb-3">
                       Texas 2026 appraisal notices arrive March–April. We&apos;ll email you when your updated appeal package is ready — just $49.
@@ -1422,7 +1424,7 @@ export default function ResultsContent() {
 
               {/* CTA */}
               <div id="cta-section-fair" className="mt-5 pt-5 border-t border-black/[0.06]">
-                {isTexas ? (
+                {isTexas && !has2026Data ? (
                   <div id="waitlist-section">
                     <p className="text-sm text-[#666] mb-3">
                       Texas 2026 appraisal notices arrive March–April. We&apos;ll email you when your updated appeal package is ready — just $49.
@@ -2094,7 +2096,7 @@ export default function ResultsContent() {
       </div>
 
       {/* Sticky mobile CTA */}
-      {showStickyCta && hasAnalysis && estimatedSavings === 0 && !isTexas && (
+      {showStickyCta && hasAnalysis && estimatedSavings === 0 && (!isTexas || has2026Data) && (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-black/[0.08] px-4 py-3 safe-area-bottom">
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
             <div className="min-w-0">
@@ -2110,7 +2112,7 @@ export default function ResultsContent() {
           </div>
         </div>
       )}
-      {showStickyCta && hasAnalysis && estimatedSavings > 0 && !isTexas && (
+      {showStickyCta && hasAnalysis && estimatedSavings > 0 && (!isTexas || has2026Data) && (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-black/[0.08] px-4 py-3 safe-area-bottom">
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
             <div className="min-w-0">
@@ -2126,7 +2128,7 @@ export default function ResultsContent() {
           </div>
         </div>
       )}
-      {showStickyCta && hasAnalysis && estimatedSavings > 0 && isTexas && (
+      {showStickyCta && hasAnalysis && estimatedSavings > 0 && isTexas && !has2026Data && (
         <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-black/[0.08] px-4 py-3 safe-area-bottom">
           <div className="flex items-center justify-between gap-3 max-w-lg mx-auto">
             <div className="min-w-0">
