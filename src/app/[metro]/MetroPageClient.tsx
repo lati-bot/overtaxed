@@ -26,6 +26,13 @@ export default function MetroPageClient({ metro }: { metro: MetroConfig }) {
         </div>
       </nav>
 
+      {/* 2026 Data Live Banner */}
+      {(metro.slug === "austin" || metro.slug === "dallas") && (
+        <div className="bg-[#1a6b5a] text-white text-center py-2.5 px-4 text-sm font-medium">
+          🔥 2026 preliminary appraisal values are live for {metro.slug === "austin" ? "Travis County" : "Denton County"}. Check your property now — deadline May 15.
+        </div>
+      )}
+
       {/* Hero */}
       <section className="bg-white border-b border-black/[0.06]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 pb-14 text-center">
