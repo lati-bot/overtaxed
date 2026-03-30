@@ -944,6 +944,22 @@ export default function ResultsContent() {
   const assessmentGap = reduction; // currentAssessment - fairAssessment
   const overAssessedCount = property.neighborhoodStats?.overAssessedCount || 0;
 
+  // Evidence grade calculation
+  const psfGapPct = neighborPerSqft > 0 ? ((yourPerSqft - neighborPerSqft) / neighborPerSqft) * 100 : 0;
+  const evidenceGrade = !hasAnalysis ? null
+    : psfGapPct >= 15 && compCount >= 8 ? "A"
+    : psfGapPct >= 10 && compCount >= 5 ? "B"
+    : psfGapPct >= 5 && compCount >= 3 ? "C"
+    : psfGapPct >= 2 ? "D"
+    : "F";
+  const evidenceGradeInfo: Record<string, { label: string; color: string; bg: string; border: string; desc: string }> = {
+    A: { label: "Strong case", color: "text-[#166534]", bg: "bg-[#dcfce7]", border: "border-[#166534]/20", desc: "Your property is significantly over-assessed compared to similar homes. Filing a protest is highly recommended." },
+    B: { label: "Good case", color: "text-[#1a6b5a]", bg: "bg-[#e8f4f0]", border: "border-[#1a6b5a]/20", desc: "Your property appears over-assessed. A protest has a good chance of reducing your tax bill." },
+    C: { label: "Possible case", color: "text-[#b45309]", bg: "bg-[#fef3c7]", border: "border-[#b45309]/20", desc: "Your property may be slightly over-assessed. Worth filing since there's no downside to protesting." },
+    D: { label: "Weak case", color: "text-[#9a3412]", bg: "bg-[#fff7ed]", border: "border-[#9a3412]/20", desc: "The data shows a small gap. You can still file, but the reduction may be minimal." },
+    F: { label: "Looks fair", color: "text-[#666]", bg: "bg-[#f5f5f5]", border: "border-black/10", desc: "Your assessment appears in line with comparable homes. We don't recommend purchasing a packet for this property." },
+  };
+
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
       <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f7f6f3]/80"} backdrop-blur-xl border-b ${borderColor}`}>
@@ -1053,8 +1069,35 @@ export default function ResultsContent() {
                 </div>
               </div>
             </div>
+
+            {/* Evidence Grade Card */}
+            {evidenceGrade && (
+              <div className={`mt-4 p-4 rounded-xl ${evidenceGradeInfo[evidenceGrade].bg} border ${evidenceGradeInfo[evidenceGrade].border}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-xl ${evidenceGrade === "F" ? "bg-[#e5e5e5]" : evidenceGrade === "D" ? "bg-[#fed7aa]" : evidenceGrade === "C" ? "bg-[#fde68a]" : evidenceGrade === "B" ? "bg-[#a7f3d0]" : "bg-[#86efac]"} flex items-center justify-center`}>
+                    <span className={`text-2xl font-bold ${evidenceGradeInfo[evidenceGrade].color}`}>{evidenceGrade}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`font-semibold ${evidenceGradeInfo[evidenceGrade].color}`}>
+                      Evidence Grade: {evidenceGradeInfo[evidenceGrade].label}
+                    </div>
+                    <div className="text-sm text-[#666] mt-0.5">
+                      {evidenceGradeInfo[evidenceGrade].desc}
+                    </div>
+                  </div>
+                </div>
+                {evidenceGrade !== "F" && compCount > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-3 text-xs text-[#666]">
+                    <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#1a6b5a]"></span>{compCount} comparable properties</span>
+                    {psfGapPct > 0 && <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#b45309]"></span>{Math.round(psfGapPct)}% above neighbors</span>}
+                    {estimatedSavings > 0 && <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#1a6b5a]"></span>~${estimatedSavings.toLocaleString()}/yr potential savings</span>}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Quick CTA — above the fold */}
-            {hasAnalysis && estimatedSavings > 0 && (!isTexas || has2026Data) && (
+            {hasAnalysis && estimatedSavings > 0 && (!isTexas || has2026Data) && evidenceGrade !== "F" && (
               <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-[#e8f4f0] border border-[#1a6b5a]/15">
                 <div className="flex-1">
                   <div className="font-semibold text-[#1a6b5a]">
