@@ -538,6 +538,69 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Product Preview — show what they get */}
+      <section className="py-14 sm:py-20 px-6 bg-white">
+        <div className="max-w-4xl mx-auto">
+          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">What you get</p>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">See your case before you pay</h2>
+          <p className="text-lg text-[#666] font-light mb-10">Enter your address and instantly see how your assessment compares. We grade the strength of your case — if it looks fair, we&apos;ll tell you.</p>
+          
+          {/* Mock results card */}
+          <div className="rounded-2xl border border-black/[0.06] overflow-hidden shadow-sm bg-[#f7f6f3]">
+            {/* Mock header */}
+            <div className="bg-[#2a2a2a] h-32 sm:h-40 flex items-end p-5">
+              <div>
+                <div className="text-white/60 text-xs">Travis County, TX</div>
+                <div className="text-white text-lg font-medium">10604 Thomaswood Ln, Austin</div>
+              </div>
+            </div>
+            <div className="p-5 sm:p-6 space-y-4">
+              {/* Assessment */}
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-[#999]">Appraised Value</div>
+                  <div className="text-2xl font-semibold">$303,338</div>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-[#999]">2026 preliminary data from TCAD</div>
+                </div>
+              </div>
+              {/* Evidence Grade */}
+              <div className="p-4 rounded-xl bg-[#dcfce7] border border-[#166534]/20">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-[#86efac] flex items-center justify-center">
+                    <span className="text-2xl font-bold text-[#166534]">A</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-[#166534]">Evidence Grade: Strong case</div>
+                    <div className="text-sm text-[#666]">Your property is significantly over-assessed compared to similar homes.</div>
+                  </div>
+                </div>
+              </div>
+              {/* Savings */}
+              <div className="p-4 rounded-xl bg-white border border-black/[0.06]">
+                <div className="text-sm text-[#666]">Potential savings</div>
+                <div className="text-3xl font-bold mt-1">~$1,152<span className="text-lg font-semibold text-[#666]">/year</span></div>
+                <div className="text-[#b45309] font-semibold mt-1">$5,760 over 5 years</div>
+                <div className="mt-2 flex gap-4 text-xs text-[#999]">
+                  <span>10 comparable properties</span>
+                  <span>23% above neighbors</span>
+                </div>
+              </div>
+              {/* CTA hint */}
+              <div className="text-center pt-2">
+                <div className="inline-flex items-center gap-2 text-[#1a6b5a] font-medium text-sm">
+                  <span>Get your full evidence packet — $49</span>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <p className="text-center text-sm text-[#999] mt-6">Real results for an Austin property. Your analysis is free — you only pay if you want the full packet.</p>
+        </div>
+      </section>
+
       {/* Objection Busters */}
       <section className="py-14 sm:py-20 px-6">
         <div className="max-w-5xl mx-auto">
