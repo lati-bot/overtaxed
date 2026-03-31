@@ -499,11 +499,17 @@ export default function Home() {
             <SearchBar {...searchBarProps} id="hero-input" />
           </div>
 
-          {/* [SHOULD FIX #9] Social proof — "checked" not "lookups", bumped to 14px */}
-          <div className="mt-5">
-            <p className="text-[14px] text-[#888] font-normal">
-              <span className="font-medium text-[#666]">48,000+</span> homeowners checked this tax season
-            </p>
+          {/* Social proof badge above the fold */}
+          <div className="mt-5 flex items-center justify-center gap-3">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-black/[0.06]">
+              <div className="w-2 h-2 bg-[#1a6b5a] rounded-full animate-pulse"></div>
+              <span className="text-[13px] text-[#666]">
+                <span className="font-medium text-[#1a6b5a]">4.5M+</span> properties analyzed
+              </span>
+            </div>
+            <div className="text-[14px] text-[#888]">
+              <span className="font-medium text-[#666]">48,000+</span> checked this season
+            </div>
           </div>
         </div>
       </section>
@@ -538,82 +544,152 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Product Preview — show what they get */}
+      {/* Product Preview — show what they get with better visuals */}
       <section className="py-14 sm:py-20 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
-          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">What you get</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">See your case before you pay</h2>
-          <p className="text-lg text-[#666] font-light mb-10">Enter your address and instantly see how your assessment compares. We grade the strength of your case — if it looks fair, we&apos;ll tell you.</p>
+          <div className="text-center mb-12">
+            <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">What you get</p>
+            <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">See your case before you pay</h2>
+            <p className="text-lg text-[#666] font-light max-w-2xl mx-auto">Enter your address and instantly see how your assessment compares. We grade the strength of your case — if it looks fair, we'll tell you.</p>
+          </div>
           
-          {/* Mock results card */}
-          <div className="rounded-2xl border border-black/[0.06] overflow-hidden shadow-sm bg-[#f7f6f3]">
-            {/* Mock header */}
-            <div className="bg-[#2a2a2a] h-32 sm:h-40 flex items-end p-5">
-              <div>
-                <div className="text-white/60 text-xs">Travis County, TX</div>
-                <div className="text-white text-lg font-medium">10604 Thomaswood Ln, Austin</div>
+          {/* Two-column layout: description + preview */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Left: What you get list */}
+            <div className="space-y-8">
+              <div className="space-y-6">
+                {[
+                  { 
+                    icon: "📊", 
+                    title: "Evidence grade A-F", 
+                    desc: "We instantly analyze your case strength and tell you if it's worth filing." 
+                  },
+                  { 
+                    icon: "🏘️", 
+                    title: "5+ comparable properties", 
+                    desc: "Similar homes assessed lower than yours — the core of your appeal." 
+                  },
+                  { 
+                    icon: "📄", 
+                    title: "Professional PDF packet", 
+                    desc: "Ready-to-submit evidence brief with all forms and instructions." 
+                  },
+                  { 
+                    icon: "💰", 
+                    title: "Estimated savings", 
+                    desc: "How much you could save per year, based on actual comparable assessments." 
+                  }
+                ].map((item) => (
+                  <div key={item.title} className="flex items-start gap-4">
+                    <div className="text-2xl mt-1">{item.icon}</div>
+                    <div>
+                      <h3 className="font-semibold text-[#1a1a1a] mb-1">{item.title}</h3>
+                      <p className="text-[15px] text-[#666] leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="pt-4">
+                <button 
+                  onClick={() => document.getElementById('hero-search')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1a6b5a] text-white font-medium hover:bg-[#155a4c] transition-colors"
+                >
+                  Try it free
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7l4-4m0 0l4 4m-4-4v18" />
+                  </svg>
+                </button>
               </div>
             </div>
-            <div className="p-5 sm:p-6 space-y-4">
-              {/* Assessment */}
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-[#999]">Appraised Value</div>
-                  <div className="text-2xl font-semibold">$303,338</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-[#999]">2026 preliminary data from TCAD</div>
-                </div>
-              </div>
-              {/* Evidence Grade */}
-              <div className="p-4 rounded-xl bg-[#dcfce7] border border-[#166534]/20">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-[#86efac] flex items-center justify-center">
-                    <span className="text-2xl font-bold text-[#166534]">A</span>
+            
+            {/* Right: Mock screenshot */}
+            <div className="relative">
+              {/* Browser chrome mockup */}
+              <div className="bg-white rounded-2xl border border-black/[0.08] shadow-2xl overflow-hidden">
+                {/* Browser header */}
+                <div className="bg-[#f7f6f3] px-4 py-3 border-b border-black/[0.06] flex items-center gap-2">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                    <div className="w-3 h-3 rounded-full bg-[#28cd42]"></div>
                   </div>
-                  <div>
-                    <div className="font-semibold text-[#166534]">Evidence Grade: Strong case</div>
-                    <div className="text-sm text-[#666]">Your property is significantly over-assessed compared to similar homes.</div>
+                  <div className="flex-1 px-4">
+                    <div className="text-xs text-[#999] bg-white px-3 py-1.5 rounded-md font-mono">
+                      getovertaxed.com/results?acct=...
+                    </div>
                   </div>
                 </div>
-              </div>
-              {/* Savings */}
-              <div className="p-4 rounded-xl bg-white border border-black/[0.06]">
-                <div className="text-sm text-[#666]">Potential savings</div>
-                <div className="text-3xl font-bold mt-1">~$1,152<span className="text-lg font-semibold text-[#666]">/year</span></div>
-                <div className="text-[#b45309] font-semibold mt-1">$5,760 over 5 years</div>
-                <div className="mt-2 flex gap-4 text-xs text-[#999]">
-                  <span>10 comparable properties</span>
-                  <span>23% above neighbors</span>
+                
+                {/* Mock results content */}
+                <div className="p-6 space-y-4 bg-[#f7f6f3]">
+                  {/* Property header */}
+                  <div className="bg-[#2a2a2a] rounded-xl p-4 text-white">
+                    <div className="text-white/60 text-xs">Travis County, TX</div>
+                    <div className="text-white text-lg font-medium">10604 Thomaswood Ln</div>
+                  </div>
+                  
+                  {/* Assessment value */}
+                  <div className="bg-white rounded-xl p-4 flex justify-between items-center">
+                    <div>
+                      <div className="text-sm text-[#999]">Appraised Value</div>
+                      <div className="text-2xl font-bold">$303,338</div>
+                    </div>
+                    <div className="text-xs text-[#999]">2026 TCAD data</div>
+                  </div>
+                  
+                  {/* Evidence grade */}
+                  <div className="bg-[#dcfce7] border border-[#166534]/20 rounded-xl p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-[#86efac] flex items-center justify-center">
+                        <span className="text-xl font-bold text-[#166534]">A</span>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-[#166534] text-sm">Evidence Grade: Strong case</div>
+                        <div className="text-xs text-[#666]">23% over-assessed vs neighbors</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Savings projection */}
+                  <div className="bg-white rounded-xl p-4">
+                    <div className="text-sm text-[#666]">Potential savings</div>
+                    <div className="text-2xl font-bold text-[#1a6b5a]">~$1,152<span className="text-sm font-semibold text-[#666]">/year</span></div>
+                    <div className="text-xs text-[#999] mt-1">10 comparable properties</div>
+                  </div>
+                  
+                  {/* CTA button in preview */}
+                  <div className="bg-[#1a6b5a] text-white rounded-xl p-4 text-center">
+                    <div className="font-medium">Get Evidence Package — $49</div>
+                    <div className="text-xs opacity-75">PDF + filing instructions</div>
+                  </div>
                 </div>
               </div>
-              {/* CTA hint */}
-              <div className="text-center pt-2">
-                <div className="inline-flex items-center gap-2 text-[#1a6b5a] font-medium text-sm">
-                  <span>Get your full evidence packet — $49</span>
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                </div>
+              
+              {/* Floating badge */}
+              <div className="absolute -top-3 -right-3 bg-[#1a6b5a] text-white rounded-full px-3 py-2 text-xs font-medium shadow-lg">
+                Real result
               </div>
             </div>
           </div>
           
-          <p className="text-center text-sm text-[#999] mt-6">Real results for an Austin property. Your analysis is free — you only pay if you want the full packet.</p>
+          <p className="text-center text-sm text-[#999] mt-12">Actual results for an Austin property. Analysis is free — you only pay for the filing package.</p>
         </div>
       </section>
 
-      {/* Objection Busters */}
-      <section className="py-14 sm:py-20 px-6">
-        <div className="max-w-5xl mx-auto">
+      {/* Objection Busters — simplified */}
+      <section className="py-12 sm:py-16 px-6">
+        <div className="max-w-4xl mx-auto text-center">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Zero risk</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Common concerns, answered</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-8">Common concerns, answered</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
             {[
-              { q: "Can my value go up?", a: "No. By law, your assessed value can only stay the same or go down during a protest. Fewer than 0.01% of hearings result in any increase. Zero risk." },
-              { q: "Is $49 really worth it?", a: "The average homeowner saves $1,136/year. That\u2019s a 23x return on $49. Typical firms charge 25\u201350% of your savings \u2014 that\u2019s $250\u2013500 per year." },
-              { q: "Do I need to go to a hearing?", a: "97% of protests are resolved without a formal hearing. You submit evidence online or by mail. We give you everything you need to file from your couch." },
+              { q: "Can my value go up?", a: "No. By law, appeals can only reduce or maintain your value. Zero risk." },
+              { q: "Worth the $49?", a: "Average savings: $1,136/year. That's a 23x return. Lawyers charge $250-500+." },
+              { q: "Need a hearing?", a: "97% resolve without hearings. Submit evidence online from your couch." },
             ].map((card) => (
-              <div key={card.q} className="bg-white rounded-2xl p-8 border border-black/[0.06]">
-                <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{card.q}</h3>
+              <div key={card.q} className="text-center">
+                <h3 className="text-lg font-medium mb-2 text-[#1a1a1a]">{card.q}</h3>
                 <p className="text-[15px] leading-relaxed text-[#666] font-light">{card.a}</p>
               </div>
             ))}
@@ -621,30 +697,24 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works */}
-      <section id="how-it-works" className="py-14 sm:py-20 px-6">
-        <div className="max-w-5xl mx-auto">
+      {/* How it works — simplified */}
+      <section id="how-it-works" className="py-12 sm:py-16 px-6">
+        <div className="max-w-4xl mx-auto">
           <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">How it works</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Three steps to your appeal</h2>
+          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-8">Three steps to your appeal</h2>
           
-          {/* [NICE #12] White card container for steps */}
-          <div className="bg-white rounded-2xl p-8 sm:p-12 border border-black/[0.06]">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 sm:gap-20 sm:divide-x sm:divide-black/[0.06]">
-              {[
-                { num: "01", title: "Enter your address", desc: "We pull your property data from public records automatically. Covers the DFW, Houston, and Austin metros plus Cook County, IL." },
-                { num: "02", title: "We find your comps", desc: "Our system identifies similar properties assessed lower than yours — the foundation of your appeal." },
-                { num: "03", title: "File your appeal", desc: "Download your complete appeal package and file it yourself. We show you exactly how, step by step." },
-              ].map((step, i) => (
-                <div key={step.num} className={i > 0 ? "sm:pl-10" : ""}>
-                  {/* [SHOULD FIX #6] Step numbers bumped from #ccc to #aaa, 14px font-medium */}
-                  <div className="border-t border-black/[0.06] pt-6 sm:border-t-0 sm:pt-0">
-                    <div className="text-[14px] font-medium tracking-[0.15em] text-[#aaa] mb-4">{step.num}</div>
-                    <h3 className="text-lg font-medium mb-3 text-[#1a1a1a]">{step.title}</h3>
-                    <p className="text-[15px] leading-relaxed text-[#666] font-light">{step.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
+            {[
+              { num: "01", title: "Enter your address", desc: "We pull your property data from public records automatically." },
+              { num: "02", title: "We find your comps", desc: "Our system identifies similar properties assessed lower than yours." },
+              { num: "03", title: "File your appeal", desc: "Download your complete appeal package and file it yourself." },
+            ].map((step) => (
+              <div key={step.num} className="text-center">
+                <div className="text-[14px] font-medium tracking-[0.15em] text-[#aaa] mb-3">{step.num}</div>
+                <h3 className="text-lg font-medium mb-2 text-[#1a1a1a]">{step.title}</h3>
+                <p className="text-[15px] leading-relaxed text-[#666] font-light">{step.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
