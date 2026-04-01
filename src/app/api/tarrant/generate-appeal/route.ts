@@ -89,7 +89,7 @@ async function getTarrantPropertyData(acct: string): Promise<TarrantPropertyData
     const client = getCosmosClient();
     if (!client) return null;
 
-    const container = client.database("overtaxed").container("tarrant-properties");
+    const container = client.database("overtaxed").container("tarrant-properties-2026");
     const { resources } = await container.items.query({
       query: `SELECT * FROM c WHERE c.id = @acct`,
       parameters: [{ name: "@acct", value: acct.trim() }],
