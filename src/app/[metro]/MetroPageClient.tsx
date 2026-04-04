@@ -33,6 +33,29 @@ export default function MetroPageClient({ metro }: { metro: MetroConfig }) {
         </div>
       )}
 
+      {/* Austin 2026 Changes Banner */}
+      {metro.slug === "austin" && (
+        <div className="bg-amber-50 border-b border-amber-200">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4">
+            <div className="flex items-start gap-3">
+              <div className="bg-amber-100 rounded-full p-1.5 flex-shrink-0 mt-0.5">
+                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-amber-800 mb-1">What's New in Austin 2026</h3>
+                <p className="text-sm text-amber-700 leading-relaxed">
+                  <strong>Average Travis County values increased 8-12%</strong> from 2025. Central Austin (78701-78705) saw the largest jumps. 
+                  East Austin (78702, 78721) and South Austin (78704, 78745) had moderate 6-8% increases. 
+                  Properties in Cedar Park and Round Rock areas showed more conservative 4-6% growth.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero */}
       <section className="bg-white border-b border-black/[0.06]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 pb-14 text-center">
@@ -120,6 +143,23 @@ export default function MetroPageClient({ metro }: { metro: MetroConfig }) {
                 </div>
               </div>
             </div>
+            {metro.slug === "austin" && (
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="font-medium text-blue-900 mb-2 flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  TCAD-Specific Tips
+                </h4>
+                <ul className="text-sm text-blue-800 space-y-1.5">
+                  <li>• TCAD requires <strong>evidence of market value</strong> — comparable sales are strongest</li>
+                  <li>• File online at <strong>traviscad.org</strong> using account number from your notice</li>
+                  <li>• Upload your evidence packet (comps, photos) directly in the portal</li>
+                  <li>• Request an <strong>informal hearing first</strong> — many issues resolve without ARB</li>
+                  <li>• If informal doesn't work, your case automatically goes to ARB (formal hearing)</li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </section>
