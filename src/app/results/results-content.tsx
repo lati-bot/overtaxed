@@ -89,6 +89,9 @@ export default function ResultsContent() {
   const [reassessmentSubmitting, setReassessmentSubmitting] = useState(false);
   const [reassessmentSubmitted, setReassessmentSubmitted] = useState(false);
   const [shareTooltip, setShareTooltip] = useState(false);
+  const [weakCaseEmail, setWeakCaseEmail] = useState("");
+  const [weakCaseSubmitting, setWeakCaseSubmitting] = useState(false);
+  const [weakCaseSubmitted, setWeakCaseSubmitted] = useState(false);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
@@ -1094,6 +1097,83 @@ export default function ResultsContent() {
                     {estimatedSavings > 0 && <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#1a6b5a]"></span>~${estimatedSavings.toLocaleString()}/yr potential savings</span>}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Email capture for weak/fair cases (D/F grades) */}
+            {evidenceGrade && (evidenceGrade === "D" || evidenceGrade === "F") && (hasAnalysis || property?.assessment?.year === "2026") && (
+              <div className="mt-4 p-4 rounded-xl bg-[#fff7ed] border border-[#fb923c]/20">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl flex-shrink-0">🔔</span>
+                  <div className="flex-1">
+                    <div className="font-semibold text-[#9a3412]">
+                      Get notified if your assessment changes
+                    </div>
+                    <p className="text-sm text-[#7c2d12] mt-1">
+                      {evidenceGrade === "F" 
+                        ? "Your property looks fairly assessed now, but that can change. We'll monitor your assessment and alert you if it becomes worth appealing."
+                        : "Your current case is weak, but assessments change. We'll alert you if your property becomes over-assessed in future years."}
+                    </p>
+                    {weakCaseSubmitted ? (
+                      <div className="mt-3 bg-[#fef3c7] rounded-lg p-3 text-center">
+                        <span className="text-[#9a3412] font-medium text-sm">✓ You're all set! We'll monitor your property.</span>
+                      </div>
+                    ) : (
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          if (weakCaseSubmitting || !weakCaseEmail) return;
+                          setWeakCaseSubmitting(true);
+                          try {
+                            const res = await fetch("/api/waitlist", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                email: weakCaseEmail,
+                                pin: property?.pin || pin || acct || "",
+                                jurisdiction: jurisdictionValue,
+                                source: `grade-${evidenceGrade.toLowerCase()}-monitoring`,
+                                metadata: {
+                                  address: property?.address,
+                                  currentAssessment: property?.assessment?.mailedTotal,
+                                  evidenceGrade,
+                                }
+                              }),
+                            });
+                            if (res.ok) {
+                              setWeakCaseSubmitted(true);
+                            } else {
+                              alert("Something went wrong. Please try again.");
+                            }
+                          } catch {
+                            alert("Something went wrong. Please try again.");
+                          } finally {
+                            setWeakCaseSubmitting(false);
+                          }
+                        }}
+                        className="mt-3 flex flex-col sm:flex-row gap-3"
+                      >
+                        <input
+                          type="email"
+                          placeholder="Enter your email"
+                          value={weakCaseEmail}
+                          onChange={(e) => setWeakCaseEmail(e.target.value)}
+                          required
+                          className="flex-1 px-3 py-2 rounded-lg border border-[#fb923c]/30 text-sm focus:outline-none focus:ring-2 focus:ring-[#fb923c]/30 focus:border-[#fb923c]"
+                        />
+                        <button
+                          type="submit"
+                          disabled={weakCaseSubmitting}
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all bg-[#ea580c] text-white whitespace-nowrap ${
+                            weakCaseSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#dc2626] cursor-pointer'
+                          }`}
+                        >
+                          {weakCaseSubmitting ? "Saving..." : "Monitor This Property"}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 

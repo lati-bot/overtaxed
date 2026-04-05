@@ -110,20 +110,24 @@ export const METROS: Record<string, MetroConfig> = {
     trustLine: "Used by homeowners in Travis County and Williamson County",
     faqs: [
       {
-        question: "How do I protest my Travis County property taxes?",
-        answer: "File a protest with TCAD by May 15, 2026. You can file online at traviscad.org. Overtaxed gives you a $49 evidence packet with comps and a cover letter.",
+        question: "How do I protest my Travis County property taxes for 2026?",
+        answer: "File a protest with TCAD by May 15, 2026 at traviscad.org. 2026 preliminary values were released in March. Overtaxed gives you a $49 evidence packet with 2026 comparable properties and a cover letter specifically formatted for TCAD.",
+      },
+      {
+        question: "What changed in Austin property values for 2026?",
+        answer: "Central Austin areas saw 8-12% increases while suburban areas were more stable (+3-6%). New construction has affected comparable property analysis. Travis County shows a 78% success rate for property tax protests.",
       },
       {
         question: "What is the deadline to file a property tax protest in Austin?",
-        answer: "The deadline is May 15, 2026 (or 30 days after your notice of appraised value, whichever is later) for Travis and Williamson counties.",
+        answer: "The deadline is May 15, 2026 (or 30 days after your notice of appraised value, whichever is later) for Travis and Williamson counties. Early filing in March-April typically gets better hearing time slots.",
       },
       {
         question: "Can I protest my Austin property taxes online?",
-        answer: "Yes. Both Travis County (TCAD) and Williamson County (WCAD) allow online protest filing.",
+        answer: "Yes. Both Travis County (TCAD) and Williamson County (WCAD) allow online protest filing. Upload your Overtaxed evidence packet as supporting documentation when you file.",
       },
       {
         question: "How much can I save by protesting property taxes in Austin?",
-        answer: "Austin-area homeowners who protest save an average of $1,100 per year. Your savings depend on how over-assessed your property is compared to similar homes.",
+        answer: "Austin-area homeowners who protest save an average of $1,100 per year. Properties with 15%+ over-assessment vs recent sales have the strongest cases. Your savings depend on how over-assessed your property is compared to similar homes.",
       },
     ],
   },
