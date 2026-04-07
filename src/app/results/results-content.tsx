@@ -89,6 +89,9 @@ export default function ResultsContent() {
   const [reassessmentSubmitting, setReassessmentSubmitting] = useState(false);
   const [reassessmentSubmitted, setReassessmentSubmitted] = useState(false);
   const [shareTooltip, setShareTooltip] = useState(false);
+  const [weakCaseEmail, setWeakCaseEmail] = useState("");
+  const [weakCaseSubmitting, setWeakCaseSubmitting] = useState(false);
+  const [weakCaseSubmitted, setWeakCaseSubmitted] = useState(false);
 
   const address = searchParams.get("address");
   const pin = searchParams.get("pin");
@@ -106,7 +109,8 @@ export default function ResultsContent() {
   const isRockwall = jurisdiction === "rockwall";
   const isTexas = isHouston || isDallas || isAustin || isCollin || isTarrant || isDenton || isWilliamson || isFortBend || isRockwall || isBexar;
   // Markets with 2026 preliminary data uploaded — can sell immediately
-  const has2026Data = isAustin;
+  
+  const has2026Data = isAustin || isDenton || isTarrant || isHouston;
   const cadName = isBexar ? "BCAD" : isRockwall ? "Rockwall CAD" : isFortBend ? "FBCAD" : isWilliamson ? "WCAD" : isDenton ? "Denton CAD" : isTarrant ? "TAD" : isCollin ? "CCAD" : isAustin ? "TCAD" : isDallas ? "DCAD" : isHouston ? "HCAD" : "Cook County Assessor";
   const countyName = isBexar ? "Bexar County" : isRockwall ? "Rockwall County" : isFortBend ? "Fort Bend County" : isWilliamson ? "Williamson County" : isDenton ? "Denton County" : isTarrant ? "Tarrant County" : isCollin ? "Collin County" : isAustin ? "Travis County" : isDallas ? "Dallas County" : isHouston ? "Harris County" : "Cook County";
   const avgTaxRate = isBexar ? "2.1" : isWilliamson ? "2.1" : "2.2";
@@ -944,6 +948,22 @@ export default function ResultsContent() {
   const assessmentGap = reduction; // currentAssessment - fairAssessment
   const overAssessedCount = property.neighborhoodStats?.overAssessedCount || 0;
 
+  // Evidence grade calculation
+  const psfGapPct = neighborPerSqft > 0 ? ((yourPerSqft - neighborPerSqft) / neighborPerSqft) * 100 : 0;
+  const evidenceGrade = !hasAnalysis ? null
+    : psfGapPct >= 15 && compCount >= 8 ? "A"
+    : psfGapPct >= 10 && compCount >= 5 ? "B"
+    : psfGapPct >= 5 && compCount >= 3 ? "C"
+    : psfGapPct >= 2 ? "D"
+    : "F";
+  const evidenceGradeInfo: Record<string, { label: string; color: string; bg: string; border: string; desc: string }> = {
+    A: { label: "Strong case", color: "text-[#166534]", bg: "bg-[#dcfce7]", border: "border-[#166534]/20", desc: "Your property is significantly over-assessed compared to similar homes. Filing a protest is highly recommended." },
+    B: { label: "Good case", color: "text-[#1a6b5a]", bg: "bg-[#e8f4f0]", border: "border-[#1a6b5a]/20", desc: "Your property appears over-assessed. A protest has a good chance of reducing your tax bill." },
+    C: { label: "Possible case", color: "text-[#b45309]", bg: "bg-[#fef3c7]", border: "border-[#b45309]/20", desc: "Your property may be slightly over-assessed. Worth filing since there's no downside to protesting." },
+    D: { label: "Weak case", color: "text-[#9a3412]", bg: "bg-[#fff7ed]", border: "border-[#9a3412]/20", desc: "The data shows a small gap. You can still file, but the reduction may be minimal." },
+    F: { label: "Looks fair", color: "text-[#666]", bg: "bg-[#f5f5f5]", border: "border-black/10", desc: "Your assessment appears in line with comparable homes. We don't recommend purchasing a packet for this property." },
+  };
+
   return (
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
       <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f7f6f3]/80"} backdrop-blur-xl border-b ${borderColor}`}>
@@ -1053,8 +1073,112 @@ export default function ResultsContent() {
                 </div>
               </div>
             </div>
+
+            {/* Evidence Grade Card */}
+            {evidenceGrade && (
+              <div className={`mt-4 p-4 rounded-xl ${evidenceGradeInfo[evidenceGrade].bg} border ${evidenceGradeInfo[evidenceGrade].border}`}>
+                <div className="flex items-center gap-3">
+                  <div className={`w-12 h-12 rounded-xl ${evidenceGrade === "F" ? "bg-[#e5e5e5]" : evidenceGrade === "D" ? "bg-[#fed7aa]" : evidenceGrade === "C" ? "bg-[#fde68a]" : evidenceGrade === "B" ? "bg-[#a7f3d0]" : "bg-[#86efac]"} flex items-center justify-center`}>
+                    <span className={`text-2xl font-bold ${evidenceGradeInfo[evidenceGrade].color}`}>{evidenceGrade}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className={`font-semibold ${evidenceGradeInfo[evidenceGrade].color}`}>
+                      Evidence Grade: {evidenceGradeInfo[evidenceGrade].label}
+                    </div>
+                    <div className="text-sm text-[#666] mt-0.5">
+                      {evidenceGradeInfo[evidenceGrade].desc}
+                    </div>
+                  </div>
+                </div>
+                {evidenceGrade !== "F" && compCount > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-3 text-xs text-[#666]">
+                    <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#1a6b5a]"></span>{compCount} comparable properties</span>
+                    {psfGapPct > 0 && <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#b45309]"></span>{Math.round(psfGapPct)}% above neighbors</span>}
+                    {estimatedSavings > 0 && <span className="inline-flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-[#1a6b5a]"></span>~${estimatedSavings.toLocaleString()}/yr potential savings</span>}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Email capture for weak/fair cases (D/F grades) */}
+            {evidenceGrade && (evidenceGrade === "D" || evidenceGrade === "F") && (hasAnalysis || property?.assessment?.year === "2026") && (
+              <div className="mt-4 p-4 rounded-xl bg-[#fff7ed] border border-[#fb923c]/20">
+                <div className="flex items-start gap-3">
+                  <span className="text-xl flex-shrink-0">🔔</span>
+                  <div className="flex-1">
+                    <div className="font-semibold text-[#9a3412]">
+                      Get notified if your assessment changes
+                    </div>
+                    <p className="text-sm text-[#7c2d12] mt-1">
+                      {evidenceGrade === "F" 
+                        ? "Your property looks fairly assessed now, but that can change. We'll monitor your assessment and alert you if it becomes worth appealing."
+                        : "Your current case is weak, but assessments change. We'll alert you if your property becomes over-assessed in future years."}
+                    </p>
+                    {weakCaseSubmitted ? (
+                      <div className="mt-3 bg-[#fef3c7] rounded-lg p-3 text-center">
+                        <span className="text-[#9a3412] font-medium text-sm">✓ You're all set! We'll monitor your property.</span>
+                      </div>
+                    ) : (
+                      <form
+                        onSubmit={async (e) => {
+                          e.preventDefault();
+                          if (weakCaseSubmitting || !weakCaseEmail) return;
+                          setWeakCaseSubmitting(true);
+                          try {
+                            const res = await fetch("/api/waitlist", {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                email: weakCaseEmail,
+                                pin: property?.pin || pin || acct || "",
+                                jurisdiction: jurisdictionValue,
+                                source: `grade-${evidenceGrade.toLowerCase()}-monitoring`,
+                                metadata: {
+                                  address: property?.address,
+                                  currentAssessment: property?.assessment?.mailedTotal,
+                                  evidenceGrade,
+                                }
+                              }),
+                            });
+                            if (res.ok) {
+                              setWeakCaseSubmitted(true);
+                            } else {
+                              alert("Something went wrong. Please try again.");
+                            }
+                          } catch {
+                            alert("Something went wrong. Please try again.");
+                          } finally {
+                            setWeakCaseSubmitting(false);
+                          }
+                        }}
+                        className="mt-3 flex flex-col sm:flex-row gap-3"
+                      >
+                        <input
+                          type="email"
+                          placeholder="Enter your email"
+                          value={weakCaseEmail}
+                          onChange={(e) => setWeakCaseEmail(e.target.value)}
+                          required
+                          className="flex-1 px-3 py-2 rounded-lg border border-[#fb923c]/30 text-sm focus:outline-none focus:ring-2 focus:ring-[#fb923c]/30 focus:border-[#fb923c]"
+                        />
+                        <button
+                          type="submit"
+                          disabled={weakCaseSubmitting}
+                          className={`px-4 py-2 rounded-lg font-medium text-sm transition-all bg-[#ea580c] text-white whitespace-nowrap ${
+                            weakCaseSubmitting ? 'opacity-60 cursor-not-allowed' : 'hover:bg-[#dc2626] cursor-pointer'
+                          }`}
+                        >
+                          {weakCaseSubmitting ? "Saving..." : "Monitor This Property"}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Quick CTA — above the fold */}
-            {hasAnalysis && estimatedSavings > 0 && (!isTexas || has2026Data) && (
+            {hasAnalysis && estimatedSavings > 0 && (!isTexas || has2026Data) && evidenceGrade !== "F" && (
               <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-xl bg-[#e8f4f0] border border-[#1a6b5a]/15">
                 <div className="flex-1">
                   <div className="font-semibold text-[#1a6b5a]">
