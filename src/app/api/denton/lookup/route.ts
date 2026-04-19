@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
-    const container = client.database("overtaxed").container("denton-properties-2026");
+    const container = client.database("overtaxed").container("denton-properties");
 
     // Cross-partition query by id
     const { resources } = await container.items.query({

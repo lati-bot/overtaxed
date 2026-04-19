@@ -82,7 +82,7 @@ async function getFortBendPropertyData(acct: string): Promise<FortBendPropertyDa
     const client = getCosmosClient();
     if (!client) return null;
 
-    const container = client.database("overtaxed").container("fortbend-properties-2026");
+    const container = client.database("overtaxed").container("fortbend-properties");
     const { resources } = await container.items.query({
       query: `SELECT * FROM c WHERE c.id = @acct`,
       parameters: [{ name: "@acct", value: acct.trim() }],

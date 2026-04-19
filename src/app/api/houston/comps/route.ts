@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
-    const container = client.database("overtaxed").container("houston-properties-2026");
+    const container = client.database("overtaxed").container("houston-properties");
 
     // Get the subject property
     const { resources: mainResults } = await container.items.query({

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
-    const container = client.database("overtaxed").container("houston-properties-2026");
+    const container = client.database("overtaxed").container("houston-properties");
 
     // Houston container is partitioned by neighborhood_code, so we need cross-partition query
     const { resources } = await container.items.query({

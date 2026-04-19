@@ -80,7 +80,7 @@ async function getHoustonPropertyData(acct: string): Promise<HoustonPropertyData
     const client = getCosmosClient();
     if (!client) return null;
 
-    const container = client.database("overtaxed").container("houston-properties-2026");
+    const container = client.database("overtaxed").container("houston-properties");
     const { resources } = await container.items.query({
       query: `SELECT * FROM c WHERE c.id = @acct`,
       parameters: [{ name: "@acct", value: acct.trim() }],
