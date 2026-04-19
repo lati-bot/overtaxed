@@ -82,7 +82,7 @@ async function getDentonPropertyData(acct: string): Promise<DentonPropertyData |
     const client = getCosmosClient();
     if (!client) return null;
 
-    const container = client.database("overtaxed").container("denton-properties");
+    const container = client.database("overtaxed").container("denton-properties-2026");
     const { resources } = await container.items.query({
       query: `SELECT * FROM c WHERE c.id = @acct`,
       parameters: [{ name: "@acct", value: acct.trim() }],

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Database not configured" }, { status: 500 });
     }
 
-    const container = client.database("overtaxed").container("denton-properties");
+    const container = client.database("overtaxed").container("denton-properties-2026");
     
     // Strip city, state, zip — our DB stores just street addresses
     let cleaned = query.trim().toUpperCase();
