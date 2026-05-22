@@ -9,23 +9,29 @@ const INK = "#1a1410";
 const OXBLOOD = "#6b1a1a";
 const BRASS = "#a4844a";
 
+const ADDRESS_LINE1 = "The Luxury Cut";
+const ADDRESS_LINE2 = "5555 Saint Charles Rd";
+const ADDRESS_LINE3 = "Berkeley, IL 60163";
+const MAPS_URL = "https://maps.google.com/?q=The+Luxury+Cut+5555+Saint+Charles+Rd+Berkeley+IL";
+
 const services: { name: string; price: string; time: string; note?: string }[] = [
   { name: "The Cut", price: "$45", time: "45 min", note: "Wash, cut, style. The standard." },
   { name: "Skin Fade", price: "$50", time: "50 min", note: "Bald to blend. Razor finish." },
+  { name: "Fade + Line Design", price: "$65", time: "60 min", note: "The signature. Custom lines, freehand." },
   { name: "Beard Sculpt", price: "$30", time: "30 min", note: "Hot towel, oil, lineup." },
-  { name: "The Works", price: "$70", time: "75 min", note: "Cut + beard + hot towel." },
+  { name: "The Works", price: "$80", time: "75 min", note: "Cut + beard + hot towel." },
   { name: "Lineup", price: "$20", time: "15 min", note: "Edge cleanup between visits." },
   { name: "Kids (under 12)", price: "$30", time: "30 min", note: "Patient with the squirmy ones." },
 ];
 
 const hours: { day: string; time: string }[] = [
-  { day: "Tuesday", time: "10a — 7p" },
-  { day: "Wednesday", time: "10a — 7p" },
-  { day: "Thursday", time: "10a — 8p" },
-  { day: "Friday", time: "9a — 8p" },
-  { day: "Saturday", time: "8a — 6p" },
-  { day: "Sunday", time: "By appointment" },
-  { day: "Monday", time: "Closed" },
+  { day: "Monday", time: "3:45p — 9:45p" },
+  { day: "Tuesday", time: "3:45p — 9:45p" },
+  { day: "Wednesday", time: "3:45p — 9:45p" },
+  { day: "Thursday", time: "3:45p — 9:45p" },
+  { day: "Friday", time: "3:45p — 9:45p" },
+  { day: "Saturday", time: "9:45a — 6p" },
+  { day: "Sunday", time: "12:45p — 5p" },
 ];
 
 export default function ManuelPage() {
@@ -45,7 +51,7 @@ export default function ManuelPage() {
           Manuel <span style={{ color: OXBLOOD }}>·</span> Barbero
         </div>
         <div style={{ fontSize: 12, letterSpacing: 2, textTransform: "uppercase", opacity: 0.7 }}>
-          Est. <span style={{ fontFamily: SERIF, fontStyle: "italic", letterSpacing: 0 }}>2014</span>
+          The <span style={{ fontFamily: SERIF, fontStyle: "italic", letterSpacing: 0 }}>Luxury</span> Cut
         </div>
       </header>
 
@@ -53,7 +59,7 @@ export default function ManuelPage() {
       <section style={{ padding: "72px 28px 56px", maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 24 }}>
           <div style={{ fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: OXBLOOD, fontWeight: 600 }}>
-            Chicago · Logan Square
+            Berkeley, IL · West of Chicago
           </div>
           <h1
             style={{
@@ -78,13 +84,15 @@ export default function ManuelPage() {
               fontWeight: 400,
             }}
           >
-            Twelve years behind the chair. Hot towel, straight razor, no shortcuts. Walk in for a
-            lineup, sit down for the whole thing.
+            Skin fades, sharp lines, freehand designs. Working out of <em>The Luxury Cut</em> on
+            Saint Charles Rd. Five stars across the board — eight people deep and counting.
           </p>
 
           <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginTop: 20 }}>
             <a
-              href="sms:+17735550199"
+              href={MAPS_URL}
+              target="_blank"
+              rel="noreferrer"
               style={{
                 background: INK,
                 color: CREAM,
@@ -97,10 +105,12 @@ export default function ManuelPage() {
                 borderRadius: 2,
               }}
             >
-              Book — Text Me
+              Get Directions
             </a>
             <a
-              href="tel:+17735550199"
+              href={MAPS_URL}
+              target="_blank"
+              rel="noreferrer"
               style={{
                 background: "transparent",
                 color: INK,
@@ -114,8 +124,24 @@ export default function ManuelPage() {
                 border: `1px solid ${INK}`,
               }}
             >
-              (773) 555 · 0199
+              5555 Saint Charles Rd
             </a>
+          </div>
+
+          {/* rating mark */}
+          <div
+            style={{
+              marginTop: 24,
+              display: "flex",
+              alignItems: "baseline",
+              gap: 10,
+              fontSize: 13,
+              opacity: 0.75,
+            }}
+          >
+            <span style={{ color: BRASS, fontSize: 16, letterSpacing: 2 }}>★★★★★</span>
+            <span style={{ fontFamily: SERIF, fontStyle: "italic" }}>5.0</span>
+            <span>· every review, no exceptions</span>
           </div>
         </div>
       </section>
@@ -271,18 +297,18 @@ export default function ManuelPage() {
                 margin: "12px 0 24px",
               }}
             >
-              Started cutting hair in my mom's kitchen.
+              Specialty: skin fades.
               <br />
-              <span style={{ fontStyle: "italic", color: OXBLOOD }}>Still doing it the same way.</span>
+              <span style={{ fontStyle: "italic", color: OXBLOOD }}>Signature: the line design.</span>
             </h2>
             <p style={{ fontSize: 16, lineHeight: 1.7, opacity: 0.85, margin: "0 0 16px" }}>
-              I learned to cut on my cousins in Pilsen — a stool, a pair of clippers my tío gave me,
-              and an old issue of GQ open on the counter. Twelve years later I'm in my own chair on
-              Milwaukee Ave, and the only thing that's really changed is the lighting.
+              Bring me a reference, bring me a vibe, or just sit down and trust me. I freehand the
+              designs — no stencils. Every line is yours, cut once.
             </p>
             <p style={{ fontSize: 16, lineHeight: 1.7, opacity: 0.85, margin: 0 }}>
-              One chair, one barber, one appointment at a time. No rotating clippers between five
-              people. No conveyor belt. You get me for the full forty-five.
+              I work out of <em>The Luxury Cut</em> in Berkeley — easy off the I-290.
+              Evenings mostly, weekends earlier. One chair, one barber, one appointment at a time.
+              You get me for the full session.
             </p>
           </div>
           <div
@@ -328,7 +354,7 @@ export default function ManuelPage() {
                 fontWeight: 600,
               }}
             >
-              Logan Sq · Chicago
+              Berkeley · IL
             </div>
           </div>
         </div>
@@ -409,18 +435,21 @@ export default function ManuelPage() {
             >
               The shop.
             </h3>
-            <p style={{ fontSize: 17, lineHeight: 1.5, margin: "0 0 6px", fontFamily: SERIF }}>
-              2614 N Milwaukee Ave
+            <p style={{ fontSize: 19, lineHeight: 1.4, margin: "0 0 4px", fontFamily: SERIF, fontStyle: "italic" }}>
+              {ADDRESS_LINE1}
+            </p>
+            <p style={{ fontSize: 17, lineHeight: 1.5, margin: "0 0 4px", fontFamily: SERIF }}>
+              {ADDRESS_LINE2}
             </p>
             <p style={{ fontSize: 17, lineHeight: 1.5, margin: "0 0 20px", fontFamily: SERIF }}>
-              Chicago, IL 60647
+              {ADDRESS_LINE3}
             </p>
             <p style={{ fontSize: 14, lineHeight: 1.6, opacity: 0.7, margin: "0 0 24px" }}>
-              Blue line: <em>Logan Square</em>, 4 min walk. Street parking after 6p. Coffee shop
-              two doors down — they know I send people over while I finish up.
+              Just off I-290 in Berkeley, west of Chicago. Easy parking out front. If the door's
+              locked I'm finishing someone up — give it five.
             </p>
             <a
-              href="https://maps.google.com/?q=2614+N+Milwaukee+Ave+Chicago"
+              href={MAPS_URL}
               target="_blank"
               rel="noreferrer"
               style={{
@@ -475,11 +504,13 @@ export default function ManuelPage() {
             Let's get you <span style={{ fontStyle: "italic" }}>right.</span>
           </h2>
           <p style={{ fontSize: 17, lineHeight: 1.55, opacity: 0.85, margin: "0 0 32px" }}>
-            Text me a couple times that work and what you want done. I'll send you back a slot.
-            That's it.
+            Walk in during shop hours or book through the app. The chair is open — bring a
+            reference if you've got one.
           </p>
           <a
-            href="sms:+17735550199"
+            href={MAPS_URL}
+            target="_blank"
+            rel="noreferrer"
             style={{
               background: CREAM,
               color: INK,
@@ -493,7 +524,7 @@ export default function ManuelPage() {
               borderRadius: 2,
             }}
           >
-            Text (773) 555 · 0199
+            Get Directions →
           </a>
         </div>
       </section>
@@ -513,10 +544,10 @@ export default function ManuelPage() {
         }}
       >
         <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 16 }}>
-          Manuel Gutiérrez · Barbero
+          Manuel Gutiérrez · The Luxury Cut
         </div>
         <div style={{ letterSpacing: 2, textTransform: "uppercase", fontSize: 10 }}>
-          Logan Square, Chicago · MMXXVI
+          Berkeley, IL · MMXXVI
         </div>
       </footer>
     </main>
