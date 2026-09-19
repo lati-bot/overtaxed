@@ -1,11 +1,11 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Lower Your Property Tax";
+export const alt = "Overtaxed — less assembly, more room for professional judgment";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default async function Image() {
+export default function Image() {
   return new ImageResponse(
     (
       <div
@@ -14,91 +14,60 @@ export default async function Image() {
           height: "100%",
           display: "flex",
           flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: "#1a6b5a",
+          justifyContent: "space-between",
+          backgroundColor: "#f4f4ee",
+          color: "#192e32",
+          padding: "64px 72px",
+          fontFamily: "Arial, sans-serif",
         }}
       >
-        {/* Brand mark */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            marginBottom: "32px",
-          }}
-        >
-          {/* Teal rounded square with white "o" ring — inverted for teal bg */}
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "8px",
-              backgroundColor: "white",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
             <div
               style={{
-                width: "18px",
-                height: "18px",
-                borderRadius: "50%",
-                border: "3.5px solid #1a6b5a",
+                width: "35px",
+                height: "35px",
+                display: "flex",
+                border: "3px solid #192e32",
+                alignItems: "center",
+                justifyContent: "center",
               }}
-            />
+            >
+              <div style={{ width: "18px", height: "3px", backgroundColor: "#216452" }} />
+            </div>
+            <span style={{ fontSize: "34px", fontWeight: 600, letterSpacing: "-1.5px" }}>overtaxed</span>
           </div>
-          <span
+          <div
             style={{
-              fontSize: "36px",
-              fontWeight: 500,
-              color: "white",
-              letterSpacing: "0.01em",
+              display: "flex",
+              padding: "9px 13px",
+              border: "1px solid #aebbb4",
+              color: "#59686b",
+              fontSize: "14px",
+              letterSpacing: "1.5px",
+              textTransform: "uppercase",
             }}
           >
-            overtaxed
-          </span>
+            Professional workflow research
+          </div>
         </div>
 
-        {/* Headline */}
-        <div
-          style={{
-            fontSize: "54px",
-            fontWeight: 600,
-            color: "white",
-            letterSpacing: "-0.01em",
-            marginBottom: "28px",
-          }}
-        >
-          Lower Your Property Tax
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div style={{ display: "flex", color: "#216452", fontSize: "18px", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "24px" }}>
+            For Cook County residential appeal teams
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", fontSize: "70px", lineHeight: 1.04, fontWeight: 500, letterSpacing: "-3.5px" }}>
+            <span>Less assembly.</span>
+            <span style={{ color: "#216452" }}>More room for your judgment.</span>
+          </div>
         </div>
 
-        {/* Accent line */}
-        <div
-          style={{
-            width: "80px",
-            height: "1.5px",
-            backgroundColor: "rgba(255,255,255,0.3)",
-            marginBottom: "28px",
-          }}
-        />
-
-        {/* Geographic descriptor */}
-        <div
-          style={{
-            fontSize: "22px",
-            fontWeight: 400,
-            color: "rgba(255,255,255,0.6)",
-            letterSpacing: "0.05em",
-          }}
-        >
-          Texas & Illinois
+        <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "22px", borderTop: "1px solid #cfd7d1", color: "#59686b", fontSize: "16px" }}>
+          <span>Inspectable evidence preparation</span>
+          <span>Public-data case review · Professional control</span>
         </div>
       </div>
     ),
-    {
-      ...size,
-    }
+    size,
   );
 }

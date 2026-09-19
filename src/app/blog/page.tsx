@@ -22,7 +22,7 @@ export default function BlogIndexPage() {
       <nav className="sticky top-0 z-50 bg-[#f7f6f3]/90 backdrop-blur-xl border-b border-black/[0.04]">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link
-            href="/"
+            href="/homeowners"
             className="text-xl tracking-[-0.02em] font-medium text-[#1a1a1a] flex items-center gap-2"
           >
             <span className="w-2.5 h-2.5 rounded-[3px] bg-[#1a6b5a]" />
@@ -30,7 +30,7 @@ export default function BlogIndexPage() {
           </Link>
           <div className="flex items-center gap-8">
             <div className="hidden md:flex items-center gap-8 text-[13px] text-[#666] tracking-wide">
-              <Link href="/" className="hover:text-[#1a1a1a] transition-colors">
+              <Link href="/homeowners" className="hover:text-[#1a1a1a] transition-colors">
                 Home
               </Link>
               <Link
@@ -41,7 +41,7 @@ export default function BlogIndexPage() {
               </Link>
             </div>
             <Link
-              href="/"
+              href="/homeowners"
               className="hidden sm:block px-5 py-2.5 rounded-xl text-[13px] font-medium bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors"
             >
               Check My Address

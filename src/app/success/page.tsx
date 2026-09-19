@@ -275,7 +275,7 @@ function SuccessPage() {
             <a href="mailto:hello@getovertaxed.com" className="block text-[#1a6b5a] font-medium hover:underline">
               Contact support: hello@getovertaxed.com
             </a>
-            <Link href="/" className="block text-gray-500 hover:underline">
+            <Link href="/homeowners" className="block text-gray-500 hover:underline">
               Return to homepage
             </Link>
           </div>
@@ -295,7 +295,7 @@ function SuccessPage() {
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold italic text-gray-900">
+          <Link href="/homeowners" className="text-xl font-bold italic text-gray-900">
             overtaxed
           </Link>
         </div>

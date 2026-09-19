@@ -172,11 +172,11 @@ export default function AppealCalendarClient() {
       {/* Header */}
       <header className="bg-white border-b border-black/[0.06]">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-[#1a6b5a] font-[family-name:var(--font-display)]">
+          <Link href="/homeowners" className="text-xl font-bold text-[#1a6b5a] font-[family-name:var(--font-display)]">
             Overtaxed
           </Link>
           <Link
-            href="/"
+            href="/homeowners"
             className="text-sm text-[#1a6b5a] hover:underline"
           >
             ← Look up your property
@@ -319,7 +319,7 @@ export default function AppealCalendarClient() {
             If you&apos;re over-assessed, get a complete appeal package for just $49.
           </p>
           <Link
-            href="/"
+            href="/homeowners"
             className="inline-block px-8 py-3 bg-[#1a6b5a] text-white rounded-lg font-medium hover:bg-[#155a4a] transition-colors"
           >
             Look Up Your Property
@@ -344,7 +344,7 @@ export default function AppealCalendarClient() {
       {/* Footer */}
       <footer className="border-t border-black/[0.06] bg-white">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 text-center text-sm text-[#999]">
-          © 2026 Overtaxed · <Link href="/" className="text-[#1a6b5a] hover:underline">getovertaxed.com</Link>
+          © 2026 Overtaxed · <Link href="/homeowners" className="text-[#1a6b5a] hover:underline">getovertaxed.com</Link>
         </div>
       </footer>
     </div>

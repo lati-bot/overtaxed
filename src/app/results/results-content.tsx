@@ -717,7 +717,7 @@ export default function ResultsContent() {
 
   useEffect(() => {
     if (!address && !pin && !acct) {
-      router.push("/");
+      router.push("/homeowners");
       return;
     }
 
@@ -755,14 +755,14 @@ export default function ResultsContent() {
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
         <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f7f6f3]/80"} backdrop-blur-xl border-b ${borderColor}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/homeowners" className="flex items-center gap-2">
               <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="32" height="32" rx="7" fill="#1a6b5a"/>
                 <circle cx="16" cy="15.5" r="7" stroke="white" strokeWidth="3.5" fill="none"/>
               </svg>
               <span className="text-lg font-normal text-[#1a1a1a]">overtaxed</span>
             </Link>
-            <Link href="/" className="text-sm text-[#1a6b5a] hover:underline">
+            <Link href="/homeowners" className="text-sm text-[#1a6b5a] hover:underline">
               ← New Search
             </Link>
           </div>
@@ -832,8 +832,8 @@ export default function ResultsContent() {
               </div>
 
               <div className="mt-8 pt-6 border-t border-black/[0.06]">
-                <Link 
-                  href="/" 
+                <Link
+                  href="/homeowners"
                   className="block w-full text-center px-6 py-3.5 rounded-xl font-medium transition-colors bg-[#1a6b5a] hover:bg-[#155a4c] text-white"
                 >
                   Try Another Address
@@ -858,14 +858,14 @@ export default function ResultsContent() {
       <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
         <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f7f6f3]/80"} backdrop-blur-xl border-b ${borderColor}`}>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
+            <Link href="/homeowners" className="flex items-center gap-2">
               <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect width="32" height="32" rx="7" fill="#1a6b5a"/>
                 <circle cx="16" cy="15.5" r="7" stroke="white" strokeWidth="3.5" fill="none"/>
               </svg>
               <span className="text-lg font-normal text-[#1a1a1a]">overtaxed</span>
             </Link>
-            <Link href="/" className="text-sm text-[#1a6b5a] hover:underline">
+            <Link href="/homeowners" className="text-sm text-[#1a6b5a] hover:underline">
               ← New Search
             </Link>
           </div>
@@ -891,7 +891,7 @@ export default function ResultsContent() {
             ))}
           </div>
           <div className="mt-8 text-center">
-            <Link href="/" className={`text-sm ${textSecondary} ${isDark ? "hover:text-white" : "hover:text-black"}`}>
+            <Link href="/homeowners" className={`text-sm ${textSecondary} ${isDark ? "hover:text-white" : "hover:text-black"}`}>
               ← Search again
             </Link>
           </div>
@@ -968,14 +968,14 @@ export default function ResultsContent() {
     <div className={`min-h-screen ${bgMain} ${textPrimary} transition-colors duration-300 relative`}>
       <nav className={`sticky top-0 z-50 ${isDark ? "bg-[#0a0a0a]/80" : "bg-[#f7f6f3]/80"} backdrop-blur-xl border-b ${borderColor}`}>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/homeowners" className="flex items-center gap-2">
             <svg width="20" height="20" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect width="32" height="32" rx="7" fill="#1a6b5a"/>
               <circle cx="16" cy="15.5" r="7" stroke="white" strokeWidth="3.5" fill="none"/>
             </svg>
             <span className="text-lg font-normal text-[#1a1a1a]">overtaxed</span>
           </Link>
-          <Link href="/" className="text-sm text-[#1a6b5a] hover:underline">
+          <Link href="/homeowners" className="text-sm text-[#1a6b5a] hover:underline">
             ← New Search
           </Link>
         </div>
@@ -1723,7 +1723,7 @@ export default function ResultsContent() {
                         </p>
                         <button
                           onClick={() => {
-                            const url = "https://getovertaxed.com";
+                            const url = "https://getovertaxed.com/homeowners";
                             const text = `I just checked my property tax assessment — turns out ${property.neighborhoodStats?.overAssessedPct}% of homes in our neighborhood are over-assessed. Free to check yours:`;
                             if (navigator.share) {
                               navigator.share({ title: "Check Your Property Taxes", text, url }).catch(() => {});
