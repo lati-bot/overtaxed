@@ -194,7 +194,7 @@ function AppealPage() {
           <h1 className="text-xl font-semibold text-gray-900 mb-2">Link expired or invalid</h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <p className="text-sm text-gray-500 mb-4">If you filed an appeal or protest with us, check your email for the PDF attachment or contact us for help.</p>
-          <Link href="/" className="text-green-600 font-medium hover:underline">
+          <Link href="/homeowners" className="text-green-600 font-medium hover:underline">
             Return to homepage
           </Link>
         </div>
@@ -215,7 +215,7 @@ function AppealPage() {
       {/* Header */}
       <header className="border-b border-gray-200 bg-white">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold italic text-gray-900">
+          <Link href="/homeowners" className="text-xl font-bold italic text-gray-900">
             overtaxed
           </Link>
         </div>

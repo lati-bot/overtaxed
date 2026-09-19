@@ -13,26 +13,26 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Overtaxed — Property Tax Appeal Packages for $49",
-  description: "Fight your property tax assessment with professional comparable data, evidence packets, and filing guides. 10 Texas counties + Cook County IL. $49 flat fee.",
+  title: "Overtaxed — Evidence Preparation for Property Tax Appeal Teams",
+  description: "Overtaxed is exploring a review-first workflow for Cook County residential appeal teams: source-linked public records, comparable screening, exclusions, and open questions.",
   metadataBase: new URL("https://getovertaxed.com"),
   icons: {
     icon: "/favicon.svg",
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Overtaxed — Property Tax Appeal Packages for $49",
-    description: "Fight your property tax assessment with professional comparable data, evidence packets, and filing guides. 10 Texas counties + Cook County IL. $49 flat fee.",
+    title: "Overtaxed — More Room for Professional Judgment",
+    description: "A review-first evidence preparation workflow for Cook County residential appeal teams.",
     siteName: "Overtaxed",
     type: "website",
     url: "https://getovertaxed.com",
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Overtaxed — Property Tax Appeal Packages for $49" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Overtaxed — less assembly, more room for professional judgment" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Overtaxed — Property Tax Appeal Packages for $49",
-    description: "Fight your property tax assessment with professional comparable data, evidence packets, and filing guides. 10 Texas counties + Cook County IL. $49 flat fee.",
-    images: ["/og-image.png"],
+    title: "Overtaxed — More Room for Professional Judgment",
+    description: "A review-first evidence preparation workflow for Cook County residential appeal teams.",
+    images: ["/opengraph-image"],
   },
   robots: {
     index: true,

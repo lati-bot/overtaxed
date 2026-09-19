@@ -1,875 +1,385 @@
-"use client";
+import Link from "next/link";
+import styles from "./professional-home.module.css";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import FAQAccordion from "@/components/FAQAccordion";
+const catalog = "https://datacatalog.cookcountyil.gov";
+const subjectPin = "13071240590000";
+const readableRecord = (pin: string) =>
+  `/cook-county/case-review/6913-w-summerdale/records#assessment-${pin}`;
+const readableOutcome = "/cook-county/case-review/6913-w-summerdale/records#appeal-outcome";
 
-interface AutocompleteResult {
-  pin?: string;
-  acct?: string;
-  address: string;
-  city: string;
-  zip?: string;
-  state?: string;
-  township?: string;
-  neighborhood?: string;
-  display?: string;
-  jurisdiction: "cook_county_il" | "harris_county_tx" | "dallas_county_tx" | "travis_county_tx" | "collin_county_tx" | "tarrant_county_tx" | "denton_county_tx" | "williamson_county_tx" | "fortbend_county_tx" | "rockwall_county_tx" | "bexar_county_tx";
-}
+const retainedComparables = [
+  {
+    address: "6917 W Summerdale Ave",
+    pin: "13071240580000",
+    distance: "0.007",
+    year: "1953",
+    area: "1,022",
+    total: "$33,000",
+    rate: "$23.116",
+    note: "Adjacent; exact area, lot and age. Extra half bath and superior interior features disclosed.",
+    tone: "mixed",
+  },
+  {
+    address: "6916 W Summerdale Ave",
+    pin: "13071210530000",
+    distance: "0.033",
+    year: "1954",
+    area: "1,070",
+    total: "$38,400",
+    rate: "$27.126",
+    note: "Same block; higher assessed value retained. Warm-air heat and a 48 sf size difference.",
+    tone: "adverse",
+  },
+  {
+    address: "6920 W Summerdale Ave",
+    pin: "13071210520000",
+    distance: "0.035",
+    year: "1954",
+    area: "1,070",
+    total: "$33,000",
+    rate: "$22.079",
+    note: "Same block; no garage and a formal recreation room are offsetting differences.",
+    tone: "mixed",
+  },
+  {
+    address: "6917 W Farragut Ave",
+    pin: "13071320700000",
+    distance: "0.107",
+    year: "1955",
+    area: "1,056",
+    total: "$34,000",
+    rate: "$23.319",
+    note: "Nearby; slightly newer and larger, with a smaller 1.5-car garage.",
+    tone: "adverse",
+  },
+  {
+    address: "6965 W Balmoral Ave",
+    pin: "13071210010000",
+    distance: "0.111",
+    year: "1954",
+    area: "1,022",
+    total: "$30,803",
+    rate: "$21.600",
+    note: "Lower value retained; smaller lot and garage, partial attic and recreation room disclosed.",
+    tone: "supporting",
+  },
+] as const;
 
-// [MUST FIX #1] Uniform county labels — abbreviated, non-redundant with city line
-const JURISDICTION_LABELS: Record<string, string> = {
-  harris_county_tx: "Harris Co.",
-  dallas_county_tx: "Dallas Co.",
-  travis_county_tx: "Travis Co.",
-  collin_county_tx: "Collin Co.",
-  tarrant_county_tx: "Tarrant Co.",
-  denton_county_tx: "Denton Co.",
-  williamson_county_tx: "Williamson Co.",
-  fortbend_county_tx: "Fort Bend Co.",
-  rockwall_county_tx: "Rockwall Co.",
-  bexar_county_tx: "Bexar Co.",
-  cook_county_il: "Cook Co.",
-};
+const sources = [
+  ["BOR Appeal Decision History", "7pny-nedm", "Appeal ID, type, generic reason and certified-to-final outcome"],
+  ["CCAO Assessed Values", "uzyt-m557", "Mailed, certified and BOR land, improvement and total assessed values"],
+  ["CCAO Improvement Characteristics", "x54s-btds", "Card-level physical characteristics and grain controls"],
+  ["CCAO Parcel Universe", "nj4t-kc8j", "Neighborhood and parcel centroid"],
+  ["CCAO Parcel Addresses", "3723-97qp", "Situs address"],
+  ["CCAO Parcel Sales", "wvhk-k5uv", "The subject’s recorded 2018 sale"],
+] as const;
 
-// [MUST FIX #1] Single uniform badge style — replaces rainbow
-const JURISDICTION_BADGE = "bg-[#eef4f2] text-[#1a6b5a] text-[11px] font-medium rounded-md px-2 py-0.5";
-
-const JURISDICTION_ROUTES: Record<string, { param: string; field: string }> = {
-  harris_county_tx: { param: "houston", field: "acct" },
-  dallas_county_tx: { param: "dallas", field: "acct" },
-  travis_county_tx: { param: "austin", field: "acct" },
-  collin_county_tx: { param: "collin", field: "acct" },
-  tarrant_county_tx: { param: "tarrant", field: "acct" },
-  denton_county_tx: { param: "denton", field: "acct" },
-  williamson_county_tx: { param: "williamson", field: "acct" },
-  fortbend_county_tx: { param: "fortbend", field: "acct" },
-  rockwall_county_tx: { param: "rockwall", field: "acct" },
-  bexar_county_tx: { param: "bexar", field: "acct" },
-  cook_county_il: { param: "", field: "pin" },
-};
-
-// Rotating placeholder addresses from covered areas
-const PLACEHOLDER_ADDRESSES = [
-  "Try any address in Oak Lawn, Dallas",
-  "Try any address in The Heights, Houston",
-  "Try any address in Hyde Park, Austin",
-  "Try any address in Frisco, north of Dallas",
-  "Try any address in Sugar Land, Houston area",
-  "Try any address in Naperville, west of Chicago",
-  "Try any address in Arlington, Fort Worth area",
-  "Try any address in Cedar Park, Austin area",
-];
-
-// [MUST FIX #2] Title case helper — converts "4521 OAKDALE ST" → "4521 Oakdale St"
-function toTitleCase(str: string): string {
-  return str
-    .toLowerCase()
-    .split(" ")
-    .map(word => {
-      if (/^\d/.test(word)) return word.toUpperCase(); // keep numbers + suffixes like "4521"
-      if (["st", "nd", "rd", "th", "dr", "ave", "blvd", "ln", "ct", "pl", "pkwy", "cir", "sq", "ter", "trl", "way"].includes(word)) {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      }
-      if (word.length <= 2 && /^[a-z]+$/.test(word)) return word.toUpperCase(); // N, S, E, W, NE, NW, etc.
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(" ");
-}
-
-// Shared search component used in hero and final CTA
-function SearchBar({
-  address, setAddress, loading, suggestions, showSuggestions, setShowSuggestions,
-  inputRef, suggestionsRef, handleInputChange, handleSelectSuggestion, handleSearch,
-  noMatch, notifyEmail, setNotifyEmail, notifySubmitted, notifyLoading, handleNotifySubmit,
-  id, placeholder, dark,
-}: any) {
+export default function ProfessionalHome() {
   return (
-    <div className="w-full max-w-xl mx-auto">
-      <form onSubmit={handleSearch}>
-        {/* [SHOULD FIX #5] rounded-2xl for cards */}
-        <div className="rounded-2xl bg-white p-4 sm:p-5 border border-black/[0.06]" style={{ boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              {/* [SHOULD FIX #5] rounded-xl for inputs */}
-              <input
-                ref={inputRef}
-                type="text"
-                placeholder={placeholder || "Enter your address or PIN..."}
-                className="w-full h-14 px-5 rounded-xl text-base bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:border-[#1a6b5a]/30 focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/10 transition-all"
-                value={address}
-                onChange={handleInputChange}
-                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                disabled={loading}
-                autoComplete="off"
-                id={id}
-              />
-              {showSuggestions && suggestions.length > 0 && (
-                <div
-                  ref={suggestionsRef}
-                  className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-2xl z-50 overflow-hidden bg-white border border-black/[0.08]"
-                >
-                  {suggestions.map((suggestion: AutocompleteResult, index: number) => (
-                    <button
-                      key={suggestion.pin || suggestion.acct || index}
-                      type="button"
-                      className={`w-full px-5 py-3.5 text-left transition-colors hover:bg-[#f7f6f3] ${index !== suggestions.length - 1 ? "border-b border-black/[0.04]" : ""}`}
-                      onMouseDown={(e: React.MouseEvent) => { e.preventDefault(); handleSelectSuggestion(suggestion); }}
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="font-medium text-[#1a1a1a]">{toTitleCase(suggestion.address)}</div>
-                        <span className={`${JURISDICTION_BADGE} whitespace-nowrap flex-shrink-0`}>
-                          {JURISDICTION_LABELS[suggestion.jurisdiction] || suggestion.jurisdiction}
-                        </span>
-                      </div>
-                      <div className="text-sm mt-0.5 text-[#777]">
-                        {toTitleCase(suggestion.city)}, {suggestion.jurisdiction === "cook_county_il" ? `IL ${(suggestion.zip || "").split('-')[0]}` : "TX"}
-                      </div>
-                    </button>
+    <div className={styles.siteShell}>
+      <a className={styles.skipLink} href="#main-content">Skip to content</a>
+
+      <div className={styles.researchBar}>
+        Professional workflow research · public-data example · no live case actions
+      </div>
+
+      <header className={`${styles.wrap} ${styles.masthead}`}>
+        <a className={styles.brand} href="#main-content" aria-label="Overtaxed home">
+          <svg viewBox="0 0 28 30" aria-hidden="true" fill="none">
+            <path d="M2 9 14 2l12 7v18H2Z" stroke="currentColor" strokeWidth="2" />
+            <path d="M8 14h12M8 19h12M8 24h7" stroke="currentColor" strokeWidth="2" className={styles.brandAccent} />
+          </svg>
+          overtaxed
+        </a>
+        <nav className={styles.nav} aria-label="Main navigation">
+          <a href="#case-file">Case review</a>
+          <a href="#approach">Approach</a>
+          <a className={styles.navContact} href="mailto:hello@getovertaxed.com?subject=Professional%20workflow%20conversation">
+            Talk with us <span aria-hidden="true">↗</span>
+          </a>
+        </nav>
+      </header>
+
+      <main id="main-content">
+        <section className={`${styles.wrap} ${styles.hero}`} aria-labelledby="hero-title">
+          <div className={styles.eyebrow}>For Cook County residential appeal teams</div>
+          <div className={styles.heroGrid}>
+            <h1 id="hero-title">
+              Less assembly.<br />More room for<br /><span>your judgment.</span>
+            </h1>
+            <div className={styles.heroIntro}>
+              <p>
+                We’re exploring a review-first workflow that brings public property records,
+                comparable candidates and unresolved questions into one inspectable case file.
+              </p>
+              <div className={styles.heroActions}>
+                <a className={styles.primaryButton} href="#case-file">Examine the case <span aria-hidden="true">↓</span></a>
+                <a className={styles.textLink} href="#approach">See the proposed role</a>
+              </div>
+              <p className={styles.finePrint}>
+                Early practitioner research—not a filing tool, recommendation or substitute for professional review.
+              </p>
+            </div>
+          </div>
+          <ul className={styles.scopeList} aria-label="Scope">
+            <li>Cook County, Illinois</li>
+            <li>Residential evidence preparation</li>
+            <li>Public-data reconstruction</li>
+            <li>Not a law firm</li>
+          </ul>
+        </section>
+
+        <section className={`${styles.wrap} ${styles.caseSection}`} id="case-file" aria-labelledby="case-title">
+          <div className={styles.sectionKicker}>
+            <span>01 / Inspect the work, including the answer “not established”</span>
+            <span>Verified public records · researched September 18, 2026</span>
+          </div>
+
+          <article className={styles.caseFile}>
+            <header className={styles.caseBar}>
+              <div><strong>OVERTAXED</strong><span> / Public-data case review</span></div>
+              <span className={styles.status}>Historical example · Unreviewed by counsel</span>
+            </header>
+
+            <div className={styles.caseHeader}>
+              <div>
+                <p className={styles.microLabel}>2024 residential / Jefferson Township</p>
+                <h2 id="case-title">6913 W Summerdale Ave, Chicago</h2>
+                <p>PIN 13-07-124-059-0000 · Class 203 · Neighborhood 71430</p>
+              </div>
+              <dl className={styles.caseMetrics}>
+                <div>
+                  <dt>CCAO certified AV</dt>
+                  <dd>$33,000</dd>
+                </div>
+                <div>
+                  <dt>BOR final AV</dt>
+                  <dd>$27,362</dd>
+                </div>
+                <div>
+                  <dt>Recorded change</dt>
+                  <dd>−$5,638 <small>(−17.08%)</small></dd>
+                </div>
+              </dl>
+            </div>
+
+            <div className={styles.findingBand}>
+              <div className={styles.findingMark} aria-hidden="true">≠</div>
+              <div>
+                <p className={styles.microLabel}>Finding from the reconstructed five-property set</p>
+                <h3>The public comparable case does not independently support the historical reduction.</h3>
+                <p>
+                  The subject’s certified improvement AV per building square foot was <strong>$23.116</strong>.
+                  The retained-comparable median was also <strong>$23.116</strong>. Both the subject and
+                  comparable median had a certified total assessed value of <strong>$33,000</strong>.
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.caseWorkspace}>
+              <div className={styles.evidencePanel}>
+                <div className={styles.tableHeading}>
+                  <div>
+                    <p className={styles.microLabel}>Retained set / five properties</p>
+                    <h3>Value-blind screening, then feature review</h3>
+                  </div>
+                  <p>Certified improvement AV / building sf</p>
+                </div>
+                <p className={styles.scrollHint}>Scroll horizontally to inspect every field <span aria-hidden="true">→</span></p>
+                <div className={styles.tableScroll} tabIndex={0} role="region" aria-label="Retained comparable property table; scroll horizontally on small screens">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th scope="col">Property</th>
+                        <th scope="col">Distance</th>
+                        <th scope="col">Year</th>
+                        <th scope="col">Building sf</th>
+                        <th scope="col">Certified total AV</th>
+                        <th scope="col">Improvement AV/sf</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className={styles.subjectRow}>
+                        <th scope="row"><Link href={readableRecord(subjectPin)} target="_blank" rel="noreferrer" aria-label="Readable subject 2024 assessment source record (opens in a new tab)">Subject ↗</Link></th>
+                        <td>—</td><td>1953</td><td>1,022</td><td>$33,000</td><td>$23.116</td>
+                      </tr>
+                      {retainedComparables.map((comp) => (
+                        <tr key={comp.address}>
+                          <th scope="row"><Link href={readableRecord(comp.pin)} target="_blank" rel="noreferrer" aria-label={`${comp.address}: readable 2024 assessment source record (opens in a new tab)`}>{comp.address} ↗</Link><span className={styles.mobileNote}>{comp.note}</span></th>
+                          <td>{comp.distance} mi</td>
+                          <td>{comp.year}</td>
+                          <td>{comp.area}</td>
+                          <td>{comp.total}</td>
+                          <td><span className={`${styles.valueTag} ${styles[comp.tone]}`}>{comp.rate}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className={styles.rowNotes} aria-label="Comparable review notes">
+                  {retainedComparables.map((comp) => (
+                    <p key={comp.address}><strong>{comp.address}</strong> — {comp.note}</p>
                   ))}
                 </div>
-              )}
-              {/* Inline "not found" email capture in dropdown area */}
-              {noMatch && showSuggestions && (
-                <div
-                  ref={suggestionsRef}
-                  className="absolute top-full left-0 right-0 mt-2 rounded-2xl shadow-2xl z-50 bg-white border border-black/[0.08] p-5"
-                >
-                  {notifySubmitted ? (
-                    <div className="text-center py-2">
-                      <div className="text-[#1a6b5a] mb-2">
-                        <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                      </div>
-                      <p className="font-medium text-[#1a1a1a] text-sm">Got it! We&apos;ll email you when we add your area.</p>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="font-medium text-[#1a1a1a] text-sm">
-                        We don&apos;t cover &ldquo;{address.trim().length > 30 ? address.trim().slice(0, 30) + "…" : address.trim()}&rdquo; yet
-                      </p>
-                      <p className="text-xs text-[#999] mt-1 mb-3">Want us to notify you when we expand?</p>
-                      <div className="flex gap-2" onMouseDown={(e: React.MouseEvent) => e.preventDefault()}>
-                        <input
-                          type="email"
-                          placeholder="you@email.com"
-                          value={notifyEmail}
-                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNotifyEmail(e.target.value)}
-                          onKeyDown={(e: React.KeyboardEvent) => { if (e.key === "Enter") { e.preventDefault(); handleNotifySubmit(e); } }}
-                          className="flex-1 h-10 px-3 rounded-lg text-sm bg-[#f7f6f3] border border-black/[0.06] text-[#1a1a1a] placeholder-[#aaa] focus:outline-none focus:ring-2 focus:ring-[#1a6b5a]/10"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleNotifySubmit}
-                          disabled={notifyLoading || !notifyEmail.includes("@")}
-                          className="h-10 px-4 rounded-lg text-sm font-medium bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors disabled:opacity-50 whitespace-nowrap"
-                        >
-                          {notifyLoading ? "..." : "Notify Me"}
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-            {/* [SHOULD FIX #5] rounded-xl for buttons */}
-            <button
-              type="submit"
-              disabled={loading || !address.trim()}
-              className="h-14 px-8 rounded-xl font-medium text-base transition-all disabled:opacity-40 bg-[#1a6b5a] text-white hover:bg-[#155a4c] shadow-lg shadow-[#1a6b5a]/20 whitespace-nowrap"
-            >
-              {loading ? "..." : "Check My Address — Free"}
-            </button>
-          </div>
-          {/* Microcopy below CTA */}
-          <p className="text-[12px] text-[#999] mt-3 flex items-center justify-center gap-1.5">
-            Takes 10 seconds · No signup · Your value can&apos;t go up from appealing
-          </p>
-        </div>
-      </form>
-
-    </div>
-  );
-}
-
-export default function Home() {
-  const [address, setAddress] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<AutocompleteResult[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [selectedPin, setSelectedPin] = useState<string | null>(null);
-  const [selectedJurisdiction, setSelectedJurisdiction] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
-  const [noMatch, setNoMatch] = useState(false);
-  const [notifyEmail, setNotifyEmail] = useState("");
-  const [notifySubmitted, setNotifySubmitted] = useState(false);
-  const [notifyLoading, setNotifyLoading] = useState(false);
-  const [placeholderIdx, setPlaceholderIdx] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const footerInputRef = useRef<HTMLInputElement>(null);
-  const suggestionsRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-
-  useEffect(() => { setMounted(true); }, []);
-
-  useEffect(() => {
-    const interval = setInterval(() => setPlaceholderIdx(i => (i + 1) % PLACEHOLDER_ADDRESSES.length), 4000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // ── Autocomplete ──
-  useEffect(() => {
-    if (address.length < 3 || selectedPin) {
-      setSuggestions([]);
-      setNoMatch(false);
-      return;
-    }
-    // Skip autocomplete for PIN-like inputs (all digits, 6+ chars)
-    const stripped = address.replace(/[-\s]/g, "");
-    if (/^\d{6,}$/.test(stripped)) {
-      setSuggestions([]);
-      setNoMatch(false);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      try {
-        const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes, dentonRes, williamsonRes, fortbendRes, rockwallRes, bexarRes] = await Promise.all([
-          fetch(`/api/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/houston/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/dallas/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/austin/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/collin/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/tarrant/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/denton/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/williamson/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/fortbend/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/rockwall/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/bexar/autocomplete?q=${encodeURIComponent(address)}`).then(r => r.json()).catch(() => ({ results: [] })),
-        ]);
-        const mapResults = (res: any, jurisdiction: AutocompleteResult["jurisdiction"]) =>
-          (res.results || []).map((r: any) => ({ ...r, jurisdiction, display: r.display || r.address }));
-        const combined = [
-          ...mapResults(cookRes, "cook_county_il"),
-          ...mapResults(houstonRes, "harris_county_tx"),
-          ...mapResults(dallasRes, "dallas_county_tx"),
-          ...mapResults(austinRes, "travis_county_tx"),
-          ...mapResults(collinRes, "collin_county_tx"),
-          ...mapResults(tarrantRes, "tarrant_county_tx"),
-          ...mapResults(dentonRes, "denton_county_tx"),
-          ...mapResults(williamsonRes, "williamson_county_tx"),
-          ...mapResults(fortbendRes, "fortbend_county_tx"),
-          ...mapResults(rockwallRes, "rockwall_county_tx"),
-          ...mapResults(bexarRes, "bexar_county_tx"),
-        ].slice(0, 8);
-        setSuggestions(combined);
-        setShowSuggestions(true);
-        const isNoMatch = combined.length === 0 && address.trim().length >= 5;
-        setNoMatch(isNoMatch);
-        if (isNoMatch) setShowSuggestions(true);
-      } catch { setSuggestions([]); }
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [address, selectedPin]);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node) && inputRef.current && !inputRef.current.contains(e.target as Node)) {
-        setShowSuggestions(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const handleSelectSuggestion = (s: AutocompleteResult) => {
-    const fullAddress = s.display || s.address;
-    const pin = s.pin || s.acct || null;
-    setAddress(fullAddress);
-    setSelectedPin(pin);
-    setSelectedJurisdiction(s.jurisdiction);
-    setSuggestions([]);
-    setShowSuggestions(false);
-    setNoMatch(false);
-    if (pin && s.jurisdiction) {
-      const route = JURISDICTION_ROUTES[s.jurisdiction];
-      if (route) {
-        router.push(route.param ? `/results?acct=${pin}&jurisdiction=${route.param}` : `/results?pin=${pin}`);
-      }
-    }
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setAddress(e.target.value);
-    setSelectedPin(null);
-    setSelectedJurisdiction(null);
-    setNoMatch(false);
-    setNotifySubmitted(false);
-  };
-
-  const handleNotifySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!notifyEmail.trim()) return;
-    setNotifyLoading(true);
-    try {
-      await fetch("/api/notify-coverage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: notifyEmail, address: address.trim() }),
-      });
-    } catch { /* best effort */ }
-    setNotifySubmitted(true);
-    setNotifyLoading(false);
-  };
-
-  const routeToResults = (pin: string | null | undefined, jurisdiction: string) => {
-    const route = JURISDICTION_ROUTES[jurisdiction];
-    if (!route || !pin) return false;
-    router.push(route.param ? `/results?acct=${pin}&jurisdiction=${route.param}` : `/results?pin=${pin}`);
-    return true;
-  };
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!address.trim()) return;
-    setLoading(true);
-
-    // PIN/account number detection — route directly to results
-    const cleaned = address.trim().replace(/[-\s]/g, "");
-    if (/^\d{14}$/.test(cleaned)) {
-      // Cook County PIN (14 digits)
-      router.push(`/results?pin=${cleaned}`);
-      return;
-    }
-    if (/^\d{6,13}$/.test(cleaned)) {
-      // TX account number — try all TX markets
-      router.push(`/results?address=${encodeURIComponent(address.trim())}`);
-      return;
-    }
-
-    if (!selectedPin && suggestions.length > 0) {
-      const best = suggestions[0];
-      if (routeToResults(best.pin || best.acct, best.jurisdiction)) return;
-    }
-
-    if (!selectedPin) {
-      try {
-        const cleanedAddress = address.trim().replace(/,?\s*(IL|TX|ILLINOIS|TEXAS)\s*\d{0,5}\s*$/i, "").replace(/,?\s*$/, "").trim();
-        const q = encodeURIComponent(cleanedAddress);
-        const [cookRes, houstonRes, dallasRes, austinRes, collinRes, tarrantRes, dentonRes, williamsonRes, fortbendRes, rockwallRes, bexarRes] = await Promise.all([
-          fetch(`/api/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/houston/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/dallas/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/austin/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/collin/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/tarrant/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/denton/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/williamson/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/fortbend/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/rockwall/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-          fetch(`/api/bexar/autocomplete?q=${q}`).then(r => r.json()).catch(() => ({ results: [] })),
-        ]);
-        const markets = [
-          { res: bexarRes, j: "bexar_county_tx" },
-          { res: fortbendRes, j: "fortbend_county_tx" }, { res: rockwallRes, j: "rockwall_county_tx" },
-          { res: dentonRes, j: "denton_county_tx" },
-          { res: williamsonRes, j: "williamson_county_tx" }, { res: tarrantRes, j: "tarrant_county_tx" },
-          { res: collinRes, j: "collin_county_tx" }, { res: austinRes, j: "austin_county_tx" },
-          { res: dallasRes, j: "dallas_county_tx" }, { res: houstonRes, j: "harris_county_tx" },
-          { res: cookRes, j: "cook_county_il" },
-        ];
-        for (const m of markets) {
-          const first = (m.res.results || [])[0];
-          const id = first?.acct || first?.pin;
-          if (id && routeToResults(id, m.j)) return;
-        }
-        setNoMatch(true);
-        setLoading(false);
-        return;
-      } catch { /* fall through */ }
-    }
-
-    if (selectedPin && selectedJurisdiction) {
-      routeToResults(selectedPin, selectedJurisdiction);
-    } else {
-      router.push(`/results?address=${encodeURIComponent(address.trim())}`);
-    }
-  };
-
-  const scrollToSection = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-
-  const searchBarProps = {
-    address, setAddress, loading, suggestions, showSuggestions, setShowSuggestions,
-    inputRef, suggestionsRef, handleInputChange, handleSelectSuggestion, handleSearch,
-    noMatch, notifyEmail, setNotifyEmail, notifySubmitted, notifyLoading, handleNotifySubmit,
-    placeholder: address ? undefined : PLACEHOLDER_ADDRESSES[placeholderIdx],
-  };
-
-  // JSON-LD structured data
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "Organization",
-        "name": "Overtaxed",
-        "url": "https://getovertaxed.com",
-        "logo": "https://getovertaxed.com/og-image.png",
-        "description": "Property tax appeal packages for homeowners.",
-      },
-      {
-        "@type": "Product",
-        "name": "Property Tax Appeal Package",
-        "description": "Complete filing package with comparable properties, professional evidence brief, and step-by-step filing instructions.",
-        "brand": { "@type": "Organization", "name": "Overtaxed" },
-        "offers": {
-          "@type": "Offer",
-          "price": "49.00",
-          "priceCurrency": "USD",
-          "availability": "https://schema.org/InStock",
-          "url": "https://getovertaxed.com",
-        },
-      },
-      {
-        "@type": "FAQPage",
-        "mainEntity": [
-          { "@type": "Question", "name": "Do I need a lawyer to appeal?", "acceptedAnswer": { "@type": "Answer", "text": "No. Individual homeowners can file appeals themselves. We give you everything you need — comparable properties, evidence brief, and step-by-step instructions." } },
-          { "@type": "Question", "name": "What if my appeal doesn't work?", "acceptedAnswer": { "@type": "Answer", "text": "There's no penalty for appealing. If your assessment isn't reduced, you've lost nothing but the filing time." } },
-          { "@type": "Question", "name": "When can I file?", "acceptedAnswer": { "@type": "Answer", "text": "In Texas, protest after receiving your appraisal notice (usually late March). Deadline is May 15 or 30 days after your notice. In Cook County, IL, appeals open by township on a rotating schedule." } },
-          { "@type": "Question", "name": "Why is this so much cheaper?", "acceptedAnswer": { "@type": "Answer", "text": "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." } },
-          { "@type": "Question", "name": "What areas do you cover?", "acceptedAnswer": { "@type": "Answer", "text": "5M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), San Antonio (Bexar), Austin (Travis, Williamson), Rockwall County, and Cook County, IL." } },
-          { "@type": "Question", "name": "Can appealing my property taxes raise my value?", "acceptedAnswer": { "@type": "Answer", "text": "No. Your assessed value can only stay the same or go down as a result of an appeal. The taxing authority cannot raise your value because you filed. There is zero risk." } },
-          { "@type": "Question", "name": "How much does the average homeowner save?", "acceptedAnswer": { "@type": "Answer", "text": "Most successful protests save between $500 and $1,500 per year depending on your property and local tax rate." } },
-          { "@type": "Question", "name": "What is a uniformity argument?", "acceptedAnswer": { "@type": "Answer", "text": "State law requires that similar properties be assessed equally. If comparable homes are assessed lower than yours, you can argue your assessment should be reduced to match. This is one of the strongest arguments you can make." } },
-          { "@type": "Question", "name": "Should I protest every year?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Property values and assessments change annually. Filing a protest keeps your assessment in check." } },
-          { "@type": "Question", "name": "What is the difference between market value and assessed value?", "acceptedAnswer": { "@type": "Answer", "text": "Market value is what your home would sell for. Assessed value is what your county uses to calculate property taxes, which may be lower due to homestead caps or prior protests." } },
-        ],
-      },
-    ],
-  };
-
-  if (!mounted) return <div className="min-h-screen bg-[#f7f6f3]" />;
-
-  return (
-    <div className="min-h-screen bg-[#f7f6f3] text-[#1a1a1a]" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
-
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-[#f7f6f3]/90 backdrop-blur-xl border-b border-black/[0.04]">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="text-xl tracking-[-0.02em] font-medium text-[#1a1a1a] flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-[3px] bg-[#1a6b5a]" />
-            overtaxed
-          </div>
-          <div className="flex items-center gap-8">
-            <div className="hidden md:flex items-center gap-8 text-[13px] text-[#666] tracking-wide">
-              <button onClick={() => scrollToSection("how-it-works")} className="hover:text-[#1a1a1a] transition-colors">How it Works</button>
-              <button onClick={() => scrollToSection("pricing")} className="hover:text-[#1a1a1a] transition-colors">Pricing</button>
-              <button onClick={() => scrollToSection("faq")} className="hover:text-[#1a1a1a] transition-colors">FAQ</button>
-            </div>
-            {/* [SHOULD FIX #5] rounded-xl to match buttons, not rounded-full */}
-            <button 
-              onClick={() => scrollToSection("hero-search")}
-              className="hidden sm:block px-5 py-2.5 rounded-xl text-[13px] font-medium bg-[#1a6b5a] text-white hover:bg-[#155a4c] transition-colors"
-            >
-              Check My Address
-            </button>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero — centered */}
-      <section className="pt-16 sm:pt-24 pb-6 sm:pb-8 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-[clamp(2.5rem,6vw,4.5rem)] font-normal leading-[1.12] tracking-[-0.03em] text-[#1a1a1a]">
-            Your neighbors pay less.<br />
-            Here&apos;s the proof.
-          </h1>
-          <p className="mt-6 text-lg text-[#666] leading-relaxed max-w-xl mx-auto font-light">
-            We compare your home to similar properties assessed lower — and build your complete appeal package for $49. Average savings: $1,136/year.
-          </p>
-
-          {/* [MUST FIX #3] Coverage — green dot removed, em-dash instead */}
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] text-[#999]">
-            <span>DFW</span>
-            <span className="text-[#ddd]">·</span>
-            <span>Houston</span>
-            <span className="text-[#ddd]">·</span>
-            <span>Austin</span>
-            <span className="text-[#ddd]">·</span>
-            <span>Chicago metro</span>
-            <span className="text-[#ccc]">— 10 counties</span>
-          </div>
-
-          {/* Search card */}
-          <div className="mt-6" id="hero-search">
-            <SearchBar {...searchBarProps} id="hero-input" />
-          </div>
-
-          {/* Social proof badge above the fold */}
-          <div className="mt-5 flex items-center justify-center gap-3">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-black/[0.06]">
-              <div className="w-2 h-2 bg-[#1a6b5a] rounded-full animate-pulse"></div>
-              <span className="text-[13px] text-[#666]">
-                <span className="font-medium text-[#1a6b5a]">4.5M+</span> properties analyzed
-              </span>
-            </div>
-            <div className="text-[14px] text-[#888]">
-              <span className="font-medium text-[#666]">48,000+</span> checked this season
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="py-12 sm:py-16 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="border-t border-black/[0.06] pt-12 sm:pt-16">
-            <div className="grid grid-cols-3 gap-8 sm:gap-16">
-              {[
-                { value: "$1,136/yr", label: "Average savings" },
-                { value: "65%+", label: "Of Texas protests succeed" },
-                { value: "$49", label: "Flat fee — keep 100%" },
-              ].map((stat) => (
-                <div key={stat.label} className="text-center">
-                  <div className="text-3xl sm:text-5xl font-medium tracking-[-0.03em] text-[#1a1a1a]">{stat.value}</div>
-                  <div className="mt-2 text-[11px] sm:text-[13px] tracking-[0.05em] uppercase text-[#999]">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonial */}
-      <section className="py-16 sm:py-20 px-6 bg-[#f0ede7]">
-        <div className="max-w-2xl mx-auto text-center">
-          <p className="text-[22px] sm:text-[26px] font-normal leading-relaxed tracking-[-0.01em] text-[#1a1a1a]">
-            &ldquo;I was paying $1,400 more than my neighbor for a smaller house. Overtaxed found 6 comps and I won my appeal in 3 weeks.&rdquo;
-          </p>
-          <p className="mt-4 text-[13px] text-[#999]">— Rachel M., Collin County, TX</p>
-        </div>
-      </section>
-
-      {/* Product Preview — show what they get with better visuals */}
-      <section className="py-14 sm:py-20 px-6 bg-white">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">What you get</p>
-            <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">See your case before you pay</h2>
-            <p className="text-lg text-[#666] font-light max-w-2xl mx-auto">Enter your address and instantly see how your assessment compares. We grade the strength of your case — if it looks fair, we'll tell you.</p>
-          </div>
-          
-          {/* Two-column layout: description + preview */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            {/* Left: What you get list */}
-            <div className="space-y-8">
-              <div className="space-y-6">
-                {[
-                  { 
-                    icon: "📊", 
-                    title: "Evidence grade A-F", 
-                    desc: "We instantly analyze your case strength and tell you if it's worth filing." 
-                  },
-                  { 
-                    icon: "🏘️", 
-                    title: "5+ comparable properties", 
-                    desc: "Similar homes assessed lower than yours — the core of your appeal." 
-                  },
-                  { 
-                    icon: "📄", 
-                    title: "Professional PDF packet", 
-                    desc: "Ready-to-submit evidence brief with all forms and instructions." 
-                  },
-                  { 
-                    icon: "💰", 
-                    title: "Estimated savings", 
-                    desc: "How much you could save per year, based on actual comparable assessments." 
-                  }
-                ].map((item) => (
-                  <div key={item.title} className="flex items-start gap-4">
-                    <div className="text-2xl mt-1">{item.icon}</div>
-                    <div>
-                      <h3 className="font-semibold text-[#1a1a1a] mb-1">{item.title}</h3>
-                      <p className="text-[15px] text-[#666] leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
               </div>
-              
-              <div className="pt-4">
-                <button 
-                  onClick={() => document.getElementById('hero-search')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1a6b5a] text-white font-medium hover:bg-[#155a4c] transition-colors"
-                >
-                  Try it free
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7l4-4m0 0l4 4m-4-4v18" />
-                  </svg>
-                </button>
-              </div>
+
+              <aside className={styles.reviewPanel} aria-labelledby="review-title">
+                <p className={styles.microLabel}>Review conclusion</p>
+                <h3 id="review-title">Route for documentary review.</h3>
+                <span className={styles.warningFlag}>Public-data case not established</span>
+                <p>
+                  Official records confirm the reduction, but not what caused it. The BOR’s generic
+                  “comparable properties, a recent sale, and/or an update of property characteristics”
+                  language does not identify the deciding evidence.
+                </p>
+                <dl className={styles.reviewStats}>
+                  <div><dt>Broad screen</dt><dd>1,625</dd></div>
+                  <div><dt>Eligible after controls</dt><dd>162</dd></div>
+                  <div><dt>Retained for review</dt><dd>5</dd></div>
+                </dl>
+                <Link className={styles.textLink} href={readableOutcome} target="_blank" rel="noreferrer">Read the decision record ↗</Link>
+                <p className={styles.ruleNote}>
+                  The historical outcome is context—not evidence that Overtaxed participated, that this
+                  shortlist produced the result, or that a similar case should receive a reduction.
+                </p>
+              </aside>
             </div>
-            
-            {/* Right: Mock screenshot */}
-            <div className="relative">
-              {/* Browser chrome mockup */}
-              <div className="bg-white rounded-2xl border border-black/[0.08] shadow-2xl overflow-hidden">
-                {/* Browser header */}
-                <div className="bg-[#f7f6f3] px-4 py-3 border-b border-black/[0.06] flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#ff5f57]"></div>
-                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-                    <div className="w-3 h-3 rounded-full bg-[#28cd42]"></div>
-                  </div>
-                  <div className="flex-1 px-4">
-                    <div className="text-xs text-[#999] bg-white px-3 py-1.5 rounded-md font-mono">
-                      getovertaxed.com/results?acct=...
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Mock results content */}
-                <div className="p-6 space-y-4 bg-[#f7f6f3]">
-                  {/* Property header */}
-                  <div className="bg-[#2a2a2a] rounded-xl p-4 text-white">
-                    <div className="text-white/60 text-xs">Travis County, TX</div>
-                    <div className="text-white text-lg font-medium">10604 Thomaswood Ln</div>
-                  </div>
-                  
-                  {/* Assessment value */}
-                  <div className="bg-white rounded-xl p-4 flex justify-between items-center">
-                    <div>
-                      <div className="text-sm text-[#999]">Appraised Value</div>
-                      <div className="text-2xl font-bold">$303,338</div>
-                    </div>
-                    <div className="text-xs text-[#999]">2026 TCAD data</div>
-                  </div>
-                  
-                  {/* Evidence grade */}
-                  <div className="bg-[#dcfce7] border border-[#166534]/20 rounded-xl p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-[#86efac] flex items-center justify-center">
-                        <span className="text-xl font-bold text-[#166534]">A</span>
-                      </div>
-                      <div>
-                        <div className="font-semibold text-[#166534] text-sm">Evidence Grade: Strong case</div>
-                        <div className="text-xs text-[#666]">23% over-assessed vs neighbors</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Savings projection */}
-                  <div className="bg-white rounded-xl p-4">
-                    <div className="text-sm text-[#666]">Potential savings</div>
-                    <div className="text-2xl font-bold text-[#1a6b5a]">~$1,152<span className="text-sm font-semibold text-[#666]">/year</span></div>
-                    <div className="text-xs text-[#999] mt-1">10 comparable properties</div>
-                  </div>
-                  
-                  {/* CTA button in preview */}
-                  <div className="bg-[#1a6b5a] text-white rounded-xl p-4 text-center">
-                    <div className="font-medium">Get Evidence Package — $49</div>
-                    <div className="text-xs opacity-75">PDF + filing instructions</div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Floating badge */}
-              <div className="absolute -top-3 -right-3 bg-[#1a6b5a] text-white rounded-full px-3 py-2 text-xs font-medium shadow-lg">
-                Real result
-              </div>
-            </div>
-          </div>
-          
-          <p className="text-center text-sm text-[#999] mt-12">Actual results for an Austin property. Analysis is free — you only pay for the filing package.</p>
-        </div>
-      </section>
 
-      {/* Objection Busters — simplified */}
-      <section className="py-12 sm:py-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Zero risk</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-8">Common concerns, answered</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            {[
-              { q: "Can my value go up?", a: "No. By law, appeals can only reduce or maintain your value. Zero risk." },
-              { q: "Worth the $49?", a: "Average savings: $1,136/year. That's a 23x return. Lawyers charge $250-500+." },
-              { q: "Need a hearing?", a: "97% resolve without hearings. Submit evidence online from your couch." },
-            ].map((card) => (
-              <div key={card.q} className="text-center">
-                <h3 className="text-lg font-medium mb-2 text-[#1a1a1a]">{card.q}</h3>
-                <p className="text-[15px] leading-relaxed text-[#666] font-light">{card.a}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How it works — simplified */}
-      <section id="how-it-works" className="py-12 sm:py-16 px-6">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">How it works</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-8">Three steps to your appeal</h2>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-            {[
-              { num: "01", title: "Enter your address", desc: "We pull your property data from public records automatically." },
-              { num: "02", title: "We find your comps", desc: "Our system identifies similar properties assessed lower than yours." },
-              { num: "03", title: "File your appeal", desc: "Download your complete appeal package and file it yourself." },
-            ].map((step) => (
-              <div key={step.num} className="text-center">
-                <div className="text-[14px] font-medium tracking-[0.15em] text-[#aaa] mb-3">{step.num}</div>
-                <h3 className="text-lg font-medium mb-2 text-[#1a1a1a]">{step.title}</h3>
-                <p className="text-[15px] leading-relaxed text-[#666] font-light">{step.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" className="py-14 sm:py-20 px-6">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Pricing</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-4">One price. No surprises.</h2>
-          <p className="text-lg text-[#666] font-light mb-12">No percentage of savings. No hidden fees.</p>
-          
-          {/* [SHOULD FIX #5] rounded-2xl not rounded-3xl */}
-          <div className="rounded-2xl p-8 sm:p-12 bg-white border border-black/[0.06] shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-8">
+            <details className={styles.methodology}>
+              <summary>Inspect the selection method and its limits</summary>
               <div>
-                <div className="text-6xl sm:text-7xl font-normal tracking-[-0.03em] text-[#1a1a1a]">$49</div>
-                <div className="mt-2 text-[15px] text-[#999]">One-time per property</div>
+                <p><strong>Screen:</strong> Same 2024 year, neighborhood and class; within one mile and ±25% building area. Then single-card, non-multiland (one land line), whole-tieback parcels with matching use, story, quality, basement and A/C; building and land area within ±15%, age within ten years.</p>
+                <p><strong>Rank:</strong> Distance in miles + proportional building-area difference + year-built difference / 30 + proportional land-area difference. Lower is closer. Assessment level was not an input. Manual feature review excluded the fourth-ranked, two-full-bath property before retaining five.</p>
+                <p><strong>Important limit:</strong> This case was deliberately selected from historical reductions. It is not random, representative or a success-rate estimate. The analysis is retrospective, not preregistered; no physical-feature adjustments or market-value appraisal were performed.</p>
+                <p><strong>Stages stay separate:</strong> The comparison uses certified, pre-BOR assessments. Final BOR values are shown only as historical outcomes. The higher-assessed candidate’s home-improvement-exemption field remains unresolved; the displayed figures are gross certified values, not exemption-adjusted taxable amounts.</p>
               </div>
-              {/* [SHOULD FIX #5] rounded-xl for buttons */}
-              <button 
-                onClick={() => { const el = document.getElementById("footer-input"); if (el) { el.scrollIntoView({ behavior: "smooth", block: "center" }); setTimeout(() => el.focus(), 500); } }}
-                className="h-14 px-8 rounded-xl font-medium text-base bg-[#1a6b5a] text-white hover:bg-[#155a4c] shadow-lg shadow-[#1a6b5a]/20 transition-colors"
-              >
-                See My Savings
-              </button>
+            </details>
+
+            <div className={styles.auditGrid}>
+              <section aria-labelledby="exclusions-title">
+                <p className={styles.microLabel}>Exclusions stay visible</p>
+                <h3 id="exclusions-title">A low number is not enough.</h3>
+                <ul className={styles.auditList}>
+                  <li><strong>$11,200 total AV</strong><span>6905 W Balmoral: hard excluded—0.2 tieback, smaller site, slab, no A/C and different room count.</span></li>
+                  <li><strong>$11,400 total AV</strong><span>6911 W Berwyn: hard excluded—0.2 tieback and land area outside tolerance.</span></li>
+                  <li><strong>$37,000 total AV</strong><span>6913 W Farragut: excluded after manual review—two full baths versus the subject’s one.</span></li>
+                  <li><strong>$32,000 total AV</strong><span>6755 W Higgins: disclosed, not cherry-picked—larger home and lot, no garage and materially lower similarity rank.</span></li>
+                </ul>
+              </section>
+              <section aria-labelledby="unknowns-title">
+                <p className={styles.microLabel}>Open questions before professional use</p>
+                <h3 id="unknowns-title">The missing evidence matters.</h3>
+                <ol className={styles.numberedList}>
+                  <li><span>01</span><p><strong>Actual appeal file</strong>The public outcome omits submitted exhibits, hearing notes and decision detail.</p></li>
+                  <li><span>02</span><p><strong>Record cards and photos</strong>Public characteristics can be stale; physical facts and condition need confirmation.</p></li>
+                  <li><span>03</span><p><strong>Sale qualification</strong>The 2018 trustee-deed sale needs deed, closing and market context before use.</p></li>
+                  <li><span>04</span><p><strong>Exemption context</strong>The source reports a $2,400 certified HIE field for 6916 W Summerdale; its treatment needs confirmation.</p></li>
+                  <li><span>05</span><p><strong>Method sensitivity</strong>Analyst-set distance and feature tolerances need replication and robustness review.</p></li>
+                </ol>
+              </section>
             </div>
-            
-            {/* [SHOULD FIX #4] Price comparison moved ABOVE bullet list */}
-            <div className="border-t border-black/[0.06] pt-8 mb-8">
-              <p className="text-[13px] text-[#999] tracking-[0.1em] uppercase mb-4">How we compare</p>
-              <div className="flex items-center justify-center gap-8">
-                <div className="text-center">
-                  <div className="text-2xl sm:text-3xl font-semibold text-[#1a6b5a]">$49</div>
-                  <div className="text-[12px] text-[#999] mt-1">Overtaxed</div>
-                </div>
-                <div className="text-[#ccc] text-base font-light">vs</div>
-                <div className="text-center">
-                  <div className="text-2xl sm:text-3xl font-normal text-[#bbb] line-through">~$340</div>
-                  <div className="text-[12px] text-[#999] mt-1">Typical attorney (25–30%)</div>
-                </div>
+
+            <footer className={styles.caseFooter}>
+              <span>Assessed values—not market values or tax dollars</span>
+              <span>No requested value calculated · No appeal recommendation</span>
+            </footer>
+          </article>
+        </section>
+
+        <section className={`${styles.wrap} ${styles.approach}`} id="approach" aria-labelledby="approach-title">
+          <div className={styles.sectionIntro}>
+            <div>
+              <p className={styles.eyebrow}>02 / A narrower, more useful role</p>
+              <h2 id="approach-title">Better preparation.<br />Not another decision-maker.</h2>
+            </div>
+            <p>
+              The hypothesis is reduced effort to professionally approved work—not faster generation,
+              automatic selection or a promised outcome. Every proposed handoff keeps the practitioner in control.
+            </p>
+          </div>
+          <div className={styles.workflow}>
+            <article>
+              <span>01 / RECONSTRUCT</span>
+              <h3>Start with record grain.</h3>
+              <p>Keep year, stage, PIN and card structure explicit. Surface missing joins, partial tiebacks and conflicting facts before analysis.</p>
+              <dl><div><dt>Proposed tool role</dt><dd>Assemble and flag</dd></div><div><dt>Professional control</dt><dd>Verify case context</dd></div></dl>
+            </article>
+            <article>
+              <span>02 / EXAMINE</span>
+              <h3>Show the alternatives.</h3>
+              <p>Expose candidates, adverse values, exclusions and ranking assumptions. Preserve the reason for every consequential screen.</p>
+              <dl><div><dt>Proposed tool role</dt><dd>Explain the screening</dd></div><div><dt>Professional control</dt><dd>Select the evidence</dd></div></dl>
+            </article>
+            <article>
+              <span>03 / PREPARE</span>
+              <h3>Make incompleteness legible.</h3>
+              <p>Organize a draft around source references and open questions. Let “not enough evidence” stop the workflow when it should.</p>
+              <dl><div><dt>Proposed tool role</dt><dd>Structure a review draft</dd></div><div><dt>Professional control</dt><dd>Approve, file and represent</dd></div></dl>
+            </article>
+          </div>
+        </section>
+
+        <section className={styles.principle} aria-labelledby="principle-title">
+          <div className={`${styles.wrap} ${styles.principleGrid}`}>
+            <div>
+              <p className={styles.eyebrow}>03 / The operating principle</p>
+              <h2 id="principle-title">“Not enough evidence”<br /><em>is a useful answer.</em></h2>
+              <p>
+                A polished packet is not the same as a sound case. Gaps should be as visible as supporting facts,
+                and a professional should decide what happens next.
+              </p>
+            </div>
+            <div className={styles.boundaries}>
+              <article><h3>Uncertainty belongs in the file.</h3><p>Missing area, incompatible stages and unresolved property facts should interrupt a conclusion—not disappear behind a score.</p></article>
+              <article><h3>Draft means draft.</h3><p>No validated comp-quality, time-savings or outcome claim is made here. Those remain questions for controlled practitioner testing.</p></article>
+              <article><h3>The client relationship stays with the firm.</h3><p>The proposed workflow does not represent taxpayers, file appeals, give legal advice or contact a firm’s clients.</p></article>
+            </div>
+          </div>
+        </section>
+
+        <section className={`${styles.wrap} ${styles.provenance}`} aria-labelledby="sources-title">
+          <div className={styles.provenanceIntro}>
+            <p className={styles.eyebrow}>04 / Source provenance</p>
+            <h2 id="sources-title">A trail to inspect,<br />not a score to trust.</h2>
+            <p>
+              All values shown above were reconstructed from official public datasets retrieved September 18, 2026.
+              Public datasets are mutable; this page is a worked research example, not a frozen agency record.
+            </p>
+            <a className={styles.textLink} href="https://datacatalog.cookcountyil.gov/" target="_blank" rel="noreferrer">Open the Cook County Data Catalog <span aria-hidden="true">↗</span></a>
+          </div>
+          <div className={styles.sourceTable}>
+            {sources.map(([name, id, use]) => (
+              <div key={id}>
+                <div><strong><a href={`${catalog}/d/${id}`} target="_blank" rel="noreferrer">{name} ↗</a></strong><code>{id}</code></div>
+                <p>{use}</p>
               </div>
-            </div>
-            
-            <div className="border-t border-black/[0.06] pt-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  "Complete filing package with 5+ comparable properties",
-                  "Professional evidence brief ready to submit",
-                  "Step-by-step filing instructions for your county",
-                  "Delivered to your email instantly",
-                ].map((item) => (
-                  <div key={item} className="flex items-start gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#1a6b5a] mt-2 flex-shrink-0" />
-                    <span className="text-[15px] text-[#444] font-light">{item}</span>
-                  </div>
-                ))}
-              </div>
+            ))}
+            <div>
+              <div><strong>Agency guidance</strong><code>BOR / CCAO</code></div>
+              <p><a href="https://www.cookcountyboardofreview.com/how-present-case-based-lack-uniformity" target="_blank" rel="noreferrer">BOR uniformity guidance ↗</a> · <a href="https://www.cookcountyassessoril.gov/residential-appeals" target="_blank" rel="noreferrer">CCAO residential guidance ↗</a>. Direction for comparable selection—not endorsement of this screen or ranking.</p>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Price Comparison Table */}
-      <section className="py-14 sm:py-20 px-6 bg-[#f0ede7]">
-        <div className="max-w-4xl mx-auto">
-          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">Compare</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Keep more of your savings</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr>
-                  <th className="py-4 pr-4 text-[13px] text-[#999] font-medium tracking-wide"></th>
-                  <th className="py-4 px-6 text-[15px] font-semibold text-white bg-[#1a6b5a] rounded-t-xl text-center">Overtaxed</th>
-                  <th className="py-4 px-6 text-[15px] font-medium text-[#666] text-center">Typical Firm</th>
-                  <th className="py-4 px-6 text-[15px] font-medium text-[#666] text-center">DIY Alone</th>
-                </tr>
-              </thead>
-              <tbody className="text-[15px]">
-                {[
-                  ["Cost", "$49 once", "$250–500/yr", "Free"],
-                  ["Evidence packet", "✓", "✓", "✗ You research"],
-                  ["Time investment", "15 min", "None", "10–20 hours"],
-                  ["You keep (on $1K savings)", "$951/yr", "$500–750/yr", "$1,000/yr"],
-                  ["Over 5 years", "$4,951", "$2,500–3,750", "$5,000"],
-                ].map(([label, ot, firm, diy], i) => (
-                  <tr key={i} className="border-t border-black/[0.06]">
-                    <td className="py-4 pr-4 text-[#666] font-light">{label}</td>
-                    <td className={`py-4 px-6 text-center font-medium bg-[#1a6b5a]/5 ${i === 4 ? "text-[#1a6b5a] font-bold text-lg" : "text-[#1a1a1a]"}`}>{ot}</td>
-                    <td className="py-4 px-6 text-center text-[#666] font-light">{firm}</td>
-                    <td className="py-4 px-6 text-center text-[#666] font-light">{diy}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        <section className={`${styles.wrap} ${styles.conversation}`} aria-labelledby="conversation-title">
+          <div>
+            <p className={styles.eyebrow}>Start with a conversation</p>
+            <h2 id="conversation-title">Where does the file<br />slow your team down?</h2>
+            <p>We’re looking for candid workflow feedback—especially what your current process already gets right.</p>
           </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="py-14 sm:py-20 px-6">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-[13px] tracking-[0.15em] uppercase text-[#999] mb-4">FAQ</p>
-          <h2 className="text-3xl sm:text-4xl font-normal tracking-[-0.02em] mb-12">Common questions</h2>
-          
-          <FAQAccordion items={[
-            { q: "Do I need a lawyer to appeal?", a: "No. Individual homeowners can file appeals themselves. We give you everything you need — comparable properties, evidence brief, and step-by-step instructions." },
-            { q: "What if my appeal doesn't work?", a: "There's no penalty for appealing. If your assessment isn't reduced, you've lost nothing but the filing time." },
-            { q: "When can I file?", a: "In Texas, protest after receiving your appraisal notice (usually late March). Deadline is May 15 or 30 days after your notice. In Cook County, IL, appeals open by township on a rotating schedule." },
-            { q: "Why is this so much cheaper?", a: "Attorneys charge a percentage of savings because they can. We automate the research that used to take hours. Same analysis, fraction of the cost." },
-            { q: "What areas do you cover?", a: "5M+ properties across DFW (Dallas, Tarrant, Collin, Denton), Houston (Harris, Fort Bend), San Antonio (Bexar), Austin (Travis, Williamson), Rockwall County, and Cook County, IL. More coming." },
-            { q: "Can appealing my property taxes raise my value?", a: "No. Your assessed value can only stay the same or go down as a result of an appeal. The taxing authority cannot raise your value because you filed. There is zero risk." },
-            { q: "How much does the average homeowner save?", a: "Most successful protests save between $500 and $1,500 per year. In Harris County, the median DIY reduction is around $20,640 in assessed value. Your savings depend on your property and local tax rate." },
-            { q: "What is a uniformity argument?", a: "State law requires that similar properties be assessed equally. If comparable homes in your area are assessed lower than yours, you can argue your assessment should be reduced to match — even if your market value is accurate. This is one of the strongest arguments you can make." },
-            { q: "Should I protest every year?", a: "Yes. Property values and assessments change annually, and appraisal districts may raise your value each year. Filing a protest keeps your assessment in check and ensures you're not overpaying." },
-            { q: "What's the difference between market value and assessed value?", a: "Market value is what your home would sell for on the open market. Assessed value is the value your county uses to calculate your property taxes. The assessed value may be lower due to homestead caps or prior protests." },
-          ]} />
-        </div>
-      </section>
-
-      {/* Footer CTA — dark teal */}
-      <section className="py-20 sm:py-28 px-6 bg-[#0f2d26] text-center">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-normal tracking-[-0.02em] mb-4 text-white">Every year you don&apos;t protest costs you ~$1,136</h2>
-          <p className="text-lg text-[#aaa] font-light mb-10">
-            Check your address in 10 seconds. $49 if you want to appeal.
-          </p>
-          <SearchBar
-            {...searchBarProps}
-            inputRef={footerInputRef}
-            id="footer-input"
-            dark
-          />
-        </div>
-      </section>
-
-      {/* [SHOULD FIX #10] Footer — added Terms, Privacy, visible email for trust */}
-      <footer className="py-10 px-6 border-t border-black/[0.04]">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="text-[13px] text-[#999]">© 2026 Overtaxed</div>
-          <div className="flex items-center gap-6 text-[13px] text-[#999]">
-            <a href="/terms" className="hover:text-[#1a1a1a] transition-colors">Terms</a>
-            <a href="/privacy" className="hover:text-[#1a1a1a] transition-colors">Privacy</a>
-            <a href="mailto:hello@getovertaxed.com" className="hover:text-[#1a1a1a] transition-colors">hello@getovertaxed.com</a>
+          <div className={styles.contactBox}>
+            <strong>A 20-minute practitioner conversation.</strong>
+            <p>No sales deck. No client names, credentials, documents or live case data.</p>
+            <a className={styles.primaryButton} href="mailto:hello@getovertaxed.com?subject=Professional%20workflow%20conversation">Start a conversation <span aria-hidden="true">↗</span></a>
+            <p className={styles.finePrint}>Email opens in your mail client. This page has no form, upload, analytics or live product action.</p>
           </div>
-          <div className="text-[13px] text-[#999]">
-            Dallas · Houston · Austin · Chicago
-          </div>
-        </div>
+        </section>
+      </main>
+
+      <footer className={`${styles.wrap} ${styles.footer}`}>
+        <div><strong>overtaxed</strong> / Cook County professional workflow research</div>
+        <div>Evidence preparation concept. Not legal advice, representation or a claim of tax savings.</div>
+        <Link href="/homeowners">Homeowner product</Link>
       </footer>
     </div>
   );

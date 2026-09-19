@@ -19,7 +19,7 @@ export default function MetroPageClient({ metro }: { metro: MetroConfig }) {
       {/* Nav */}
       <nav className="border-b border-black/[0.06] bg-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-[#1a6b5a] tracking-tight">
+          <Link href="/homeowners" className="text-xl font-bold text-[#1a6b5a] tracking-tight">
             Overtaxed
           </Link>
           <span className="text-sm text-[#999]">{metro.name}, {metro.state}</span>
