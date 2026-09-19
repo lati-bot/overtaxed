@@ -177,6 +177,34 @@
 .footer strong { color: var(--ink); }
 .footer div:nth-child(2) { text-align: center; }
 
+.recordsPage { padding-block: 64px 90px; }
+.recordsIntro { max-width: 770px; margin-bottom: 42px; }
+.recordsIntro h1 { margin: 17px 0 18px; font-size: clamp(42px, 5vw, 68px); font-weight: 520; line-height: 1.05; letter-spacing: -.055em; }
+.recordsIntro > p:not(.eyebrow, .finePrint) { max-width: 680px; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.8; }
+.recordsIntro strong { color: var(--ink); }
+.outcomeRecord, .sourceRecord { scroll-margin-top: 22px; border: 1px solid var(--line); background: var(--white); }
+.outcomeRecord { padding: 28px; border-left: 4px solid var(--green); }
+.outcomeRecord h2, .recordsSectionHeading h2 { margin: 8px 0; font-size: 25px; font-weight: 580; letter-spacing: -.03em; }
+.outcomeRecord > div > p:last-child, .recordsSectionHeading > p:last-child, .sourceRecordHeading p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.recordFacts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin: 24px 0; background: var(--line); border: 1px solid var(--line); }
+.recordFacts div { min-width: 0; padding: 14px; background: var(--white); }
+.recordFacts dt { margin-bottom: 5px; color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.recordFacts dd { margin: 0; font-size: 14px; font-weight: 620; line-height: 1.5; }
+.recordCaution { margin: 0 0 14px; padding: 11px 13px; background: var(--amber-soft); color: var(--amber); font-size: 12px; line-height: 1.6; }
+.rawSourceLink { display: inline-block; min-height: 38px; padding: 10px 0 7px; border-bottom: 1px solid var(--line); color: var(--green) !important; font-size: 12px; font-weight: 650; text-decoration: none; }
+.rawSourceLink:hover { border-color: var(--green); }
+.assessmentRecords { margin-top: 56px; }
+.recordsSectionHeading { max-width: 720px; margin-bottom: 20px; }
+.sourceRecord { padding: 22px 26px; }
+.sourceRecord + .sourceRecord { border-top: 0; }
+.sourceRecord:target, .outcomeRecord:target { border-color: var(--green); box-shadow: 0 0 0 3px rgb(33 100 82 / 12%); }
+.sourceRecordHeading { display: flex; align-items: flex-start; justify-content: space-between; gap: 25px; }
+.sourceRecordHeading h3 { margin: 0 0 4px; font-size: 16px; font-weight: 650; }
+.sourceRecordHeading .rawSourceLink { flex: none; }
+.sourceRecord .recordFacts { grid-template-columns: repeat(5, 1fr); margin-bottom: 0; }
+.recordsFooter { display: flex; align-items: center; justify-content: space-between; gap: 30px; margin-top: 38px; }
+.recordsFooter p { max-width: 460px; margin: 0; color: var(--muted); font-size: 12px; line-height: 1.7; }
+
 @media (max-width: 1050px) {
   .wrap { width: calc(100% - 56px); }
   .heroGrid { grid-template-columns: 1.25fr 1fr; gap: 38px; }
@@ -205,6 +233,7 @@
   .conversation { gap: 35px; }
   .footer { grid-template-columns: 1fr auto; }
   .footer div:nth-child(2) { grid-column: 1 / -1; grid-row: 2; text-align: left; }
+  .recordFacts, .sourceRecord .recordFacts { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 560px) {
@@ -262,6 +291,15 @@
   .contactBox { padding-left: 18px; }
   .footer { grid-template-columns: 1fr; gap: 7px; }
   .footer div:nth-child(2) { grid-column: auto; grid-row: auto; }
+  .recordsPage { padding-block: 42px 60px; }
+  .recordsIntro { margin-bottom: 30px; }
+  .recordsIntro h1 { font-size: 42px; }
+  .outcomeRecord, .sourceRecord { padding: 20px 16px; }
+  .recordFacts, .sourceRecord .recordFacts { grid-template-columns: 1fr 1fr; }
+  .recordFacts div:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .sourceRecordHeading, .recordsFooter { align-items: flex-start; flex-direction: column; }
+  .sourceRecordHeading { gap: 9px; }
+  .assessmentRecords { margin-top: 42px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

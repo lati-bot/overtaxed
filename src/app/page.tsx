@@ -3,12 +3,9 @@ import styles from "./professional-home.module.css";
 
 const catalog = "https://datacatalog.cookcountyil.gov";
 const subjectPin = "13071240590000";
-const assessmentSource = (pin: string) =>
-  `${catalog}/resource/uzyt-m557.json?${new URLSearchParams({ $where: `year=2024 AND pin='${pin}'` })}`;
-const outcomeSource = `${catalog}/resource/7pny-nedm.json?${new URLSearchParams({
-  $where: `tax_year=2024 AND pin='${subjectPin}'`,
-  $select: "pin,tax_year,appealid,appealtypedescription,assessor_totalvalue,bor_totalvalue,result,changereasondescription",
-})}`;
+const readableRecord = (pin: string) =>
+  `/cook-county/case-review/6913-w-summerdale/records#assessment-${pin}`;
+const readableOutcome = "/cook-county/case-review/6913-w-summerdale/records#appeal-outcome";
 
 const retainedComparables = [
   {
@@ -203,12 +200,12 @@ export default function ProfessionalHome() {
                     </thead>
                     <tbody>
                       <tr className={styles.subjectRow}>
-                        <th scope="row"><a href={assessmentSource(subjectPin)} target="_blank" rel="noreferrer" aria-label="Subject official 2024 assessment record (opens in a new tab)">Subject ↗</a></th>
+                        <th scope="row"><Link href={readableRecord(subjectPin)} target="_blank" rel="noreferrer" aria-label="Readable subject 2024 assessment source record (opens in a new tab)">Subject ↗</Link></th>
                         <td>—</td><td>1953</td><td>1,022</td><td>$33,000</td><td>$23.116</td>
                       </tr>
                       {retainedComparables.map((comp) => (
                         <tr key={comp.address}>
-                          <th scope="row"><a href={assessmentSource(comp.pin)} target="_blank" rel="noreferrer" aria-label={`${comp.address}: official 2024 assessment record (opens in a new tab)`}>{comp.address} ↗</a><span className={styles.mobileNote}>{comp.note}</span></th>
+                          <th scope="row"><Link href={readableRecord(comp.pin)} target="_blank" rel="noreferrer" aria-label={`${comp.address}: readable 2024 assessment source record (opens in a new tab)`}>{comp.address} ↗</Link><span className={styles.mobileNote}>{comp.note}</span></th>
                           <td>{comp.distance} mi</td>
                           <td>{comp.year}</td>
                           <td>{comp.area}</td>
@@ -240,7 +237,7 @@ export default function ProfessionalHome() {
                   <div><dt>Eligible after controls</dt><dd>162</dd></div>
                   <div><dt>Retained for review</dt><dd>5</dd></div>
                 </dl>
-                <a className={styles.textLink} href={outcomeSource} target="_blank" rel="noreferrer">Read the official decision row ↗</a>
+                <Link className={styles.textLink} href={readableOutcome} target="_blank" rel="noreferrer">Read the decision record ↗</Link>
                 <p className={styles.ruleNote}>
                   The historical outcome is context—not evidence that Overtaxed participated, that this
                   shortlist produced the result, or that a similar case should receive a reduction.

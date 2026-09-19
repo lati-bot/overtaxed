@@ -20,10 +20,11 @@
 - Actual browser homeowner search `9725 s lasalle` returned Cook results and selecting a suggestion navigated to `/results?pin=25092210460000`.
 - Rendered homeowner head verified: correct homeowner title/copy, canonical `/homeowners`, consumer OG image with actual 1200×1200 dimensions (not inherited professional image), Twitter metadata.
 - Official dataset pages/query links returned valid records. BOR guidance returned 200. CCAO residential guidance returned 403 to command-line fetch on this pass; it was verified in the September 18 source research. Do not claim all guidance links returned 200 today.
+- After Tomi found the direct API presentation confusing, all six cited assessment links and the decision link were routed through a readable source-record page. The seven raw Cook County API rows remain available as clearly labeled secondary audit links. The new page passed targeted ESLint, TypeScript/build, and 320/390/600/768/1024/1440px browser checks with no document overflow.
 - No real payment, customer email or valid paid magic-link access exercised. Only navigation/error paths and unchanged fulfillment implementation reviewed.
 
 ## Before production approval
 - Preview only; no production merge authorized.
-- `/homeowners` deliberately remains `noindex, follow` and excluded from sitemap while the repositioning is reviewed, consistent with the migration plan. Self-canonical added. Decide whether to keep consumer acquisition de-emphasized or make the page indexable/add it to sitemap before launch. The reviewer’s SEO concern is recorded, not silently dismissed or represented as fixed.
+- Tomi explicitly approved keeping the homeowner product de-emphasized at `/homeowners` and shipping the professional root on September 19. `/homeowners` deliberately remains `noindex, follow`, excluded from the sitemap, and self-canonicalized. Revisit only if consumer acquisition becomes strategic again.
 - Existing consumer metro/blog/comparison copy still needs a separate positioning audit; preserving those pages does not resolve all professional-versus-DIY messaging tension.
 - The contact CTA opens email; no upload, live filing, client-data collection, or validated professional product is claimed.
