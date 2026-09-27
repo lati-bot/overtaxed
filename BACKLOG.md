@@ -64,6 +64,9 @@
 
 ## Completed ✅
 
+### September 26, 2026
+- ✅ **Professional homepage clarity redesign**: Direct category hero, verified-data case-file preview, three-step workflow, consolidated boundaries, dedicated full sample-case route, and updated metadata/OG image. Production build and WCAG AA automated audit passed at 320/390/1440px.
+
 ### March 31, 2026
 - ✅ **CRITICAL**: Found 2026 data drops for Houston & Dallas counties
 - ✅ **CRITICAL**: Unblocked purchases by updating has2026Data code

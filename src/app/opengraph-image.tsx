@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Overtaxed — less assembly, more room for professional judgment";
+export const alt = "Overtaxed — Cook County appeal evidence organized for professional review";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -54,17 +54,17 @@ export default function Image() {
 
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div style={{ display: "flex", color: "#216452", fontSize: "18px", fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", marginBottom: "24px" }}>
-            For Cook County residential appeal teams
+            For Cook County appeal professionals
           </div>
           <div style={{ display: "flex", flexDirection: "column", fontSize: "70px", lineHeight: 1.04, fontWeight: 500, letterSpacing: "-3.5px" }}>
-            <span>Less assembly.</span>
-            <span style={{ color: "#216452" }}>More room for your judgment.</span>
+            <span>Cook County appeal evidence,</span>
+            <span style={{ color: "#216452" }}>organized for review.</span>
           </div>
         </div>
 
         <div style={{ display: "flex", justifyContent: "space-between", paddingTop: "22px", borderTop: "1px solid #cfd7d1", color: "#59686b", fontSize: "16px" }}>
-          <span>Inspectable evidence preparation</span>
-          <span>Public-data case review · Professional control</span>
+          <span>Reconstruct · Examine · Prepare</span>
+          <span>Source-linked public records · Professional control</span>
         </div>
       </div>
     ),

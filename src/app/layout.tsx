@@ -13,25 +13,25 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Overtaxed — Evidence Preparation for Property Tax Appeal Teams",
-  description: "Overtaxed is exploring a review-first workflow for Cook County residential appeal teams: source-linked public records, comparable screening, exclusions, and open questions.",
+  title: "Overtaxed — Cook County Appeal Evidence for Professional Review",
+  description: "Overtaxed reconstructs Cook County public records and organizes comparable, supporting, adverse, and unresolved evidence into an inspectable case file for professional review.",
   metadataBase: new URL("https://getovertaxed.com"),
   icons: {
     icon: "/favicon.svg",
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "Overtaxed — More Room for Professional Judgment",
-    description: "A review-first evidence preparation workflow for Cook County residential appeal teams.",
+    title: "Cook County Appeal Evidence, Organized for Review | Overtaxed",
+    description: "An inspectable, source-linked evidence-preparation workflow for Cook County residential appeal professionals.",
     siteName: "Overtaxed",
     type: "website",
     url: "https://getovertaxed.com",
-    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Overtaxed — less assembly, more room for professional judgment" }],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Overtaxed — Cook County appeal evidence organized for professional review" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Overtaxed — More Room for Professional Judgment",
-    description: "A review-first evidence preparation workflow for Cook County residential appeal teams.",
+    title: "Cook County Appeal Evidence, Organized for Review | Overtaxed",
+    description: "An inspectable, source-linked evidence-preparation workflow for Cook County residential appeal professionals.",
     images: ["/opengraph-image"],
   },
   robots: {
